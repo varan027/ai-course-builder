@@ -15,15 +15,15 @@ const Logo = () => {
           >
             <path
               d="M4 12h16"
-              stroke="#052526"
-              strokeWidth="2"
+              stroke="#131517"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <path
               d="M12 4v16"
-              stroke="#052526"
-              strokeWidth="2"
+              stroke="#131517"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
