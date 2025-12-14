@@ -59,7 +59,7 @@ export default function CourseForm({ onGenerate }: Props) {
   };
 
   return (
-    <Card className="h-full">
+    <div className="h-full p-4 rounded-lg shadow-sm border bg-cardbgclr border-borderclr">
       <form className="space-y-4" onSubmit={handleSubmit}>
         <h1 className="text-center text-primary/90 font-semibold font-mono text-2xl">
           Create Course
@@ -122,6 +122,6 @@ export default function CourseForm({ onGenerate }: Props) {
           Generate Course
         </Button>
       </form>
-    </Card>
+    </div>
   );
 }

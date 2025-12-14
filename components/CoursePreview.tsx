@@ -12,15 +12,15 @@ interface Props {
 export default function CoursePreview({ lesson, onChange }: Props) {
   if (!lesson) {
     return (
-      <Card>
+      <div>
         Lesson not found or not loaded.
-      </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <Card>
+      <div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             {lesson.videoIds?.length ?  (
@@ -48,7 +48,7 @@ export default function CoursePreview({ lesson, onChange }: Props) {
             <div className="text-xs text-gray-500 mt-2">Autosave enabled</div>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
