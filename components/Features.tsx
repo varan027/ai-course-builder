@@ -3,9 +3,9 @@ import Card from "./ui/Card";
 
 const Features = () => {
   return (
-    <div className="w-full h-screen flex flex-col items-center px-42 py-4">
+    <div className="h-[42em] flex flex-col items-center max-w-260 mx-auto" id="features">
       <h1 className="font-mono text-xl font-semibold">Features</h1>
-      <div className="grid grid-cols-6 gap-3 grid-rows-6 mt-6 w-full h-full">
+      <div className="md:grid md:grid-cols-6 md:grid-rows-6 mt-6 h-full flex flex-col gap-2 w-full">
         <Card className="col-span-4 row-span-2">
           <h2 className="mb-2">Personalized Learning Paths</h2>
           <p className="text-xs text-graytext">

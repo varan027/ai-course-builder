@@ -7,7 +7,7 @@ interface Props extends TextareaHTMLAttributes<HTMLTextAreaElement> {
 export default function Textarea({ className = "", ...props }: Props) {
   return (
     <textarea
-      className={`w-full px-3 py-2 rounded-md bg-uibgclr text-sm
+      className={`w-full px-3 py-2 bg-uibgclr text-sm rounded-lg
                   focus:outline-none ${className}`}
       {...props}
     />

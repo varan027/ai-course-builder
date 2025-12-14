@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { IoIosArrowForward } from "react-icons/io";
 
 
-export type Opt = { value: string; label: string; meta?: string };
+export type Opt = { value: string; label?: string; meta?: string };
 
 interface Props {
   options: Opt[];
@@ -65,6 +65,8 @@ const Dropdown = ({
 
   const selected = options.find((o) => o.value === value);
 
+  const labels = ["Level", "Style", "Chapters", "Duration" ]
+
   return (
     <div className={`flex-1/2 bg-uibgclr rounded-lg ${className}`}>
       <div ref={ref} className="relative text-sm">
@@ -84,7 +86,7 @@ const Dropdown = ({
         >
           <div className="text-start">
             <label className="block text-xs text-gray-400 mb-2">
-              {selected?.label ?? placeholder}
+            {options.map((opt) => opt.label)}
             </label>
             <span className="font-medium">
               {selected?.value ?? placeholder}

@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import { Course, Lesson } from "../lib/types";
-import Textarea from "./ui/Textarea";
-import Card from "./ui/Card";
+import { Course, Lesson } from "../../../lib/types";
+import Textarea from "../../../components/ui/Textarea";
+import Card from "../../../components/ui/Card";
 
 interface Props {
   lesson?: Lesson | null;
