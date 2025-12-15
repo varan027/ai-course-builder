@@ -1,106 +1,87 @@
-"use client";
-
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import TopicInput from "../../../components/ui/TopicInput";
 import Dropdown from "../../../components/ui/Dropdown";
 import Button from "../../../components/ui/Button";
-import Card from "../../../components/ui/Card";
 import Textarea from "../../../components/ui/Textarea";
 import type { Opt } from "../../../components/ui/Dropdown";
 import { UserInputContext } from "@/app/_context/UserInputContext";
 
-
-interface FormValues {
-  topic: string;
-  level: string;
-  chapters: string;
-  duration: string;
+interface CourseGenerateProps {
+    OnGenerate: (e: React.FormEvent) => Promise<void>;
 }
 
-export default function CourseForm() {
+export default function CourseForm({ OnGenerate }: CourseGenerateProps) {
   const LEVEL_OPTIONS: Opt[] = [
-    { value: "Beginner",label: "Level" },
-    { value: "Intermediate"},
+    { value: "Beginner", label: "Level" },
+    { value: "Intermediate" },
     { value: "Advanced" },
   ];
 
   const CHAPTER_OPTIONS: Opt[] = [
-    { value: "3",label: "Chapter" },
+    { value: "3", label: "Chapter" },
     { value: "4" },
     { value: "5" },
-    { value: "6"},
+    { value: "6" },
   ];
 
   const STYLE_OPTIONS: Opt[] = [
     { value: "Quality", label: "Style" },
-    { value: "Speed"},
-    { value: "Balanced"},
+    { value: "Speed" },
+    { value: "Balanced" },
   ];
 
   const DURATION_OPTIONS: Opt[] = [
-    { value: "<3h",label: "Duration" },
-    { value: "4h"},
-    { value: "5h"},
-    { value: ">6h"},
+    { value: "1h", label: "Duration" },
+    { value: "2h" },
+    { value: "3h" },
+    { value: "4h" },
   ];
 
   const [topic, setTopic] = useState("");
   const [desc, setDesc] = useState("");
-  const [level, setLevel] = useState("value");
+  const [level, setLevel] = useState("");
   const [chapters, setChapters] = useState("");
   const [duration, setDuration] = useState("");
   const [style, setStyle] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const { userInput, setUserInput } = useContext(UserInputContext)!;
+
+  const stateSetters: Record<string, React.Dispatch<React.SetStateAction<string>>> = {
+    topic: setTopic,
+    description: setDesc, 
+    level: setLevel,
+    style: setStyle,
+    chapters: setChapters,
+    duration: setDuration,
   };
 
-  const {userInput, setUserInput} = useContext(UserInputContext)!;
+  const handleUpdate = useCallback(
+    ({ fieldName, value }: { fieldName: string; value: string }) => {
+      setUserInput((prev) => ({
+        ...prev,
+        [fieldName]: value,
+      }));
 
-  const handleTopicUpdate = ({fieldName, value}: {fieldName: string, value: string}) => {
-    setUserInput((prev) => ({
-      ...prev,[fieldName]: value
-    }));
-    setTopic(value)
-  }
-  const handleDescUpdate = ({fieldName, value}: {fieldName: string, value: string}) => {
-    setUserInput((prev) => ({
-      ...prev,[fieldName]: value
-    }));
-    setDesc(value)
-  }
-  const handleLevelUpdate = ({fieldName, value}: {fieldName: string, value: string}) => {
-    setUserInput((prev) => ({
-      ...prev,[fieldName]: value
-    }));
-    setLevel(value)
-  }
-  const handleStyleUpdate = ({fieldName, value}: {fieldName: string, value: string}) => {
-    setUserInput((prev) => ({
-      ...prev,[fieldName]: value
-    }));
-    setStyle(value)
-  }
-  const handleChapterUpdate = ({fieldName, value}: {fieldName: string, value: string}) => {
-    setUserInput((prev) => ({
-      ...prev,[fieldName]: value
-    }));
-    setChapters(value)
-  }
-  const handleDurationUpdate = ({fieldName, value}: {fieldName: string, value: string}) => {
-    setUserInput((prev) => ({
-      ...prev,[fieldName]: value
-    }));
-    setDuration(value)
-  }
+      const setter = stateSetters[fieldName];
+      if (setter) {
+        setter(value);
+      } else {
+        console.warn(`No setter found for fieldName: ${fieldName}`);
+      }
+    },
+    [setUserInput, stateSetters]
+  );
 
-  useEffect(()=>{
-    console.log("User Input Updated:", userInput);
-  },[userInput])
+  const handleTopicUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
+  const handleDescUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
+  const handleLevelUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
+  const handleStyleUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
+  const handleChapterUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
+  const handleDurationUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
 
   return (
     <div className="h-full p-4 rounded-lg shadow-sm border bg-cardbgclr border-borderclr">
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={OnGenerate}>
         <h1 className="text-center text-primary/90 font-semibold font-mono text-2xl">
           Create Course
         </h1>
@@ -110,19 +91,23 @@ export default function CourseForm() {
           id="topic"
           placeholder="Topic (e.g. React Basics)"
           value={topic}
-          onChange={(e) => (
-            handleTopicUpdate({fieldName: "topic", value: e.target.value}
-          ))}
+          onChange={(e) =>
+            handleTopicUpdate({ fieldName: "topic", value: e.target.value })
+          }
           className="h-12"
+          defaultValue={userInput.topic}
         />
 
         <Textarea
           id="description"
           placeholder="Course Description"
           value={desc}
-          onChange={(e) => (
-            handleDescUpdate({fieldName: "description", value: e.target.value}
-          ))}
+          onChange={(e) =>
+            handleDescUpdate({
+              fieldName: "description",
+              value: e.target.value,
+            })
+          }
           className="h-32"
         />
 
@@ -130,18 +115,18 @@ export default function CourseForm() {
           <Dropdown
             options={LEVEL_OPTIONS}
             value={level}
-            onChange={(value) => (
-            handleLevelUpdate({fieldName: "level", value: value}
-          ))}
+            onChange={(value) =>
+              handleLevelUpdate({ fieldName: "level", value: value })
+            }
             align="left"
           />
 
           <Dropdown
             options={STYLE_OPTIONS}
             value={style}
-            onChange={(value) => (
-            handleStyleUpdate({fieldName: "style", value: value}
-          ))}
+            onChange={(value) =>
+              handleStyleUpdate({ fieldName: "style", value: value })
+            }
             align="left"
           />
         </div>
@@ -150,18 +135,18 @@ export default function CourseForm() {
           <Dropdown
             options={CHAPTER_OPTIONS}
             value={chapters}
-            onChange={(value) => (
-            handleChapterUpdate({fieldName: "chapters", value: value}
-          ))}
+            onChange={(value) =>
+              handleChapterUpdate({ fieldName: "chapters", value: value })
+            }
             align="left"
           />
 
           <Dropdown
             options={DURATION_OPTIONS}
             value={duration}
-            onChange={(value) => (
-            handleDurationUpdate({fieldName: "duration", value: value}
-          ))}
+            onChange={(value) =>
+              handleDurationUpdate({ fieldName: "duration", value: value })
+            }
             align="left"
           />
         </div>
