@@ -95,7 +95,6 @@ export default function CourseForm({ OnGenerate }: CourseGenerateProps) {
             handleTopicUpdate({ fieldName: "topic", value: e.target.value })
           }
           className="h-12"
-          defaultValue={userInput.topic}
         />
 
         <Textarea
