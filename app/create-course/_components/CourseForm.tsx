@@ -48,9 +48,8 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.message || `HTTP error! Status: ${response.status}`
-        );
+        const errorMessage = errorData?.error || errorData?.message || JSON.stringify(errorData);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
