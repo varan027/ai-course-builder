@@ -11,6 +11,7 @@ interface Props {
   align?: "right" | "left";
   defaultOpen?: boolean;
   className?: string;
+  label: string;
 }
 
 const Dropdown = ({
@@ -21,6 +22,7 @@ const Dropdown = ({
   align = "right",
   defaultOpen = false,
   className = "",
+  label
 }: Props) => {
   const [open, setOpen] = useState<boolean>(defaultOpen);
   const [highlighted, setHighlighted] = useState<number>(-1);
@@ -61,9 +63,7 @@ const Dropdown = ({
     el?.scrollIntoView({ block: "nearest" });
   }, [highlighted]);
 
-  const selected = options.find((o) => o.value === value);
-
-  const labels = ["Level", "Style", "Chapters", "Duration" ]
+  const selected = options.find((o) => String(o.value) === String(value));
 
   return (
     <div className={`flex-1/2 bg-uibgclr rounded-lg ${className}`}>
@@ -84,10 +84,10 @@ const Dropdown = ({
         >
           <div className="text-start">
             <label className="block text-xs text-gray-400 mb-2">
-            {options.map((opt) => opt.label)}
+            {label}
             </label>
             <span className="font-medium">
-              {selected?.value ?? placeholder}
+              {selected ? (selected.value || selected.label) : (value ? value : placeholder)}
             </span>
           </div>
           <span className="text-xs opacity-80"><IoIosArrowForward/></span>
@@ -111,6 +111,7 @@ const Dropdown = ({
                   aria-selected={sel}
                   onMouseEnter={() => setHighlighted(i)}
                   onClick={() => {
+                    console.log("Dropdown Clicked", opt.value)
                     onChange(opt.value);
                     setOpen(false);
                   }}

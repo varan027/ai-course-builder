@@ -1,32 +1,28 @@
 "use client"
 import type { CourseData } from "@/lib/types"
 import { useState } from "react"
-import { BiArrowBack } from "react-icons/bi"
-import { FaOpenid } from "react-icons/fa6"
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io"
 
 export interface CourseProps{
-  CourseLists: CourseData[]
   loading: boolean;
-  Coursedata : CourseData | null;
+  ActiveCourse : CourseData | null;
 }
 
-const CoursePreview = ({CourseLists, loading, Coursedata}: CourseProps) => {
-  if(loading){
+const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
+  if (loading) {
     return (
-      <div>
-        Generating your Masterpiece.....
+      <div className="animate-pulse ">
+        <div className="h-50 bg-uibgclr w-[70vw] mb-4 rounded-lg p-6 text-graytext/40 text-xl">Generating . . . . </div>
+        <div className="h-24 bg-uibgclr rounded-lg w-full mb-4"></div>
+        <div className="h-24 bg-uibgclr rounded-lg mb-4"></div>
+        <div className="h-12 bg-uibgclr rounded-lg mb-4"></div>
+        <div className="h-6 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
+        <div className="h-6 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
+        <div className="h-6 bg-uibgclr rounded-lg w-4/6"></div>
       </div>
-    )
+    );
   }
 
-  if(!Coursedata){
-    return (
-      <div>
-        Fill the Input fields to generate the course
-      </div>
-    )
-  }
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -36,43 +32,47 @@ const CoursePreview = ({CourseLists, loading, Coursedata}: CourseProps) => {
 
   return (
     <div>
-      {CourseLists.length == 0 ? (
-        <p>No Courses Found</p>
+      {!ActiveCourse ? (
+        <div className="bg-cardbgclr border border-borderclr w-[70vw] p-12 rounded-lg">
+          <h1 className="font-mono font-extrabold text-5xl mt-20 text-graytext">GENERATE COURSES <br /> IN ONE CLICK</h1>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {CourseLists.map((course)=>(
-            <div key={course._id}>
-              <div className=" rounded-lg shadow-sm border bg-cardbgclr border-borderclr w-290">
-                <div className="bg-uibgclr p-4 space-y-2">
-                  <h2 className="font-bold text-2xl">{course.name}</h2>
-                  <p className="text-sm text-graytext">{course.description}</p>
+        <div >
+            <div key={ActiveCourse._id} className="space-y-4">
+                <div className="p-6 h-[250px] grid grid-cols-1 md:grid-cols-2 gap-12 rounded-lg bg-cardbgclr border border-borderclr">
+                  <div className="">
+                    <h2 className="font-bold text-2xl text-primary">{ActiveCourse.name}</h2>
+                    <p className="text-sm text-graytext/80 mt-3">{ActiveCourse.description}</p>
+                  </div>
+                  <div className="bg-uibgclr rounded-lg p-4">
+                    <img src="#" alt="" />
+                    varan
+                  </div>
                 </div>
-                <div className="space-y-2 p-3">
-                  {course.outline?.Chapters?.map((chapter, index)=>(
-                    <div key={index} className="bg-black/40 rounded-lg border border-borderclr ">
-                      <div className="flex justify-between items-center p-2">
-                        <div>
-                          Chapter {index + 1} : <span>{chapter.Chapter_Name}</span>
+                <div className="p-6 bg-cardbgclr border border-borderclr rounded-lg space-y-4">
+                  {ActiveCourse.outline?.chapters?.map((chapter, index)=>(
+                    <div key={index} className="bg-uibgclr rounded-lg border border-borderclr p-4">
+                      <div className="flex justify-between items-center">
+                        <div className="w-full">
+                          Chapter {index + 1} : <span>{chapter.chapterName}</span>
                         </div>
-                        <button className="cursor-pointer bg-uibgclr p-2"
+                        <button className="cursor-pointer text-xl"
                         onClick={()=>{toggle(index)}}>
                           {activeIndex == index ? <IoIosArrowUp/> : <IoIosArrowDown/>}
                         </button>
                       </div>
-                      <div className={`overflow-hidden ${activeIndex==index ? "max-h-25" : "max-h-0"}`} >
-                        <div className="font-normal px-2">
-                          {chapter.About}
+                      <div  className={`overflow-hidden ${activeIndex==index ? "max-h-25" : "max-h-0"}`} >
+                        <div className="font-normal text-graytext mt-3 ">
+                          {chapter.about}
                         </div>
-                        <div className="text-sm font-normal text-graytext p-2">
-                          {chapter.Duration}
+                        <div className="text-sm font-normal text-graytext mt-3">
+                          {chapter.duration}
                         </div>
                       </div>
                     </div>
                 ))}
                 </div>
               </div>
-            </div>
-          ))}
         </div>
       )}
 

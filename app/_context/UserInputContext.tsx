@@ -5,7 +5,7 @@ export interface FormValues {
   topic: string;
   description: string;
   level: string;
-  chapters: [];
+  chapters: string;
   style: string;
   duration: string;
 }

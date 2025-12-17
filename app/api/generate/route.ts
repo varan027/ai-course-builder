@@ -2,6 +2,8 @@ import ConnectToDB from "@/lib/db";
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 import CourseModel from "@/models/CourseModel";
+import { UserInputContext } from "@/app/_context/UserInputContext";
+import { useContext } from "react";
 
 async function getGeminiResponse(inputText: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -50,6 +52,7 @@ async function getGeminiResponse(inputText: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
+  const { userInput, setUserInput } = useContext(UserInputContext)!;
   try {
     await ConnectToDB();
 
@@ -67,13 +70,17 @@ export async function POST(req: NextRequest) {
     try {
       const CourseOutline = JSON.parse(jsonString);
       const newCourse = await CourseModel.create({
-        name: CourseOutline.Course_Name || "Untitled Course",
-        description: CourseOutline.Description || "No Description",
+        name: CourseOutline.courseName,
+        description: CourseOutline.description,
+        topic: userInput.topic,
+        level: userInput.level,
+        duration: userInput.duration,
+        style: userInput.style,
         outline: CourseOutline,
       });
       console.log(`Course Saved with ID: ${newCourse._id}`);
 
-      return NextResponse.json({ result: newCourse.outline }, { status: 200 });
+      return NextResponse.json({ result: newCourse }, { status: 200 });
     } catch (dberror) {
       console.error("Database Error", dberror);
       return NextResponse.json(

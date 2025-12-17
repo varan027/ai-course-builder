@@ -8,19 +8,19 @@ export interface Lesson {
 
 interface Chapter {
   index: string;
-  Chapter_Name: string;
-  About: string;
-  Duration: string;
+  chapterName: string;
+  about: string;
+  duration: string;
 }
 
 export interface CourseOutline {
-  Course_Name: string;
-  Description: string;
-  Chapters: Chapter[];
+  courseName: string;
+  description: string;
+  chapters: Chapter[];
   topic: string;
-  Level: string;
-  Duration: string;
-  No_Of_Chapters: string;
+  level: string;
+  duration: string;
+  noOfChapters: string;
 }
 
 export interface CourseData {

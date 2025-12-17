@@ -7,6 +7,7 @@ import Textarea from "../../../components/ui/Textarea";
 import { UserInputContext } from "@/app/_context/UserInputContext";
 import { LEVEL_OPTIONS, STYLE_OPTIONS, DURATION_OPTIONS, CHAPTER_OPTIONS } from "@/constants/formOptions";
 import { CourseData } from "@/lib/types";
+import { GenerateCoursePrompt } from "@/constants/AiPrompt";
 
 interface CourseFormProps {
   setCourseData: React.Dispatch<React.SetStateAction<CourseData | null>>;
@@ -14,75 +15,27 @@ interface CourseFormProps {
 }
 
 export default function CourseForm({setLoading, setCourseData}: CourseFormProps) {
-
-  const [topic, setTopic] = useState("");
-  const [desc, setDesc] = useState("");
-  const [level, setLevel] = useState("");
-  const [chapters, setChapters] = useState("");
-  const [duration, setDuration] = useState("");
-  const [style, setStyle] = useState("");
-
   const { userInput, setUserInput } = useContext(UserInputContext)!;
 
-  const stateSetters: Record<string, React.Dispatch<React.SetStateAction<string>>> = {
-    topic: setTopic,
-    description: setDesc, 
-    level: setLevel,
-    style: setStyle,
-    chapters: setChapters,
-    duration: setDuration,
-  };
+  const [userForm, setUserForm]= useState({
+    topic: "",
+    description: "",
+    level:"Beginner",
+    duration: "1h",
+    style: "Quality",
+    chapters: "3",
+  })
 
-  const handleUpdate = useCallback(
-    ({ fieldName, value }: { fieldName: string; value: string }) => {
-      setUserInput((prev) => ({
-        ...prev,
-        [fieldName]: value,
-      }));
-
-      const setter = stateSetters[fieldName];
-      if (setter) {
-        setter(value);
-      } else {
-        console.warn(`No setter found for fieldName: ${fieldName}`);
-      }
-    },
-    [setUserInput, stateSetters]
-  );
-
-  const handleTopicUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
-  const handleDescUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
-  const handleLevelUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
-  const handleStyleUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
-  const handleChapterUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
-  const handleDurationUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
+  const handleInputChange = (field: string, value: any) =>{
+    console.log("parent recieved", field, value)
+    setUserForm((prev)=> {
+      return {...prev, [field]: value}
+    })
+  }
 
   const GenerateCourseLayout = async () => {
     setLoading(true);
-    const DEFAULT_PROMPT =
-      "Generate a Course Tutorial on Following Details as Fields Course_Name, Description, Along with Chapter Name, About, Duration : ";
-    const USER_INPUT_PROMPT =
-      "Topic: " +
-      userInput?.topic +
-      ",Description: " +
-      userInput?.description +
-      ", Level: " +
-      userInput?.level +
-      ", Duration: " +
-      userInput?.duration +
-      ", No Of Chapter:" +
-      userInput?.chapters +
-      ",and the quality/speed/balanced:" +
-      userInput?.style +
-      " in JSON Format";
-
-    const FINAL_PROMPT = DEFAULT_PROMPT + USER_INPUT_PROMPT;
-    console.log(FINAL_PROMPT);
-    console.log("Client-side prompt being sent:", FINAL_PROMPT);
-    if (!FINAL_PROMPT) {
-      console.error("Prompt string is empty or too short. Aborting fetch.");
-      return;
-    }
+    const FINAL_PROMPT = GenerateCoursePrompt(userInput)
 
     try {
       const response = await fetch("/api/generate", {
@@ -120,9 +73,11 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
       }
     };
 
+    console.log("current state : ", userInput)
+
   return (
-    <div className="h-full p-4 rounded-lg shadow-sm border bg-cardbgclr border-borderclr">
-      <form className="space-y-4" onSubmit={handleGeneration}>
+    <div className="p-4 rounded-lg shadow-sm border bg-cardbgclr border-borderclr">
+      <form className="space-y-4 relative lg:h-[80vh]" onSubmit={handleGeneration}>
         <h1 className="text-center text-primary/90 font-semibold font-mono text-2xl">
           Create Course
         </h1>
@@ -131,9 +86,8 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
         <TopicInput
           id="topic"
           placeholder="Topic (e.g. React Basics)"
-          value={topic}
           onChange={(e) =>
-            handleTopicUpdate({ fieldName: "topic", value: e.target.value })
+            handleInputChange("topic", e.target.value)
           }
           className="h-12"
         />
@@ -141,60 +95,62 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
         <Textarea
           id="description"
           placeholder="Course Description"
-          value={desc}
           onChange={(e) =>
-            handleDescUpdate({
-              fieldName: "description",
-              value: e.target.value,
-            })
+            handleInputChange("description", e.target.value)
           }
           className="h-32"
         />
 
         <div className="flex gap-4">
           <Dropdown
+            label="Level"
             options={LEVEL_OPTIONS}
-            value={level}
-            onChange={(value) =>
-              handleLevelUpdate({ fieldName: "level", value: value })
+            value={userForm.level}
+            onChange={(value) =>{
+              console.log(userInput.level)
+              handleInputChange("level", value)
+            } 
             }
             align="left"
           />
 
           <Dropdown
+            label="Style"
             options={STYLE_OPTIONS}
-            value={style}
+            value={userForm.style}
             onChange={(value) =>
-              handleStyleUpdate({ fieldName: "style", value: value })
-            }
+            handleInputChange("style", value)
+          }
             align="left"
           />
         </div>
 
         <div className="flex gap-4 ">
           <Dropdown
+            label="Chapter"
             options={CHAPTER_OPTIONS}
-            value={chapters}
+            value={userForm.chapters}
             onChange={(value) =>
-              handleChapterUpdate({ fieldName: "chapters", value: value })
-            }
+            handleInputChange("chapters", value)
+          }
             align="left"
           />
 
           <Dropdown
+            label="Duration"
             options={DURATION_OPTIONS}
-            value={duration}
+            value={userForm.duration}
             onChange={(value) =>
-              handleDurationUpdate({ fieldName: "duration", value: value })
-            }
+            handleInputChange("duration", value)
+          }
             align="left"
           />
         </div>
 
         <Button
-          className="w-full mt-8"
+          className="w-full lg:absolute lg:bottom-4"
           type="submit"
-          disabled={topic === ""}
+          disabled={userInput.topic === ""}
         >
           Generate Course
         </Button>

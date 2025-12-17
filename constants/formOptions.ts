@@ -1,31 +1,32 @@
+// constants/formOptions.ts
+
 export type Opt = { 
   value: string;
-  label?: string;
+  label: string; // Removed '?' to force a label (better UX)
   meta?: string 
 };
 
 export const LEVEL_OPTIONS: Opt[] = [
-  { value: "Beginner", label: "Level" },
-  { value: "Intermediate" },
-  { value: "Advanced" },
+  { label: "Beginner", value: "Beginner" },
+  { label: "Intermediate", value: "Intermediate" },
+  { label: "Advanced", value: "Advanced" },
 ];
 
 export const CHAPTER_OPTIONS: Opt[] = [
-  { value: "3", label: "Chapter" },
-  { value: "4" },
-  { value: "5" },
-  { value: "6" },
+  { label: "3 Chapters", value: "3" },
+  { label: "4 Chapters", value: "4" },
+  { label: "5 Chapters", value: "5" },
+  { label: "6 Chapters", value: "6" },
 ];
 
 export const STYLE_OPTIONS: Opt[] = [
-  { value: "Quality", label: "Style" },
-  { value: "Speed" },
-  { value: "Balanced" },
+  { label: "Quality (Detailed)", value: "Quality" },
+  { label: "Speed (Concise)", value: "Speed" },
+  { label: "Balanced", value: "Balanced" },
 ];
 
 export const DURATION_OPTIONS: Opt[] = [
-  { value: "1h", label: "Duration" },
-  { value: "2h" },
-  { value: "3h" },
-  { value: "4h" },
+  { label: "1 Hour", value: "1h" },
+  { label: "2 Hours", value: "2h" },
+  { label: "5+ Hours", value: "5h" },
 ];

@@ -1,7 +1,19 @@
 import mongoose from "mongoose";
 
+const ChapterSchema = new mongoose.Schema({
+  chapterName:{
+    type: String, required: true,
+  },
+  about:{
+    type: String, required: true,
+  },
+  duration:{
+    type: String, required: true,
+  }
+})
+
 const CourseSchema = new mongoose.Schema({
-  id:{
+  courseId:{
     type: String,
   },
   name: {
@@ -12,9 +24,25 @@ const CourseSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // You can store the JSON output from Gemini here
+  topic: {
+    type: String,
+    required: true,
+  },
+  level: {
+    type: String,
+    required: true,
+  },
+  duration: {
+    type: String,
+    required: true,
+  },
+  style: {
+    type: String,
+    required: true,
+  },
+  chapters: [ChapterSchema],
   outline: {
-    type: Object, // Stores the complex JSON structure
+    type: Object,
   },
   createdAt: {
     type: Date,

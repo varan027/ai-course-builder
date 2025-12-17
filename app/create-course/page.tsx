@@ -1,13 +1,12 @@
 import { getCourseData } from "@/lib/data";
 import Wrapper from "./_components/Wrapper";
 
-const CourseCreatePage = async () => {
-  const courses = await getCourseData();
 
+const CourseCreatePage = async () => {
 
   return (
-    <main className="lg:p-4 p-2 mt-16 md:px-24">
-      <Wrapper CourseLists={courses} />
+    <main className="lg:p-4 p-2 mt-18 ">
+      <Wrapper />
     </main>
   );
 };
