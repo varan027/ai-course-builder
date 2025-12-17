@@ -13,11 +13,6 @@ const ConnectToDB = async () =>{
     throw new Error("MONGO_URI is not defined");
   }
 
-  if(cached.conn){
-    console.log("DB reusing cached connection");
-    return cached.conn
-  }
-
   if(!cached.promise){
     const opts = {
       bufferCommands: false

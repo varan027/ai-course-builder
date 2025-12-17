@@ -12,7 +12,7 @@ export interface FormValues {
 
 export interface UserInputContextType {
   userInput: FormValues;
-  setUserInput: Dispatch<SetStateAction<string[]>>;
+  setUserInput: Dispatch<SetStateAction<FormValues>>;
 }
 
 export const UserInputContext = createContext<UserInputContextType | null>(null);

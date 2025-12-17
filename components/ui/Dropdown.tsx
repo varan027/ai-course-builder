@@ -1,9 +1,7 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IoIosArrowForward } from "react-icons/io";
-
-
-export type Opt = { value: string; label?: string; meta?: string };
+import type { Opt } from "@/constants/formOptions";
 
 interface Props {
   options: Opt[];

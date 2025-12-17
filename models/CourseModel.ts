@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 
 const CourseSchema = new mongoose.Schema({
+  id:{
+    type: String,
+  },
   name: {
     type: String,
     required: [true, 'Please provide a name for this course.'],

@@ -1,41 +1,13 @@
+"use client"
 import { useContext, useEffect, useState, useCallback } from "react";
 import TopicInput from "../../../components/ui/TopicInput";
 import Dropdown from "../../../components/ui/Dropdown";
 import Button from "../../../components/ui/Button";
 import Textarea from "../../../components/ui/Textarea";
-import type { Opt } from "../../../components/ui/Dropdown";
 import { UserInputContext } from "@/app/_context/UserInputContext";
+import { LEVEL_OPTIONS, STYLE_OPTIONS, DURATION_OPTIONS, CHAPTER_OPTIONS } from "@/constants/formOptions";
 
-interface CourseGenerateProps {
-    OnGenerate: (e: React.FormEvent) => Promise<void>;
-}
-
-export default function CourseForm({ OnGenerate }: CourseGenerateProps) {
-  const LEVEL_OPTIONS: Opt[] = [
-    { value: "Beginner", label: "Level" },
-    { value: "Intermediate" },
-    { value: "Advanced" },
-  ];
-
-  const CHAPTER_OPTIONS: Opt[] = [
-    { value: "3", label: "Chapter" },
-    { value: "4" },
-    { value: "5" },
-    { value: "6" },
-  ];
-
-  const STYLE_OPTIONS: Opt[] = [
-    { value: "Quality", label: "Style" },
-    { value: "Speed" },
-    { value: "Balanced" },
-  ];
-
-  const DURATION_OPTIONS: Opt[] = [
-    { value: "1h", label: "Duration" },
-    { value: "2h" },
-    { value: "3h" },
-    { value: "4h" },
-  ];
+export default function CourseForm() {
 
   const [topic, setTopic] = useState("");
   const [desc, setDesc] = useState("");
@@ -43,6 +15,7 @@ export default function CourseForm({ OnGenerate }: CourseGenerateProps) {
   const [chapters, setChapters] = useState("");
   const [duration, setDuration] = useState("");
   const [style, setStyle] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const { userInput, setUserInput } = useContext(UserInputContext)!;
 
@@ -79,9 +52,70 @@ export default function CourseForm({ OnGenerate }: CourseGenerateProps) {
   const handleChapterUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
   const handleDurationUpdate = (props: { fieldName: string; value: string }) => handleUpdate(props);
 
+  const GenerateCourseLayout = async () => {
+    setLoading(true);
+    const DEFAULT_PROMPT =
+      "Generate a Course Tutorial on Following Details as Fields Course_Name, Description, Along with Chapter Name, About, Duration : ";
+    const USER_INPUT_PROMPT =
+      "Topic: " +
+      userInput?.topic +
+      ",Description: " +
+      userInput?.description +
+      ", Level: " +
+      userInput?.level +
+      ", Duration: " +
+      userInput?.duration +
+      ", No Of Chapter:" +
+      userInput?.chapters +
+      ",and the quality/speed/balanced:" +
+      userInput?.style +
+      " in JSON Format";
+
+    const FINAL_PROMPT = DEFAULT_PROMPT + USER_INPUT_PROMPT;
+    console.log(FINAL_PROMPT);
+    console.log("Client-side prompt being sent:", FINAL_PROMPT);
+    if (!FINAL_PROMPT) {
+      console.error("Prompt string is empty or too short. Aborting fetch.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: FINAL_PROMPT }),
+      });
+      setLoading(false);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `HTTP error! Status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      const finalResult = data.result;
+      console.log(finalResult);
+    } catch (error) {
+      console.error("Failed to generate course layout:", error);
+    }
+  };
+
+  const handleGeneration = async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        await GenerateCourseLayout();
+      } catch (error) {
+        console.error("Generation process failed:", error);
+      }
+    };
+
   return (
     <div className="h-full p-4 rounded-lg shadow-sm border bg-cardbgclr border-borderclr">
-      <form className="space-y-4" onSubmit={OnGenerate}>
+      <form className="space-y-4" onSubmit={handleGeneration}>
         <h1 className="text-center text-primary/90 font-semibold font-mono text-2xl">
           Create Course
         </h1>

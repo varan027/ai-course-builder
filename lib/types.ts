@@ -6,18 +6,27 @@ export interface Lesson {
   videoIds: string[];
 }
 
-export interface Chapter {
-  id: string;
-  index: number;
-  title: string;
-  objective: string;
-  est_time_mins: number;
-  lessons: Lesson[];
+interface Chapter {
+  index: string;
+  Chapter_Name: string;
+  About: string;
+  Duration: string;
+}
+
+export interface ChaptersOutline {
+  Course_Name: string;
+  Description: string;
+  Chapters: Chapter[];
+  topic: string;
+  Level: string;
+  Duration: string;
+  No_Of_Chapters: string;
 }
 
 export interface Course {
-  id: string;
-  title: string;
+  _id: string;
+  name: string;
   description: string;
-  chapters: Chapter[];
+  outline: ChaptersOutline;
+  createdAt: string;
 }
