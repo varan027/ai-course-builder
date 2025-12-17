@@ -13,7 +13,7 @@ interface Chapter {
   Duration: string;
 }
 
-export interface ChaptersOutline {
+export interface CourseOutline {
   Course_Name: string;
   Description: string;
   Chapters: Chapter[];
@@ -23,10 +23,10 @@ export interface ChaptersOutline {
   No_Of_Chapters: string;
 }
 
-export interface Course {
+export interface CourseData {
   _id: string;
   name: string;
   description: string;
-  outline: ChaptersOutline;
+  outline: CourseOutline;
   createdAt: string;
 }

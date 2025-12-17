@@ -1,13 +1,19 @@
 "use client"
-import { useContext, useEffect, useState, useCallback } from "react";
+import { useContext, useState, useCallback } from "react";
 import TopicInput from "../../../components/ui/TopicInput";
 import Dropdown from "../../../components/ui/Dropdown";
 import Button from "../../../components/ui/Button";
 import Textarea from "../../../components/ui/Textarea";
 import { UserInputContext } from "@/app/_context/UserInputContext";
 import { LEVEL_OPTIONS, STYLE_OPTIONS, DURATION_OPTIONS, CHAPTER_OPTIONS } from "@/constants/formOptions";
+import { CourseData } from "@/lib/types";
 
-export default function CourseForm() {
+interface CourseFormProps {
+  setCourseData: React.Dispatch<React.SetStateAction<CourseData | null>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export default function CourseForm({setLoading, setCourseData}: CourseFormProps) {
 
   const [topic, setTopic] = useState("");
   const [desc, setDesc] = useState("");
@@ -15,7 +21,6 @@ export default function CourseForm() {
   const [chapters, setChapters] = useState("");
   const [duration, setDuration] = useState("");
   const [style, setStyle] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const { userInput, setUserInput } = useContext(UserInputContext)!;
 
@@ -87,7 +92,6 @@ export default function CourseForm() {
         },
         body: JSON.stringify({ prompt: FINAL_PROMPT }),
       });
-      setLoading(false);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -98,9 +102,12 @@ export default function CourseForm() {
 
       const data = await response.json();
       const finalResult = data.result;
-      console.log(finalResult);
+      setCourseData(finalResult)
+      
     } catch (error) {
       console.error("Failed to generate course layout:", error);
+    } finally{
+      setLoading(false);
     }
   };
 
