@@ -33,8 +33,10 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
   return (
     <div>
       {!ActiveCourse ? (
-        <div className="bg-cardbgclr border border-borderclr w-[70vw] p-12 rounded-lg">
+        <div>
+          <div className="bg-cardbgclr border border-borderclr w-[70vw] p-12 rounded-lg">
           <h1 className="font-mono font-extrabold text-5xl mt-20 text-graytext">GENERATE COURSES <br /> IN ONE CLICK</h1>
+        </div>
         </div>
       ) : (
         <div >
@@ -43,11 +45,11 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
                   <div className="">
                     <h2 className="font-bold text-2xl text-primary">{ActiveCourse.name}</h2>
                     <p className="text-sm text-graytext/80 mt-3">{ActiveCourse.description}</p>
-                    <div className="text-xs mt-2 text-graytext">{ActiveCourse.createdAt}</div>
+                    <div className="text-xs mt-12 text-graytext">{ActiveCourse.createdAt}</div>
                   </div>
                   <div className="bg-uibgclr rounded-lg p-4">
                     <img src="#" alt="" />
-                    varan
+                    <div className="text-graytext/60 text-center mt-12">Course Image</div>
                   </div>
                 </div>
                 <div className="p-6 bg-cardbgclr border border-borderclr rounded-lg space-y-4">
@@ -62,11 +64,11 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
                           {activeIndex == index ? <IoIosArrowUp/> : <IoIosArrowDown/>}
                         </button>
                       </div>
-                      <div  className={`overflow-hidden ${activeIndex==index ? "max-h-25" : "max-h-0"}`} >
+                      <div  className={`overflow-hidden ${activeIndex==index ? "max-h-[500px]" : "max-h-0"}`} >
                         <div className="font-normal text-graytext mt-3 ">
                           {chapter.about}
                         </div>
-                        <div className="text-sm font-normal mt-3">
+                        <div className="text-xs text-graytext/70 font-normal mt-3">
                           {chapter.duration}
                         </div>
                       </div>

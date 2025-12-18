@@ -7,7 +7,6 @@ import Textarea from "../../../components/ui/Textarea";
 import { UserInputContext } from "@/app/_context/UserInputContext";
 import { LEVEL_OPTIONS, STYLE_OPTIONS, DURATION_OPTIONS, CHAPTER_OPTIONS } from "@/constants/formOptions";
 import { CourseData } from "@/lib/types";
-import { GenerateCoursePrompt } from "@/constants/AiPrompt";
 
 interface CourseFormProps {
   setCourseData: React.Dispatch<React.SetStateAction<CourseData | null>>;

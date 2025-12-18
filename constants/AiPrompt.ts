@@ -18,7 +18,7 @@ export function GenerateCoursePrompt(userInput: FormValues) {
         {
           "chapterName": "Only the Name of the chapter",
           "about": "What this chapter covers",
-          "duration": "approx time"
+          "duration": "approx time (eg: 20m)"
         },
         ... (generate the requested number of chapters)
       ]
