@@ -1,14 +1,6 @@
 "use client"
 import { createContext, Dispatch, SetStateAction } from 'react'
-
-export interface FormValues {
-  topic: string;
-  description: string;
-  level: string;
-  chapters: [];
-  style: string;
-  duration: string;
-}
+import { FormValues } from '@/lib/types';
 
 export interface UserInputContextType {
   userInput: FormValues;

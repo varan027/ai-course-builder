@@ -1,28 +1,29 @@
-export const GenerateCoursePrompt = (input: any) => {
+import { FormValues } from "@/lib/types";
+
+export function GenerateCoursePrompt(userInput: FormValues) {
+  const { topic, level, duration, style, chapters } = userInput;
+  
   return `
-    Generate a course tutorial JSON.
-    Strict JSON only. No markdown. No code blocks.
+    Generate a course tutorial on the topic: "${topic}".
+    Level: ${level}
+    Duration: ${duration}
+    Style: ${style}
+    Chapters: ${chapters}
 
-    INPUT:
-    Topic: ${input?.topic}
-    Desc: ${input?.description}
-    Level: ${input?.level}
-    Duration: ${input?.duration}
-    Chapters: ${input?.chapters}
-    Style: ${input?.style}
-
-    OUTPUT FORMAT:
+    You MUST return the response in strict JSON format with the following structure:
     {
-      "Course_Name": "Short, catchy title (max 5 words)",
-      "Description": "Brief course summary",
-      "Chapters": [
+      "courseName": "Short creative and catchy name for the course",
+      "description": "A brief description of what the user will learn",
+      "chapters": [
         {
-          "Chapter_Name": "Chapter Title",
-          "About": "Content summary",
-          "Duration": "Time (e.g., 15m)"
-        }
+          "chapterName": "Only the Name of the chapter",
+          "about": "What this chapter covers",
+          "duration": "approx time"
+        },
+        ... (generate the requested number of chapters)
       ]
     }
-    Return the response as a valid JSON object only. Do not wrap it in markdown code blocks.
+    
+    Do not add any markdown, code blocks, or preamble. Just the raw JSON string.
   `;
-};
+}

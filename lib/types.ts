@@ -30,3 +30,12 @@ export interface CourseData {
   outline: CourseOutline;
   createdAt: string;
 }
+
+export interface FormValues {
+  topic: string;
+  description: string;
+  level: string;
+  chapters: string;
+  style: string;
+  duration: string;
+}

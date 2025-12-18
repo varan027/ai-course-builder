@@ -2,8 +2,7 @@ import ConnectToDB from "@/lib/db";
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 import CourseModel from "@/models/CourseModel";
-
-
+import { GenerateCoursePrompt } from "@/constants/AiPrompt";
 
 async function getGeminiResponse(inputText: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -53,32 +52,47 @@ async function getGeminiResponse(inputText: string): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
-    
     await ConnectToDB();
 
-    const { prompt } = await req.json();
+    const userInput = await req.json();
+    const {topic, level, duration, style, chapters} = userInput;
 
-    if (!prompt) {
+    console.log("user input recieved", {topic, level, duration, style, chapters});
+    
+
+    if (!topic || !userInput) {
       return NextResponse.json(
         { message: "Missing prompt in request body." },
         { status: 400 }
       );
     }
+    const FINAL_PROMPT = GenerateCoursePrompt(userInput)
 
-    const resultText = await getGeminiResponse(prompt);
-    const jsonString = resultText.trim().replace(/^```json\s*|```\s*$/g, '');
+    console.log("prompting to get ai response", FINAL_PROMPT)
+
+    const responseText = await getGeminiResponse(FINAL_PROMPT);
+    const cleanedText = responseText
+    .replace(/```json/g, "")  // Remove start
+    .replace(/```/g, "")      // Remove end
+    .replace(/^\s+|\s+$/g, "") // Trim whitespace
+    .trim();
     try {
-      const CourseOutline = JSON.parse(jsonString);
+      const CourseData = JSON.parse(cleanedText);
+
+      console.log("--- DEBUG: AI RESPONSE KEYS ---");
+      console.log(Object.keys(CourseData)); // See what keys exist
+      console.log(CourseData); // See the full object
+
       const newCourse = await CourseModel.create({
-        courseId: "some-unique-id",
-        name: CourseOutline.courseName,
-        description: CourseOutline.description,
-        topic: prompt.topic,
-        level: prompt.level,
-        duration: prompt.duration,
-        style: prompt.style,
-        chapters: prompt.chapters,
-        outline: CourseOutline,
+        courseId: Math.random().toString(36).substring(2, 9),
+        name: CourseData.courseName || CourseData.name || CourseData.title || "Untitled Course",
+        description: CourseData.description || CourseData.summary || "No description provided",
+        chapters: CourseData.chapters || [],
+        topic: topic,
+        level: level,
+        duration: duration,
+        style: style,
+        outline: CourseData,
       });
       console.log(`Course Saved with ID: ${newCourse._id}`);
 

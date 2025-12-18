@@ -111,7 +111,6 @@ const Dropdown = ({
                   aria-selected={sel}
                   onMouseEnter={() => setHighlighted(i)}
                   onClick={() => {
-                    console.log("Dropdown Clicked", opt.value)
                     onChange(opt.value);
                     setOpen(false);
                   }}

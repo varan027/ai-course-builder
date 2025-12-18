@@ -1,5 +1,5 @@
 "use client"
-import { useContext, useState, useCallback } from "react";
+import { useContext } from "react";
 import TopicInput from "../../../components/ui/TopicInput";
 import Dropdown from "../../../components/ui/Dropdown";
 import Button from "../../../components/ui/Button";
@@ -17,25 +17,23 @@ interface CourseFormProps {
 export default function CourseForm({setLoading, setCourseData}: CourseFormProps) {
   const { userInput, setUserInput } = useContext(UserInputContext)!;
 
-  const [userForm, setUserForm]= useState({
-    topic: "",
-    description: "",
-    level:"Beginner",
-    duration: "1h",
-    style: "Quality",
-    chapters: "3",
-  })
-
   const handleInputChange = (field: string, value: any) =>{
-    console.log("parent recieved", field, value)
-    setUserForm((prev)=> {
+    setUserInput((prev)=> {
       return {...prev, [field]: value}
     })
   }
 
   const GenerateCourseLayout = async () => {
     setLoading(true);
-    const FINAL_PROMPT = GenerateCoursePrompt(userInput)
+
+    console.log(
+    `Topic: ${userInput?.topic}
+    Desc: ${userInput?.description}
+    Level: ${userInput?.level}
+    Duration: ${userInput?.duration}
+    Chapters: ${userInput?.chapters}
+    Style: ${userInput?.style}`
+    )
 
     try {
       const response = await fetch("/api/generate", {
@@ -43,7 +41,7 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt: FINAL_PROMPT }),
+        body: JSON.stringify(userInput),
       });
 
       if (!response.ok) {
@@ -53,8 +51,7 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
       }
 
       const data = await response.json();
-      const finalResult = data.result;
-      setCourseData(finalResult)
+      setCourseData(data.result)
       
     } catch (error) {
       console.error("Failed to generate course layout:", error);
@@ -71,8 +68,6 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
         console.error("Generation process failed:", error);
       }
     };
-
-    console.log("current state : ", userInput)
 
   return (
     <div className="p-4 rounded-lg shadow-sm border bg-cardbgclr border-borderclr">
@@ -104,9 +99,8 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
           <Dropdown
             label="Level"
             options={LEVEL_OPTIONS}
-            value={userForm.level}
+            value={userInput.level}
             onChange={(value) =>{
-              console.log(userInput.level)
               handleInputChange("level", value)
             } 
             }
@@ -116,7 +110,7 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
           <Dropdown
             label="Style"
             options={STYLE_OPTIONS}
-            value={userForm.style}
+            value={userInput.style}
             onChange={(value) =>
             handleInputChange("style", value)
           }
@@ -128,7 +122,7 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
           <Dropdown
             label="Chapter"
             options={CHAPTER_OPTIONS}
-            value={userForm.chapters}
+            value={userInput.chapters}
             onChange={(value) =>
             handleInputChange("chapters", value)
           }
@@ -138,7 +132,7 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
           <Dropdown
             label="Duration"
             options={DURATION_OPTIONS}
-            value={userForm.duration}
+            value={userInput.duration}
             onChange={(value) =>
             handleInputChange("duration", value)
           }
