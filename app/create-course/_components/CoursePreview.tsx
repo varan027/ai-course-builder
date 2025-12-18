@@ -43,6 +43,7 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
                   <div className="">
                     <h2 className="font-bold text-2xl text-primary">{ActiveCourse.name}</h2>
                     <p className="text-sm text-graytext/80 mt-3">{ActiveCourse.description}</p>
+                    <div className="text-xs mt-2 text-graytext">{ActiveCourse.createdAt}</div>
                   </div>
                   <div className="bg-uibgclr rounded-lg p-4">
                     <img src="#" alt="" />
@@ -65,7 +66,7 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
                         <div className="font-normal text-graytext mt-3 ">
                           {chapter.about}
                         </div>
-                        <div className="text-sm font-normal text-graytext mt-3">
+                        <div className="text-sm font-normal mt-3">
                           {chapter.duration}
                         </div>
                       </div>

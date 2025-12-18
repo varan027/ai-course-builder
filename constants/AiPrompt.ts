@@ -12,7 +12,7 @@ export function GenerateCoursePrompt(userInput: FormValues) {
 
     You MUST return the response in strict JSON format with the following structure:
     {
-      "courseName": "Short creative and catchy name for the course",
+      "courseName": "Short catchy name for the course",
       "description": "A brief description of what the user will learn",
       "chapters": [
         {
