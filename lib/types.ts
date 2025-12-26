@@ -28,7 +28,7 @@ export interface CourseData {
   name: string;
   description: string;
   outline: CourseOutline;
-  createdAt: string;
+  createdAt: string | Date;
 }
 
 export interface FormValues {

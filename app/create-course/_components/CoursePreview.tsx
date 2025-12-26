@@ -9,16 +9,28 @@ export interface CourseProps{
 }
 
 const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
-  if (loading) {
+  if (!loading) {
     return (
-      <div className="animate-pulse ">
-        <div className="h-50 bg-uibgclr w-[70vw] mb-4 rounded-lg p-6 text-graytext/40 text-xl">Generating . . . . </div>
-        <div className="h-24 bg-uibgclr rounded-lg w-full mb-4"></div>
-        <div className="h-24 bg-uibgclr rounded-lg mb-4"></div>
-        <div className="h-12 bg-uibgclr rounded-lg mb-4"></div>
-        <div className="h-6 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
-        <div className="h-6 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
-        <div className="h-6 bg-uibgclr rounded-lg w-4/6"></div>
+      <div className="animate-pulse">
+        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-8 text-graytext/40 text-xl mb-4 flex">
+          <div className="w-1/2">
+            <div className="h-8 bg-uibgclr rounded-lg w-5/6 mb-6"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-4/6"></div>
+            <div className="text-sm mt-12">Generating...</div>
+          </div>
+          <div className="h-52 bg-uibgclr rounded-lg w-1/2"></div>
+        </div>
+        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-8 text-graytext/40 text-xl mb-4 space-y-4">
+          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+            <div className="h-8 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-5/6"></div>
+          </div>
+          <div className="h-16 bg-uibgclr/50 rounded-lg w-full"></div>
+        </div>  
       </div>
     );
   }
@@ -41,11 +53,19 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
       ) : (
         <div >
             <div key={ActiveCourse._id} className="space-y-4">
-                <div className="p-6 h-[250px] grid grid-cols-1 md:grid-cols-2 gap-12 rounded-lg bg-cardbgclr border border-borderclr">
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-12 rounded-lg bg-cardbgclr border border-borderclr">
                   <div className="">
                     <h2 className="font-bold text-2xl text-primary">{ActiveCourse.name}</h2>
                     <p className="text-sm text-graytext/80 mt-3">{ActiveCourse.description}</p>
-                    <div className="text-xs mt-12 text-graytext">{ActiveCourse.createdAt}</div>
+                    <div className="text-xs mt-12 text-graytext">
+                      {ActiveCourse.createdAt 
+                      ? new Date(ActiveCourse.createdAt).toLocaleDateString('en-US', {
+                          day: 'numeric',
+                          month: 'short', 
+                          year: 'numeric'
+                        })
+                      : "Date not available"}
+                    </div>
                   </div>
                   <div className="bg-uibgclr rounded-lg p-4">
                     <img src="#" alt="" />
