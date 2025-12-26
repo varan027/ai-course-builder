@@ -9,7 +9,7 @@ export interface CourseProps{
 }
 
 const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
-  if (!loading) {
+  if (loading) {
     return (
       <div className="animate-pulse">
         <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-8 text-graytext/40 text-xl mb-4 flex">
