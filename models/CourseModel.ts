@@ -13,8 +13,10 @@ const ChapterSchema = new mongoose.Schema({
 })
 
 const CourseSchema = new mongoose.Schema({
-  courseId:{
+  userId:{
     type: String,
+    required: true,
+    index: true,
   },
   name: {
     type: String,

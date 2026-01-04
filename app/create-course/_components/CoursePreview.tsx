@@ -2,6 +2,9 @@
 import type { CourseData } from "@/lib/types"
 import { useState } from "react"
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io"
+import { BsBarChart } from "react-icons/bs";
+import { GoClock } from "react-icons/go";
+import { IoBookOutline, IoPlayOutline } from "react-icons/io5";
 
 export interface CourseProps{
   loading: boolean;
@@ -69,23 +72,58 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
                   </div>
                   <div className="bg-uibgclr rounded-lg p-4">
                     <img src="#" alt="" />
-                    <div className="text-graytext/60 text-center mt-12">Course Image</div>
+                    <div className="text-graytext/60 text-center mt-16">Course Image</div>
                   </div>
                 </div>
+                <div className="flex justify-between p-6 px-12 bg-cardbgclr border border-borderclr rounded-lg">
+                  <div className="text-primary flex items-center gap-4">
+                    <BsBarChart size={30}/>
+                    <div>
+                      <p className="text-xs text-graytext">Skill Level</p>
+                    <p className="font-medium text-white">{ActiveCourse.level}</p>
+                    </div>
+                  </div>
+                  <div className="text-primary flex items-center gap-4">
+                    <GoClock size={30}/>
+                    <div>
+                      <p className="text-xs text-graytext">Duration</p>
+                    <p className="font-medium text-white">{ActiveCourse.duration}</p>
+                    </div>
+                  </div>
+                  <div className="text-primary flex items-center gap-4">
+                    <IoBookOutline size={30}/>
+                    <div>
+                      <p className="text-xs text-graytext">No of Chapters</p>
+                    <p className="font-medium text-white">{ActiveCourse.outline?.chapters?.length}</p>
+                    </div>
+                  </div>
+                  <div className="text-primary flex items-center gap-4">
+                    <IoPlayOutline size={30}/>
+                    <div>
+                      <p className="text-xs text-graytext">Skill Level</p>
+                    <p className="font-medium text-white">{ActiveCourse.level}</p>
+                    </div>
+                  </div>
+                  
+                </div>
                 <div className="p-6 bg-cardbgclr border border-borderclr rounded-lg space-y-4">
+                  <h2 className="text-lg font-semibold text-primary mb-4">Chapters</h2>
                   {ActiveCourse.outline?.chapters?.map((chapter, index)=>(
                     <div key={index} className="bg-uibgclr rounded-lg border border-borderclr p-4">
                       <div className="flex justify-between items-center">
-                        <div className="w-full">
-                          Chapter {index + 1} : <span>{chapter.chapterName}</span>
+                        <div className="w-full flex items-center gap-4 font-medium text-white">
+                          <span className="bg-primary rounded-full w-8 h-8 text-black flex items-center justify-center font-semibold">
+                          {index + 1}
+                          </span>
+                          <span> {chapter.chapterName}</span>
                         </div>
                         <button className="cursor-pointer text-xl"
                         onClick={()=>{toggle(index)}}>
                           {activeIndex == index ? <IoIosArrowUp/> : <IoIosArrowDown/>}
                         </button>
                       </div>
-                      <div  className={`overflow-hidden ${activeIndex==index ? "max-h-[500px]" : "max-h-0"}`} >
-                        <div className="font-normal text-graytext mt-3 ">
+                      <div className={activeIndex == index ? "mt-4 block" : "hidden"}>
+                        <div className="font-normal text-graytext mt-3 text-sm ">
                           {chapter.about}
                         </div>
                         <div className="text-xs text-graytext/70 font-normal mt-3">

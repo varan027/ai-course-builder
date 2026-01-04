@@ -2,7 +2,7 @@
 import NavBar from '@/components/NavBar'
 import { useState } from 'react'
 import { UserInputContext } from '../_context/UserInputContext'
-import { FormValues } from "@/app/_context/UserInputContext"
+import { FormValues } from "@/lib/types"
 
 const layout = ({children} : {children: React.ReactNode}) => {
 

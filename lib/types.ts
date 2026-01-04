@@ -17,16 +17,18 @@ export interface CourseOutline {
   courseName: string;
   description: string;
   chapters: Chapter[];
-  topic: string;
-  level: string;
-  duration: string;
-  noOfChapters: string;
 }
 
 export interface CourseData {
   _id: string;
+  courseId: string;
   name: string;
   description: string;
+  topic: string;
+  level: string;
+  duration: string;
+  style: string;
+  chapters: Chapter[];
   outline: CourseOutline;
   createdAt: string | Date;
 }

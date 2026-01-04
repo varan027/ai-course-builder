@@ -1,4 +1,3 @@
-import { getCourseData } from "@/lib/data";
 import Wrapper from "./_components/Wrapper";
 
 
