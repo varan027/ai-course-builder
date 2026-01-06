@@ -41,7 +41,7 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
       }
 
       const data = await response.json();
-      setCourseData(data.result)
+      setCourseData(data.course)
       
     } catch (error) {
       console.error("Failed to generate course layout:", error);

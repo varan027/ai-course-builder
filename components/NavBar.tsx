@@ -14,8 +14,8 @@ const NavBar = () => {
           <Link className="hover:text-primary" href="#features">
             Features 
           </Link>
-          <Link className="hover:text-primary" href="#how">
-            How it works
+          <Link className="hover:text-primary" href="/dashboard">
+            Dashboard
           </Link>
           <Link className="hover:text-primary" href="#examples">
             Examples

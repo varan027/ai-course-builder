@@ -2,7 +2,8 @@ import { GoogleGenAI } from "@google/genai";
 import { CourseOutline } from "./types";
 
 export async function getGeminiResponse(inputText: string): Promise<CourseOutline> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  try{
+    const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("Server Error: GEMINI_API_KEY is not configured.");
   }
@@ -22,6 +23,11 @@ export async function getGeminiResponse(inputText: string): Promise<CourseOutlin
         responseChunks += chunk.text;
       }
     }
-
+  
     return JSON.parse(responseChunks.replace(/```json|```/g, "").trim());
+  } catch (error: any){
+    console.error("🔥 GEMINI ERROR:", error?.message || error);
+    throw new Error("AI_GENERATION_FAILED");
+
+  }
 }

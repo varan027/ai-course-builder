@@ -31,8 +31,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ course }, { status: 201 });
 
   } catch (error: any) {
+    console.error("api/generate error", error)
     return NextResponse.json(
-      { error: error.message },
+      { error: error.message === "AI_GENERATION_FAILED"
+          ? "AI is temporarily unavailable. Please retry."
+          : "Internal server error", },
       { status: error.message === "Unauthorized" ? 401 : 500 }
     );
   }

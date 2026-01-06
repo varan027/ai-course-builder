@@ -1,16 +1,16 @@
 import { getAuthUser } from "@/lib/auth";
-import { courseOwner } from "@/lib/permission";
+import { assertCourseOwner } from "@/lib/permission";
 import CourseModel from "@/models/CourseModel";
 import { NextRequest, NextResponse } from "next/server";
 
-export const getSingleCourse = async (
+export const GET = async (
   req: NextRequest,
   { params }: { params: { courseId: string } }
 ) => {
   try {
     const user = await getAuthUser();
 
-    const course = await courseOwner(params.courseId, user.id);
+    const course = await assertCourseOwner(params.courseId, user.id);
     if (!course) {
       return NextResponse.json({ error: "course not found" }, { status: 404 });
     }
@@ -24,14 +24,15 @@ export const getSingleCourse = async (
   }
 };
 
-export const deleteCourse = async (
+export const DELETE = async (
   req: NextRequest,
   { params }: { params: { courseId: string } }
 ) => {
   try {
     const user = await getAuthUser();
 
-    const course = await courseOwner(params.courseId, user.id);
+    const course = await assertCourseOwner(params.courseId, user.id);
+    console.log(user.id)
 
     await CourseModel.deleteOne({
       _id: params.courseId,

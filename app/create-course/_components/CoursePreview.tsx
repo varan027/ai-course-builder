@@ -55,14 +55,14 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
         </div>
       ) : (
         <div >
-            <div key={ActiveCourse._id} className="space-y-4">
+            <div key={ActiveCourse?._id} className="space-y-4">
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-12 rounded-lg bg-cardbgclr border border-borderclr">
                   <div className="">
-                    <h2 className="font-bold text-2xl text-primary">{ActiveCourse.name}</h2>
-                    <p className="text-sm text-graytext/80 mt-3">{ActiveCourse.description}</p>
+                    <h2 className="font-bold text-2xl text-primary">{ActiveCourse?.name}</h2>
+                    <p className="text-sm text-graytext/80 mt-3">{ActiveCourse?.description}</p>
                     <div className="text-xs mt-12 text-graytext">
-                      {ActiveCourse.createdAt 
-                      ? new Date(ActiveCourse.createdAt).toLocaleDateString('en-US', {
+                      {ActiveCourse?.createdAt 
+                      ? new Date(ActiveCourse?.createdAt).toLocaleDateString('en-US', {
                           day: 'numeric',
                           month: 'short', 
                           year: 'numeric'
@@ -80,35 +80,35 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
                     <BsBarChart size={30}/>
                     <div>
                       <p className="text-xs text-graytext">Skill Level</p>
-                    <p className="font-medium text-white">{ActiveCourse.level}</p>
+                    <p className="font-medium text-white">{ActiveCourse?.level}</p>
                     </div>
                   </div>
                   <div className="text-primary flex items-center gap-4">
                     <GoClock size={30}/>
                     <div>
                       <p className="text-xs text-graytext">Duration</p>
-                    <p className="font-medium text-white">{ActiveCourse.duration}</p>
+                    <p className="font-medium text-white">{ActiveCourse?.duration}</p>
                     </div>
                   </div>
                   <div className="text-primary flex items-center gap-4">
                     <IoBookOutline size={30}/>
                     <div>
                       <p className="text-xs text-graytext">No of Chapters</p>
-                    <p className="font-medium text-white">{ActiveCourse.outline?.chapters?.length}</p>
+                    <p className="font-medium text-white">{ActiveCourse?.outline?.chapters?.length}</p>
                     </div>
                   </div>
                   <div className="text-primary flex items-center gap-4">
                     <IoPlayOutline size={30}/>
                     <div>
                       <p className="text-xs text-graytext">Skill Level</p>
-                    <p className="font-medium text-white">{ActiveCourse.level}</p>
+                    <p className="font-medium text-white">{ActiveCourse?.level}</p>
                     </div>
                   </div>
                   
                 </div>
                 <div className="p-6 bg-cardbgclr border border-borderclr rounded-lg space-y-4">
                   <h2 className="text-lg font-semibold text-primary mb-4">Chapters</h2>
-                  {ActiveCourse.outline?.chapters?.map((chapter, index)=>(
+                  {ActiveCourse?.outline?.chapters?.map((chapter, index)=>(
                     <div key={index} className="bg-uibgclr rounded-lg border border-borderclr p-4">
                       <div className="flex justify-between items-center">
                         <div className="w-full flex items-center gap-4 font-medium text-white">
