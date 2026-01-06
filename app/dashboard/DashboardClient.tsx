@@ -1,4 +1,5 @@
 "use client";
+import NavBar from "@/components/NavBar";
 import { CourseData } from "@/lib/types";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
@@ -34,34 +35,95 @@ export const DashboardClient = () => {
   };
 
   if (loading) {
-    return <div>loading your courses</div>;
+    return (
+      <div>
+        <NavBar/>
+        <div className="bg-uibgclr/25  rounded-lg p-6 max-w-[96vw] mx-auto mt-20">
+        <div className="h-8 bg-uibgclr rounded-lg w-1/6 mb-6"></div>
+        <div className=" grid grid-cols-3 gap-4">
+          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+          </div>
+          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+          </div>
+          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+          </div>
+          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+          </div>
+          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+          </div>
+          
+        </div>
+      </div>
+      </div>
+    );
   }
 
   if (courses.length === 0) {
     return <div>no courses found</div>;
   }
-  
 
   return (
     <div className="p-6">
-      <h1 className="text-primary mb-4">My Courses</h1>
+      <NavBar />
+      <div className="mt-16 bg-cardbgclr p-4 border border-borderclr rounded-lg space-y-4">
+        <h1 className="font-mono font-extrabold md:text-4xl text-2xl text-primary">
+          MY COURSES
+        </h1>
 
-      {courses.map((course) => (
-        <div key={course._id} className="p-3 rounded space-y-2 border mb-4">
-          <Link href={`/dashboard/${course._id}`}>
-            <div>
-              <h2 className="text-xl text-primary"> {course.name} </h2>
-              <p> {course.description} </p>
-            </div>
-          </Link>
-          <button
-              onClick={() => handleDelete(course._id)}
-              className="text-red-500 cursor-pointer border p-2 py-1 text-sm rounded"
+        <div className="grid grid-cols-3 gap-4">
+          {courses.map((course) => (
+            <div
+              key={course._id}
+              className="bg-uibgclr p-4 rounded-lg border border-borderclr"
             >
-              Delete
-            </button>
+              <Link href={`/dashboard/${course._id}`}>
+                <div>
+                  <h2 className="text-lg font-medium"> {course.name} </h2>
+                  <p> {course.level} </p>
+                  <p> {course.duration} </p>
+                  <p className="text-xs text-graytext">
+                    {" "}
+                    {new Date(course?.createdAt).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "numeric",
+                      second: "numeric",
+                    })}{" "}
+                  </p>
+                </div>
+              </Link>
+              <button
+                onClick={() => handleDelete(course._id)}
+                className="text-red-500 cursor-pointer border p-2 py-1 text-sm rounded"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 };
