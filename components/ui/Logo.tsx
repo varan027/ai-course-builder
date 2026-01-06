@@ -30,7 +30,7 @@ const Logo = () => {
           </svg>
         </div>
         <Link href="/">
-          <span className="font-semibold font-mono text-lg lg:text-2xl text-white hover:text-primary">
+          <span className="font-semibold font-mono text-lg lg:text-2xl text-white hover:text-primary transition-all duration-900 ease-in-out">
             LearnFlow
           </span>
         </Link>

@@ -6,9 +6,9 @@ import Button from './ui/Button';
 const Login = () => {
   const {data: session, status} = useSession();
 
-  if(status === "loading"){
-    return <div className='text-primary'>loading..</div>
-  }
+  // if(status === "loading"){
+  //   return <div className='text-primary'>loading..</div>
+  // }
 
   if(!session){
     return (

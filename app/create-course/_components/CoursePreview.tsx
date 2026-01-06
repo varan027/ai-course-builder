@@ -49,8 +49,8 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
     <div>
       {!ActiveCourse ? (
         <div>
-          <div className="bg-cardbgclr border border-borderclr w-[70vw] p-12 rounded-lg">
-          <h1 className="font-mono font-extrabold text-5xl mt-20 text-graytext">GENERATE COURSES <br /> IN ONE CLICK</h1>
+          <div className="bg-cardbgclr border border-borderclr md:w-[70vw] w-[96vw] p-6 rounded-lg">
+          <h1 className="font-mono font-extrabold md:text-5xl text-2xl text-graytext">GENERATE COURSES <br /> IN ONE CLICK</h1>
         </div>
         </div>
       ) : (
