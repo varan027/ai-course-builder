@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Button from "./ui/Button";
 import Logo from "./ui/Logo";
+import Login from "./Login";
 
 const NavBar = () => {
   return (
@@ -11,7 +12,7 @@ const NavBar = () => {
         <Logo />
         <nav className="hidden md:flex items-center gap-6 text-sm text-[#898A8B]">
           <Link className="hover:text-primary" href="#features">
-            Features
+            Features 
           </Link>
           <Link className="hover:text-primary" href="#how">
             How it works
@@ -22,9 +23,7 @@ const NavBar = () => {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Button className="hidden md:inline-flex border-2 border-primary/40 bg-primary/5 hover:bg-primary/20 text-primary text-sm font-semibold">
-            Sign in
-          </Button>
+          <Login/>
           <Link href="/create-course">
             <Button className="font-semibold bg-primary/75">Generate</Button>
           </Link>

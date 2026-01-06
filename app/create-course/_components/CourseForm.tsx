@@ -25,15 +25,6 @@ export default function CourseForm({setLoading, setCourseData}: CourseFormProps)
   const GenerateCourseLayout = async () => {
     setLoading(true);
 
-    console.log(
-    `Topic: ${userInput?.topic}
-    Desc: ${userInput?.description}
-    Level: ${userInput?.level}
-    Duration: ${userInput?.duration}
-    Chapters: ${userInput?.chapters}
-    Style: ${userInput?.style}`
-    )
-
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
