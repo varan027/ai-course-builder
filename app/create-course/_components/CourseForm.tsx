@@ -143,7 +143,7 @@ export default function CourseForm({
         </div>
 
         <Button
-          className="w-full lg:absolute lg:bottom-4"
+          className="w-full lg:absolute lg:bottom-4 font-medium"
           type="submit"
           disabled={userInput.topic === ""}
         >

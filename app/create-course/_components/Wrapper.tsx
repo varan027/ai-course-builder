@@ -11,11 +11,11 @@ const Wrapper = () => {
       
   return (
     <div>
-      <div className="flex lg:space-x-4 lg:flex-row space-y-4 flex-col lg:items-start items-center">
+      <div className="flex :flex-row space-y-4 flex-col lg:items-start items-center">
         <div className="lg:fixed lg:max-w-1/4 lg:h-[80vh]">
           <CourseForm setCourseData={setActiveCourse} setLoading={setLoading} />
         </div>
-        <div className="lg:ml-[27%]">
+        <div className="lg:ml-[26%]">
           <CoursePreview loading={loading} ActiveCourse={activeCourse} />
         </div>
       </div>

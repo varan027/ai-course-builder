@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { required } from "zod/mini";
 
 const ChapterSchema = new mongoose.Schema({
   chapterName:{
@@ -41,6 +42,10 @@ const CourseSchema = new mongoose.Schema({
   style: {
     type: String,
     required: true,
+  },
+  includeVideo: {
+    type: Boolean,
+    required: true
   },
   chapters: [ChapterSchema],
   outline: {
