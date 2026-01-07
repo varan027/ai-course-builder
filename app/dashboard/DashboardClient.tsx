@@ -2,7 +2,7 @@
 import NavBar from "@/components/NavBar";
 import { CourseData } from "@/lib/types";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export const DashboardClient = () => {
   const [courses, setCourses] = useState<CourseData[]>([]);
@@ -24,56 +24,45 @@ export const DashboardClient = () => {
     fetchCourses();
   }, []);
 
-  const handleDelete = async (courseId: string) => {
-    const res = await fetch(`/api/courses/${courseId}`, {
-      method: "DELETE",
-    });
-
-    if (!res.ok) {
-      setCourses((prev) => prev.filter((course) => course._id !== courseId));
-    }
-  };
-
   if (loading) {
     return (
       <div>
-        <NavBar/>
+        <NavBar />
         <div className="bg-uibgclr/25  rounded-lg p-6 max-w-[96vw] mx-auto mt-20">
-        <div className="h-8 bg-uibgclr rounded-lg w-1/6 mb-6"></div>
-        <div className=" grid grid-cols-3 gap-4">
-          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
-            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+          <div className="h-8 bg-uibgclr rounded-lg w-1/6 mb-6"></div>
+          <div className=" grid grid-cols-3 gap-4">
+            <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+              <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+            </div>
+            <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+              <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+            </div>
+            <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+              <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+            </div>
+            <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+              <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+            </div>
+            <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+              <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
+              <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
+            </div>
           </div>
-          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
-            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
-          </div>
-          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
-            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
-          </div>
-          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
-            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
-          </div>
-          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
-            <div className="h-6 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-full mb-4"></div>
-            <div className="h-3 bg-uibgclr rounded-lg w-5/6"></div>
-          </div>
-          
         </div>
-      </div>
       </div>
     );
   }
@@ -90,7 +79,7 @@ export const DashboardClient = () => {
           MY COURSES
         </h1>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {courses.map((course) => (
             <div
               key={course._id}
@@ -99,9 +88,11 @@ export const DashboardClient = () => {
               <Link href={`/dashboard/${course._id}`}>
                 <div>
                   <h2 className="text-lg font-medium"> {course.name} </h2>
-                  <p> {course.level} </p>
-                  <p> {course.duration} </p>
-                  <p className="text-xs text-graytext">
+                  <div className="flex justify-between mt-6">
+                    <p className="text-xs"> {course.level} </p>
+                    <p className="text-xs "> {course.duration} </p>
+                  </div>
+                  <p className="text-xs text-graytext mt-2">
                     {" "}
                     {new Date(course?.createdAt).toLocaleDateString("en-US", {
                       day: "numeric",
@@ -114,12 +105,6 @@ export const DashboardClient = () => {
                   </p>
                 </div>
               </Link>
-              <button
-                onClick={() => handleDelete(course._id)}
-                className="text-red-500 cursor-pointer border p-2 py-1 text-sm rounded"
-              >
-                Delete
-              </button>
             </div>
           ))}
         </div>

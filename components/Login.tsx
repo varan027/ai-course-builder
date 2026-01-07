@@ -12,9 +12,11 @@ const Login = () => {
 
   if(!session){
     return (
-      <Button onClick={() => signIn("google")}
-      className='hidden md:inline-flex border-2 border-primary/40 bg-primary/5 hover:bg-primary/20 text-primary text-sm font-semibold'>
-        Sign in with Google
+      <Button onClick={() => signIn("google",
+        
+      )}
+      className='border-2 border-primary/40 bg-primary/5 hover:bg-primary/20 text-primary text-sm font-semibold'>
+        Sign in
       </Button>
     )
   }

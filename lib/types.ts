@@ -6,7 +6,7 @@ export interface Lesson {
   videoIds: string[];
 }
 
-interface Chapter {
+interface OutlineChapter {
   index: string;
   chapterName: string;
   about: string;
@@ -16,7 +16,7 @@ interface Chapter {
 export interface CourseOutline {
   courseName: string;
   description: string;
-  chapters: Chapter[];
+  chapters: OutlineChapter[];
 }
 
 export interface CourseData {
@@ -28,16 +28,18 @@ export interface CourseData {
   level: string;
   duration: string;
   style: string;
-  chapters: Chapter[];
+  chapters: OutlineChapter[];
   outline: CourseOutline;
   createdAt: string | Date;
 }
 
 export interface FormValues {
   topic: string;
-  description: string;
+  description?: string | undefined;
   level: string;
-  chapters: string;
   style: string;
-  duration: string;
+  chapters: number;
+  duration: number;
+  includeVideos: boolean;
 }
+

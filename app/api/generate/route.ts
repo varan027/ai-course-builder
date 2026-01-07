@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
     const input = courseInputSchema.parse(await req.json());
 
     const prompt = GenerateCoursePrompt(input);
+    console.log(prompt);
     const courseOutline = await getGeminiResponse(prompt);
 
     const course = await CourseModel.create({

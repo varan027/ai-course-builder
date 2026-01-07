@@ -87,7 +87,7 @@ const CoursePreview = ({ loading, ActiveCourse}: CourseProps) => {
                     <GoClock size={30}/>
                     <div>
                       <p className="text-xs text-graytext">Duration</p>
-                    <p className="font-medium text-white">{ActiveCourse?.duration}</p>
+                    <p className="font-medium text-white">{ActiveCourse?.duration}h</p>
                     </div>
                   </div>
                   <div className="text-primary flex items-center gap-4">

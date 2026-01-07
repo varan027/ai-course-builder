@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { IoIosArrowForward } from "react-icons/io";
 import type { Opt } from "@/constants/formOptions";
 
-interface Props {
-  options: Opt[];
-  value?: string;
-  onChange: (v: string) => void;
+interface Props<T> {
+  options: Opt<T>[];
+  value?: T;
+  onChange: (v: T) => void;
   placeholder?: string;
   align?: "right" | "left";
   defaultOpen?: boolean;
@@ -14,7 +14,7 @@ interface Props {
   label: string;
 }
 
-const Dropdown = ({
+function Dropdown<T> ({
   options,
   value,
   onChange,
@@ -23,7 +23,7 @@ const Dropdown = ({
   defaultOpen = false,
   className = "",
   label
-}: Props) => {
+}: Props<T>) {
   const [open, setOpen] = useState<boolean>(defaultOpen);
   const [highlighted, setHighlighted] = useState<number>(-1);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -63,7 +63,7 @@ const Dropdown = ({
     el?.scrollIntoView({ block: "nearest" });
   }, [highlighted]);
 
-  const selected = options.find((o) => String(o.value) === String(value));
+  const selected = options.find((o) => o.value === value);
 
   return (
     <div className={`flex-1/2 bg-uibgclr rounded-lg ${className}`}>
@@ -87,7 +87,7 @@ const Dropdown = ({
             {label}
             </label>
             <span className="font-medium">
-              {selected ? (selected.value || selected.label) : (value ? value : placeholder)}
+              {selected ? selected.label : placeholder}
             </span>
           </div>
           <span className="text-xs opacity-80"><IoIosArrowForward/></span>
@@ -106,7 +106,7 @@ const Dropdown = ({
               const highlight = i === highlighted;
               return (
                 <li
-                  key={opt.value}
+                  key={String(opt.value)}
                   role="option"
                   aria-selected={sel}
                   onMouseEnter={() => setHighlighted(i)}
@@ -121,7 +121,7 @@ const Dropdown = ({
                   } ${sel ? "font-semibold" : ""}`}
                 >
                   <div className="flex flex-col">
-                    <span>{opt.value}</span>
+                    <span>{opt.label}</span>
                     {opt.meta && (
                       <span className="text-[11px] text-[#7F8890]">
                         {opt.meta}

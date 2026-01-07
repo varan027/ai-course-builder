@@ -22,11 +22,8 @@ const NavBar = () => {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="">
           <Login/>
-          <Link href="/create-course">
-            <Button className="font-semibold bg-primary/75">Generate</Button>
-          </Link>
         </div>
       </div>
     </header>
