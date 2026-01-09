@@ -5,8 +5,9 @@ import { useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 
 export default function SignInPage() {
-  const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") || "/dashboard";
+  
+  // const params = useSearchParams();
+  // const callbackUrl = params.get("callbackUrl") || "/dashboard";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
@@ -23,7 +24,7 @@ export default function SignInPage() {
           className="w-full"
           onClick={() =>
             signIn("google", {
-              callbackUrl,
+              callbackUrl: "/"
             })
           }
         >

@@ -19,7 +19,7 @@ export default function SignUpPage() {
           className="w-full"
           onClick={() =>
             signIn("google", {
-              callbackUrl: "/dashboard",
+              callbackUrl: "/",
             })
           }
         >
