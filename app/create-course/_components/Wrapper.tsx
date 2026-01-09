@@ -16,7 +16,7 @@ const Wrapper = () => {
           <CourseForm setCourseData={setActiveCourse} setLoading={setLoading} />
         </div>
         <div className="lg:ml-[26%]">
-          <CoursePreview loading={loading} ActiveCourse={activeCourse} />
+          <CoursePreview loading={loading} activeCourse={activeCourse} />
         </div>
       </div>
     </div>

@@ -1,18 +1,73 @@
 "use client";
 import type { CourseData } from "@/lib/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { BsBarChart } from "react-icons/bs";
 import { GoClock } from "react-icons/go";
 import { IoBookOutline, IoPlayOutline } from "react-icons/io5";
 import Button from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 export interface CourseProps {
   loading: boolean;
-  ActiveCourse: CourseData | null;
+  activeCourse: CourseData | null;
 }
 
-const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
+const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
+
+  const router = useRouter();
+  const [courseState, setCourseState] = useState<CourseData | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if(activeCourse){
+      setCourseState(activeCourse);
+    }
+  }, [activeCourse])
+
+  const toggle = (index: number) => {
+    setActiveIndex(activeIndex == index ? null : index);
+  };
+
+  const handleChaptersInlineEdit = (index: number, newName: string) => {
+    if(!courseState) return;
+    const updatedChapters = [...courseState.outline.chapters]
+    updatedChapters[index].chapterName = newName;
+
+    setCourseState({
+      ...courseState,
+      outline: {
+        ...courseState.outline,
+        chapters: updatedChapters
+      },
+      chapters: updatedChapters
+    })
+  }
+
+  const handleConfirm = async () => {
+    if(!courseState) return;
+    setIsSaving(true);
+
+    try{
+      const res = await fetch("api/courses/create", {
+        method: "POST",
+        headers: { "content-Type": "application/json" },
+        body: JSON.stringify({ course : courseState})
+      })
+      if(res.ok){
+        const data = await res.json();
+        router.push(`dashboard/${data.course._id}`)
+      } else {
+        console.error("failed to save confirmed course")
+      }
+    } catch (error){
+      console.error("Error saving:", error)
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="animate-pulse">
@@ -39,15 +94,9 @@ const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
     );
   }
 
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-
-  const toggle = (index: number) => {
-    setActiveIndex(activeIndex == index ? null : index);
-  };
-
   return (
     <div className="lg:w-[72vw] w-[96vw] px-4">
-      {!ActiveCourse ? (
+      {!courseState ? (
         <div className="">
           <div className="bg-cardbgclr border border-borderclr rounded-lg p-6 md:h-155 h-80 flex items-center">
             <h1 className="font-mono font-extrabold text-5xl md:text-7xl text-graytext ">
@@ -57,31 +106,14 @@ const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
         </div>
       ) : (
         <div>
-          <div key={ActiveCourse?._id} className="space-y-4">
+          <div key={courseState?._id} className="space-y-4">
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-12 rounded-lg bg-cardbgclr border border-borderclr">
-              <div className="">
-                <h2 className="font-bold text-2xl text-primary">
-                  {ActiveCourse?.name}
-                </h2>
-                <p className="text-sm text-graytext/80 mt-3">
-                  {ActiveCourse?.description}
-                </p>
-                <div className="text-xs mt-12 text-graytext">
-                  {ActiveCourse?.createdAt
-                    ? new Date(ActiveCourse?.createdAt).toLocaleDateString(
-                        "en-US",
-                        {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        }
-                      )
-                    : "Date not available"}
-                </div>
+              <div>
+                <h2 className="font-bold text-2xl text-primary">{courseState?.name}</h2>
+                <p className="text-sm text-graytext/80 mt-3">{courseState?.description}</p>
               </div>
               <div className="bg-uibgclr rounded-lg p-4">
-                <img src="#" alt="" />
-                <div className="text-graytext/60 text-center mt-16">
+                <div className="text-graytext/60 text-center mt-8">
                   Course Image
                 </div>
               </div>
@@ -92,7 +124,7 @@ const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
                 <div>
                   <p className="text-xs text-graytext">Skill Level</p>
                   <p className="font-medium text-white">
-                    {ActiveCourse?.level}
+                    {courseState?.level}
                   </p>
                 </div>
               </div>
@@ -101,7 +133,7 @@ const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
                 <div>
                   <p className="text-xs text-graytext">Duration</p>
                   <p className="font-medium text-white">
-                    {ActiveCourse?.duration}h
+                    {courseState?.duration}h
                   </p>
                 </div>
               </div>
@@ -110,7 +142,7 @@ const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
                 <div>
                   <p className="text-xs text-graytext">No of Chapters</p>
                   <p className="font-medium text-white">
-                    {ActiveCourse?.outline?.chapters?.length}
+                    {courseState?.outline?.chapters?.length}
                   </p>
                 </div>
               </div>
@@ -119,7 +151,7 @@ const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
                 <div>
                   <p className="text-xs text-graytext">Skill Level</p>
                   <p className="font-medium text-white">
-                    {ActiveCourse?.level}
+                    {courseState?.level}
                   </p>
                 </div>
               </div>
@@ -128,7 +160,7 @@ const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
               <h2 className="text-lg font-semibold text-primary mb-4">
                 Chapters
               </h2>
-              {ActiveCourse?.outline?.chapters?.map((chapter, index) => (
+              {courseState?.outline?.chapters?.map((chapter, index) => (
                 <div
                   key={index}
                   className="bg-uibgclr rounded-lg border border-borderclr p-4"
@@ -138,6 +170,10 @@ const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
                       <span className="bg-primary rounded-full w-8 h-8 text-black flex items-center justify-center font-semibold">
                         {index + 1}
                       </span>
+                      <input
+                        value={chapter.chapterName}
+                        onChange={(e) => handleChaptersInlineEdit(index, e.target.value)}
+                        />
                       <span> {chapter.chapterName}</span>
                     </div>
                     <button
@@ -166,8 +202,10 @@ const CoursePreview = ({ loading, ActiveCourse }: CourseProps) => {
                 </div>
               ))}
             </div>
-            <div className="flex justify-end">
-              <Button className="font-semibold text-lg">Confirm Generate</Button>
+            <div className="flex justify-end pb-10">
+              <Button className="font-semibold text-lg" onClick={handleConfirm} disabled={isSaving}>
+                {isSaving ? "Generating Course" : "Confirm Generate"}
+              </Button>
             </div>
           </div>
         </div>
