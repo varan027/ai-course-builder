@@ -32,7 +32,3 @@ export const DURATION_OPTIONS: Opt<number>[] = [
   { label: "5 Hours", value: 3 },
 ];
 
-export const VIDEO_OPTIONS: Opt<boolean>[] = [
-  { label: "Yes", value: true },
-  { label: "No", value: false },
-];

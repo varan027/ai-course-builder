@@ -10,7 +10,6 @@ import {
   STYLE_OPTIONS,
   DURATION_OPTIONS,
   CHAPTER_OPTIONS,
-  VIDEO_OPTIONS,
 } from "@/constants/formOptions";
 import { CourseData } from "@/lib/types";
 
@@ -130,15 +129,6 @@ export default function CourseForm({
             value={userInput.duration}
             onChange={(value) => handleInputChange("duration", value)}
             align="left"
-          />
-        </div>
-
-        <div>
-          <Dropdown<boolean>
-            label="Include Videos"
-            options={VIDEO_OPTIONS}
-            value={userInput.includeVideos}
-            onChange={(v) => handleInputChange("includeVideos", v)}
           />
         </div>
 

@@ -12,8 +12,6 @@ export const courseInputSchema = z.object({
   style: z.enum(["Quality", "Speed", "Balanced"]),
 
   duration: z.number().int().min(1).max(10),
-
-  includeVideos: z.boolean()
 });
 
 export type courseInput = z.infer<typeof courseInputSchema>

@@ -14,59 +14,60 @@ export interface CourseProps {
 }
 
 const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
-
   const router = useRouter();
   const [courseState, setCourseState] = useState<CourseData | null>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if(activeCourse){
+    if (activeCourse) {
       setCourseState(activeCourse);
     }
-  }, [activeCourse])
+  }, [activeCourse]);
 
   const toggle = (index: number) => {
     setActiveIndex(activeIndex == index ? null : index);
   };
 
   const handleChaptersInlineEdit = (index: number, newName: string) => {
-    if(!courseState) return;
-    const updatedChapters = [...courseState.outline.chapters]
+    if (!courseState) return;
+    const updatedChapters = [...courseState.outline.chapters];
     updatedChapters[index].chapterName = newName;
 
     setCourseState({
       ...courseState,
       outline: {
         ...courseState.outline,
-        chapters: updatedChapters
+        chapters: updatedChapters,
       },
-      chapters: updatedChapters
-    })
-  }
+      chapters: updatedChapters,
+    });
+  };
 
   const handleConfirm = async () => {
-    if(!courseState) return;
+    if (!courseState) return;
     setIsSaving(true);
 
-    try{
+    try {
       const res = await fetch("api/courses/create", {
         method: "POST",
         headers: { "content-Type": "application/json" },
-        body: JSON.stringify({ course : courseState})
-      })
-      if(res.ok){
+        body: JSON.stringify({ course: courseState }),
+      });
+      if (res.ok) {
         const data = await res.json();
-        router.push(`dashboard/${data.course._id}`)
+        router.push(`dashboard/${data.course._id}`);
       } else {
-        console.error("failed to save confirmed course")
+        const errorData = await res.json();
+        console.error("Server Error Details:", errorData);
+        alert(`Error: ${errorData.error || "Failed to save course"}`);
       }
-    } catch (error){
-      console.error("Error saving:", error)
+    } catch (error) {
+      console.error("Error saving:", error);
     } finally {
       setIsSaving(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -109,8 +110,12 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
           <div key={courseState?._id} className="space-y-4">
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-12 rounded-lg bg-cardbgclr border border-borderclr">
               <div>
-                <h2 className="font-bold text-2xl text-primary">{courseState?.name}</h2>
-                <p className="text-sm text-graytext/80 mt-3">{courseState?.description}</p>
+                <h2 className="font-bold text-2xl text-primary">
+                  {courseState?.name}
+                </h2>
+                <p className="text-sm text-graytext/80 mt-3">
+                  {courseState?.description}
+                </p>
               </div>
               <div className="bg-uibgclr rounded-lg p-4">
                 <div className="text-graytext/60 text-center mt-8">
@@ -118,17 +123,15 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
                 </div>
               </div>
             </div>
-            <div className="flex justify-between p-6 px-12 bg-cardbgclr border border-borderclr rounded-lg">
-              <div className="text-primary flex items-center gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 p-6 w-full bg-cardbgclr border border-borderclr rounded-lg">
+              <div className="text-primary flex items-center md:justify-center gap-4">
                 <BsBarChart size={30} />
                 <div>
                   <p className="text-xs text-graytext">Skill Level</p>
-                  <p className="font-medium text-white">
-                    {courseState?.level}
-                  </p>
+                  <p className="font-medium text-white">{courseState?.level}</p>
                 </div>
               </div>
-              <div className="text-primary flex items-center gap-4">
+              <div className="text-primary flex items-center md:justify-center gap-4">
                 <GoClock size={30} />
                 <div>
                   <p className="text-xs text-graytext">Duration</p>
@@ -137,7 +140,7 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
                   </p>
                 </div>
               </div>
-              <div className="text-primary flex items-center gap-4">
+              <div className="text-primary flex items-center md:justify-center gap-4">
                 <IoBookOutline size={30} />
                 <div>
                   <p className="text-xs text-graytext">No of Chapters</p>
@@ -146,13 +149,11 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
                   </p>
                 </div>
               </div>
-              <div className="text-primary flex items-center gap-4">
+              <div className="text-primary flex items-center md:justify-center gap-4">
                 <IoPlayOutline size={30} />
                 <div>
                   <p className="text-xs text-graytext">Skill Level</p>
-                  <p className="font-medium text-white">
-                    {courseState?.level}
-                  </p>
+                  <p className="font-medium text-white">{courseState?.level}</p>
                 </div>
               </div>
             </div>
@@ -167,17 +168,19 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
                 >
                   <div className="flex justify-between items-center">
                     <div className="w-full flex items-center gap-4 font-medium text-white">
-                      <span className="bg-primary rounded-full w-8 h-8 text-black flex items-center justify-center font-semibold">
+                      <span className="bg-primary text-sm rounded-full w-7 h-7 text-black flex items-center justify-center font-semibold">
                         {index + 1}
                       </span>
                       <input
+                        className="bg-transparent border-b border-transparent hover:border-gray-500 focus:border-primary focus:outline-none w-full py-1 transition-colors"
                         value={chapter.chapterName}
-                        onChange={(e) => handleChaptersInlineEdit(index, e.target.value)}
-                        />
-                      <span> {chapter.chapterName}</span>
+                        onChange={(e) =>
+                          handleChaptersInlineEdit(index, e.target.value)
+                        }
+                      />
                     </div>
                     <button
-                      className="cursor-pointer text-xl"
+                      className="cursor-pointer text-xl md:ml-28"
                       onClick={() => {
                         toggle(index);
                       }}
@@ -203,8 +206,12 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
               ))}
             </div>
             <div className="flex justify-end pb-10">
-              <Button className="font-semibold text-lg" onClick={handleConfirm} disabled={isSaving}>
-                {isSaving ? "Generating Course" : "Confirm Generate"}
+              <Button
+                className="font-semibold text-lg"
+                onClick={handleConfirm}
+                disabled={isSaving}
+              >
+                {isSaving ? "Generating Course........." : "Confirm Generate"}
               </Button>
             </div>
           </div>

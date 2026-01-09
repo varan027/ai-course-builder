@@ -1,11 +1,3 @@
-export interface Lesson {
-  id: string;
-  index: number;
-  title: string;
-  content: string;
-  videoIds: string[];
-}
-
 interface OutlineChapter {
   index: string;
   chapterName: string;
@@ -40,6 +32,5 @@ export interface FormValues {
   style: string;
   chapters: number;
   duration: number;
-  includeVideos: boolean;
 }
 

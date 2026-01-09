@@ -1,19 +1,20 @@
 import { GoogleGenAI } from "@google/genai";
 import { CourseOutline } from "./types";
 
-export async function getGeminiResponse(inputText: string): Promise<CourseOutline> {
-  try{
-    const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("Server Error: GEMINI_API_KEY is not configured.");
-  }
-  const ai = new GoogleGenAI({ apiKey });
+const apiKey = process.env.GEMINI_API_KEY;
+if(!apiKey){
+  console.error("Error: NO API KEY")
+}
 
-  const modelConfig = {
-    model: "gemini-flash-latest",
-    contents: [{ role: "user", parts: [{ text: inputText }] }],
-    tools: [{ googleSearch: {} }],
-  };
+export async function getGeminiResponse(inputText: string){
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+
+    const modelConfig = {
+      model: "gemini-flash-latest",
+      contents: [{ role: "user", parts: [{ text: inputText }] }],
+      tools: [{ googleSearch: {} }],
+    };
 
     const response = await ai.models.generateContentStream(modelConfig);
 
@@ -23,11 +24,21 @@ export async function getGeminiResponse(inputText: string): Promise<CourseOutlin
         responseChunks += chunk.text;
       }
     }
-  
+
     return JSON.parse(responseChunks.replace(/```json|```/g, "").trim());
-  } catch (error: any){
+  } catch (error: any) {
     console.error("🔥 GEMINI ERROR:", error?.message || error);
     throw new Error("AI_GENERATION_FAILED");
-
   }
+}
+
+export async function getGeminiTextResponse(prompt: string) {
+  
+  const ai = new GoogleGenAI({ apiKey });
+  const response = await ai.models.generateContent({
+    model: "gemini-flash-latest", 
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+  });
+
+  return response.text || "";
 }

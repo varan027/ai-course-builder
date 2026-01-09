@@ -8,7 +8,6 @@ export function GenerateCoursePrompt(userInput: FormValues) {
     duration,
     style,
     chapters,
-    includeVideos,
   } = userInput;
 
   return `
@@ -17,13 +16,9 @@ Generate a complete course on the topic: "${topic}".
 ${description ? `Course Description: ${description}` : ""}
 
 Audience Level: ${level}
-Total Course Duration: ${duration} minutes
+Total Course Duration: ${duration}
 Number of Chapters: ${chapters}
 Teaching Style: ${style}
-
-${includeVideos
-  ? "Include 1–2 relevant YouTube video titles per chapter."
-  : "Do NOT include any video recommendations."}
 
 You MUST return the response in STRICT JSON format with this exact structure:
 
@@ -34,12 +29,7 @@ You MUST return the response in STRICT JSON format with this exact structure:
     {
       "chapterName": "Chapter title only",
       "about": "Clear explanation of what this chapter teaches",
-      "duration": "Approximate time in minutes (e.g. 20 minutes)",
-      ${
-        includeVideos
-          ? `"videos": ["Video title 1", "Video title 2"]`
-          : ""
-      }
+      "duration": "Approximate time",
     }
   ]
 }
@@ -53,4 +43,21 @@ Rules:
 
 Return ONLY the JSON object.
 `;
+}
+
+export function GenerateChapterContentPrompt(chapterName: string, courseTopic: string, style: string) {
+  return `
+    You are an expert instructor. Write a comprehensive reading tutorial for the chapter: "${chapterName}" 
+    which is part of a course on "${courseTopic}".
+    
+    Teaching Style: ${style} (e.g., if 'Code', provide code examples. If 'Theory', explain concepts).
+
+    Requirements:
+    - Use Markdown formatting (headings, bold, lists, code blocks).
+    - Explain the concept clearly.
+    - Provide real-world examples.
+    - If technical, include a small code snippet or practical step.
+    - Keep it engaging and easy to read.
+    - Do NOT include any intro like "Here is the content...". Start directly with the content.
+  `;
 }

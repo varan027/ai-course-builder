@@ -1,8 +1,10 @@
 import { getAuthUser } from "@/lib/auth";
 import ConnectToDB from "@/lib/db";
-import { searchYoutube } from "@/lib/youtube";
 import CourseModel from "@/models/CourseModel";
 import { NextRequest, NextResponse } from "next/server";
+import { searchYoutube } from "@/lib/youtube";
+import { GenerateChapterContentPrompt } from "@/constants/AiPrompt";
+import { getGeminiTextResponse } from "@/lib/ai";
 
 export async function POST(req: NextRequest){
   try{
@@ -12,13 +14,18 @@ export async function POST(req: NextRequest){
 
     const { course } = await req.json()
 
-    const chapterVideos = await Promise.all(
+    const processedChapters = await Promise.all(
       course.chapters.map(async (chapter: any)=> {
-        const videoId = await searchYoutube(chapter.chapterName + " tutorial");
+        const videoId = await searchYoutube(`${course.topic} ${chapter.chapterName} tutorial`);
+
+        const contentPrompt = GenerateChapterContentPrompt(chapter.chapterName, course.topic, course.style)
+
+        const content = await getGeminiTextResponse(contentPrompt);
 
         return {
           ...chapter,
-          videoId : videoId
+          videoId : videoId,
+          content: content
         }
       })
     )
@@ -31,8 +38,7 @@ export async function POST(req: NextRequest){
       level: course.level,
       duration: course.duration,
       style: course.style,
-      includeVideo: course.includeVideos,
-      chapters: chapterVideos,
+      chapters: processedChapters,
       outline: course.outline
     })
 
