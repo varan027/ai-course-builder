@@ -22,9 +22,13 @@ export async function POST(req: NextRequest) {
       level: input.level,
       duration: input.duration,
       style: input.style,
+      includeVideos: input.includeVideos,
       chapters: courseOutline.chapters ?? [],
       outline: courseOutline,
     }
+    
+    console.log("outline", course);
+    
 
     return NextResponse.json({ course }, { status: 201 });
 
