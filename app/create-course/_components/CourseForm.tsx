@@ -48,9 +48,7 @@ export default function CourseForm({
       }
 
       const data = await response.json();
-      // const courseId = data.course._id;
       setCourseData(data.course);
-      // window.location.href = `/dashboard/${courseId}`
     } catch (error) {
       console.error("Failed to generate course layout:", error);
     } finally {

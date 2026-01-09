@@ -3,6 +3,8 @@ interface OutlineChapter {
   chapterName: string;
   about: string;
   duration: string;
+  videoId: string;
+  content: string;
 }
 
 export interface CourseOutline {
@@ -33,4 +35,3 @@ export interface FormValues {
   chapters: number;
   duration: number;
 }
-

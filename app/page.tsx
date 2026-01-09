@@ -7,7 +7,6 @@ import Link from "next/link";
 const page = () => {
   return (
     <div className="px-4 space-y-6 md:px-12 lg:px-24">
-      <NavBar />
 
       <div className="md:py-24 mt-24 md:text-center max-w-3xl mx-auto md:space-y-6 space-y-5 transition-all">
         <h1 className="lg:text-6xl md:text-4xl text-2xl transition-all duration-600">
