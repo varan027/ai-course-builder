@@ -1,5 +1,6 @@
 import { getAuthUser } from "@/lib/auth";
 import ConnectToDB from "@/lib/db";
+import { Chapter } from "@/lib/types";
 import CourseModel from "@/models/CourseModel";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest){
 
     const { course } = await req.json()
 
-    const initialChapters = course.chapters.map((chapter: any)=> ({
+    const initialChapters = course.chapters.map((chapter: Chapter )=> ({
         chapterName: chapter.chapterName,
         about: chapter.about,
         duration: chapter.duration,

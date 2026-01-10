@@ -1,16 +1,16 @@
-interface OutlineChapter {
+export interface Chapter {
   index: string;
   chapterName: string;
   about: string;
   duration: string;
-  videoId: string;
-  content: string;
+  videoId?: string;
+  content?: string;
 }
 
 export interface CourseOutline {
   courseName: string;
   description: string;
-  chapters: OutlineChapter[];
+  chapters: Chapter[];
 }
 
 export interface CourseData {
@@ -22,7 +22,7 @@ export interface CourseData {
   level: string;
   duration: string;
   style: string;
-  chapters: OutlineChapter[];
+  chapters: Chapter[];
   outline: CourseOutline;
   createdAt: string | Date;
 }

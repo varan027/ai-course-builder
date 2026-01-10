@@ -1,5 +1,4 @@
 import { GoogleGenAI } from "@google/genai";
-import { CourseOutline } from "./types";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if(!apiKey){

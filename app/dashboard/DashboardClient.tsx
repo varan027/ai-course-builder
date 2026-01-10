@@ -1,162 +1,99 @@
 "use client";
 
-import NavBar from "@/components/NavBar";
 import { CourseData } from "@/lib/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { IoBookOutline, IoTimeOutline, IoAdd, IoArrowForward } from "react-icons/io5";
+import { IoBookOutline, IoTimeOutline, IoAdd, IoArrowForward, IoTrashOutline } from "react-icons/io5";
 import { BsBarChart, BsCalendar3 } from "react-icons/bs";
 import Button from "@/components/ui/Button";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-// Helper to generate a consistent gradient based on the course ID string
 const getGradient = (id: string) => {
   const gradients = [
-    "from-emerald-500 to-emerald-900",
-    "from-blue-500 to-blue-900",
-    "from-purple-500 to-purple-900",
-    "from-orange-500 to-orange-900",
-    "from-pink-500 to-pink-900",
+    "from-emerald-500 to-emerald-900", "from-blue-500 to-blue-900",
+    "from-purple-500 to-purple-900", "from-orange-500 to-orange-900",
   ];
-  const index = id.charCodeAt(0) % gradients.length;
-  return gradients[index];
+  return gradients[id.charCodeAt(0) % gradients.length];
 };
 
 export const DashboardClient = () => {
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const res = await fetch("/api/courses");
-        if (res.ok) {
-          const data = await res.json();
-          setCourses(data.courses);
-        }
-      } catch (error) {
-        console.error("Failed to fetch courses", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCourses();
+    fetch("/api/courses")
+      .then((res) => res.json())
+      .then((data) => setCourses(data.courses || []))
+      .catch(() => toast.error("Failed to load courses"))
+      .finally(() => setLoading(false));
   }, []);
 
-  return (
-    <div className="min-h-screen pb-20">
-      
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-24">
-        
-        {/* HEADER SECTION */}
-        <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-10 gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-              My Learning Paths
-            </h1>
-            <p className="text-graytext text-sm md:text-base">
-              Continue where you left off or start a new journey.
-            </p>
-          </div>
-          <Link href="/create-course">
-            <Button className="flex items-center gap-2 shadow-lg shadow-primary/20">
-              <IoAdd size={20} />
-              Create New Course
-            </Button>
-          </Link>
-        </div>
+  const handleDelete = async (e: React.MouseEvent, courseId: string) => {
+    e.preventDefault(); 
+    e.stopPropagation(); // Stop link click
+    if (!confirm("Delete this course permanently?")) return;
 
-        {/* LOADING SKELETON */}
-        {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-cardbgclr rounded-xl h-64 border border-borderclr animate-pulse p-6 flex flex-col justify-between">
-                <div className="space-y-4">
-                  <div className="h-6 bg-uibgclr rounded w-3/4"></div>
-                  <div className="h-4 bg-uibgclr rounded w-full"></div>
-                </div>
-                <div className="flex justify-between">
-                  <div className="h-4 bg-uibgclr rounded w-1/4"></div>
-                  <div className="h-4 bg-uibgclr rounded w-1/4"></div>
+    // Optimistic Remove
+    const original = [...courses];
+    setCourses(courses.filter((c) => c._id !== courseId));
+
+    try {
+      const res = await fetch(`/api/courses/${courseId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed");
+      toast.success("Course deleted");
+      router.refresh();
+    } catch (err) {
+      setCourses(original); // Revert
+      toast.error("Could not delete course");
+    }
+  };
+
+  return (
+    <div className="min-h-screen pb-20 max-w-7xl mx-auto px-4 md:px-8 mt-24">
+      <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-10 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">My Learning Paths</h1>
+          <p className="text-graytext">Manage your AI-generated courses.</p>
+        </div>
+        <Link href="/create-course">
+          <Button className="flex items-center gap-2"><IoAdd size={20} /> New Course</Button>
+        </Link>
+      </div>
+
+      {loading && <div className="text-graytext">Loading your courses...</div>}
+
+      {!loading && courses.length === 0 && (
+        <div className="text-center py-20 border border-dashed border-borderclr rounded-2xl">
+          <h2 className="text-xl font-bold text-white">No courses yet</h2>
+          <Link href="/create-course" className="text-primary mt-2 inline-block">Create one now →</Link>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {courses.map((course) => (
+          <div key={course._id} className="relative group">
+            <Link href={`/dashboard/${course._id}`} className="block h-full bg-cardbgclr border border-borderclr rounded-xl overflow-hidden hover:border-primary/50 transition-all">
+              <div className={`h-2 bg-gradient-to-r ${getGradient(course._id)}`}></div>
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-white mb-2 line-clamp-1">{course.name}</h2>
+                <p className="text-sm text-graytext line-clamp-2 mb-6">{course.description}</p>
+                <div className="flex gap-4 text-xs text-gray-400">
+                  <span className="flex items-center gap-1"><BsBarChart className="text-primary"/> {course.level}</span>
+                  <span className="flex items-center gap-1"><IoBookOutline className="text-primary"/> {course.chapters.length} Chapters</span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* EMPTY STATE */}
-        {!loading && courses.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 border border-dashed border-borderclr rounded-2xl bg-uibgclr/20">
-            <div className="w-16 h-16 bg-uibgclr rounded-full flex items-center justify-center mb-4">
-              <IoBookOutline size={32} className="text-graytext" />
-            </div>
-            <h2 className="text-xl font-semibold text-white mb-2">No courses yet</h2>
-            <p className="text-graytext mb-6 text-center max-w-sm">
-              You haven't generated any courses yet. Create your first AI-powered learning path today.
-            </p>
-            <Link href="/create-course">
-              <Button>Generate First Course</Button>
             </Link>
+            <button
+              onClick={(e) => handleDelete(e, course._id)}
+              className="absolute top-4 right-4 p-2 bg-uibgclr/80 text-graytext hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+              title="Delete"
+            >
+              <IoTrashOutline size={18} />
+            </button>
           </div>
-        )}
-
-        {/* COURSE GRID */}
-        {!loading && courses.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
-              <Link 
-                href={`/dashboard/${course._id}`} 
-                key={course._id}
-                className="group relative flex flex-col justify-between bg-cardbgclr border border-borderclr rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300"
-              >
-                {/* Visual Banner */}
-                <div className={`h-2  ${getGradient(course._id)}`}></div>
-                
-                <div className="p-6 flex-1 flex flex-col">
-                  {/* Title & Description */}
-                  <div className="mb-6">
-                    <h2 className="text-xl font-bold text-white group-hover:text-primary transition-colors line-clamp-2 mb-2">
-                      {course.name}
-                    </h2>
-                    <p className="text-sm text-graytext line-clamp-2">
-                      {course.description}
-                    </p>
-                  </div>
-
-                  {/* Metadata Grid */}
-                  <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs text-gray-400 mt-auto">
-                    <div className="flex items-center gap-2">
-                      <BsBarChart className="text-primary" />
-                      {course.level}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <IoTimeOutline className="text-primary" />
-                      {course.duration}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <IoBookOutline className="text-primary" />
-                      {course.chapters?.length || 0} Chapters
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <BsCalendar3 className="text-primary" />
-                      {new Date(course.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer / CTA */}
-                <div className="bg-uibgclr/50 p-4 border-t border-borderclr flex justify-between items-center group-hover:bg-uibgclr transition-colors">
-                  <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded">
-                    {course.style || "AI Course"}
-                  </span>
-                  <span className="text-sm font-medium flex items-center gap-1 text-white group-hover:gap-2 transition-all">
-                    View Course <IoArrowForward />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        ))}
       </div>
     </div>
   );
