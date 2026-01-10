@@ -2,9 +2,6 @@ import { getAuthUser } from "@/lib/auth";
 import ConnectToDB from "@/lib/db";
 import CourseModel from "@/models/CourseModel";
 import { NextRequest, NextResponse } from "next/server";
-import { searchYoutube } from "@/lib/youtube";
-import { GenerateChapterContentPrompt } from "@/constants/AiPrompt";
-import { getGeminiTextResponse } from "@/lib/ai";
 
 export async function POST(req: NextRequest){
   try{

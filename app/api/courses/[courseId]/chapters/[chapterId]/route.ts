@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request, { params } : { params: Promise<{ courseId: string; chapterId: string }> } ){
   try{
-    const { courseId, chapterId } = await params;
+    const { courseId } = await params;
     const { chapterIndex } = await req.json();
 
     await ConnectToDB();

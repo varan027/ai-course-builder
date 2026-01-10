@@ -110,7 +110,7 @@ export const DashboardClient = () => {
                 className="group relative flex flex-col justify-between bg-cardbgclr border border-borderclr rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300"
               >
                 {/* Visual Banner */}
-                <div className={`h-2 bg-gradient-to-r ${getGradient(course._id)}`}></div>
+                <div className={`h-2  ${getGradient(course._id)}`}></div>
                 
                 <div className="p-6 flex-1 flex flex-col">
                   {/* Title & Description */}

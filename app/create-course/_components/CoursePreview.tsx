@@ -7,6 +7,7 @@ import { GoClock } from "react-icons/go";
 import { IoBookOutline, IoPlayOutline } from "react-icons/io5";
 import Button from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export interface CourseProps {
   loading: boolean;
@@ -62,8 +63,12 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
         console.error("Server Error Details:", errorData);
         alert(`Error: ${errorData.error || "Failed to save course"}`);
       }
+
+      toast.success("Course created successfully!");
+      
     } catch (error) {
       console.error("Error saving:", error);
+      toast.error("Error Saving")
     } finally {
       setIsSaving(false);
     }
