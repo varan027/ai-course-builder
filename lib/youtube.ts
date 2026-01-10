@@ -10,7 +10,7 @@ export async function searchYoutube(query: string) {
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(
         query
-      )}&key=${apiKey}&type=video`
+      )}&key=${apiKey}&type=video&videoEmbeddable=true`
     );
 
     const data = await res.json();

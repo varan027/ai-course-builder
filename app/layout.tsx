@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Outfit, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import NavBar from "@/components/NavBar";
@@ -14,23 +14,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const space = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "LearnFlow",
   description: "Generates learning paths tailored to your goals.",
 };
 
 export default function RootLayout({
-  children
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.className} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.className} ${geistMono.variable} ${space.variable} antialiased font-sans`}>
         <Providers>
-          <NavBar/>
+          <NavBar />
           {children}
         </Providers>
       </body>

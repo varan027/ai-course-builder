@@ -20,12 +20,16 @@
   --color-cardbgclr: var(--cardbgclr);
   --color-graytext: var(--graytext);
   
-  /* Custom Animations */
+  
   --animate-float: float 6s ease-in-out infinite;
   --keyframes-float: {
     0%, 100%: { transform: translateY(0); }
     50%: { transform: translateY(-20px); }
   }
+
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui;
+  --font-space: var(--font-space), sans-serif;
 }
 
 body {
@@ -36,7 +40,6 @@ body {
   overflow-x: hidden;
 }
 
-/* The "Creative" Touch: Noise Texture */
 body::before {
   content: "";
   position: fixed;
@@ -49,7 +52,6 @@ body::before {
   z-index: 50;
 }
 
-/* Custom Selection Color */
 ::selection {
   background: rgba(15, 185, 106, 0.2);
   color: #0fb96a;

@@ -14,21 +14,13 @@ export async function POST(req: NextRequest){
 
     const { course } = await req.json()
 
-    const processedChapters = await Promise.all(
-      course.chapters.map(async (chapter: any)=> {
-        const videoId = await searchYoutube(`${course.topic} ${chapter.chapterName} tutorial`);
-
-        const contentPrompt = GenerateChapterContentPrompt(chapter.chapterName, course.topic, course.style)
-
-        const content = await getGeminiTextResponse(contentPrompt);
-
-        return {
-          ...chapter,
-          videoId : videoId,
-          content: content
-        }
-      })
-    )
+    const initialChapters = course.chapters.map((chapter: any)=> ({
+        chapterName: chapter.chapterName,
+        about: chapter.about,
+        duration: chapter.duration,
+        videoId: "",
+        content: "",
+    }));
 
     const finalCourse = await CourseModel.create({
       userId: user.id,
@@ -38,7 +30,7 @@ export async function POST(req: NextRequest){
       level: course.level,
       duration: course.duration,
       style: course.style,
-      chapters: processedChapters,
+      chapters: initialChapters,
       outline: course.outline
     })
 
