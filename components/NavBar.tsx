@@ -28,10 +28,10 @@ const NavBar = () => {
               ? "top-4 opacity-100 scale-100"
               : "-top-24 opacity-0 scale-95 pointer-events-none"
           }
-          w-[90%] max-w-5xl glass
+          w-[90%] max-w-5xl
         `}
       >
-        <div className="relative backdrop-blur-xl border border-white/10 rounded-full shadow-2xl shadow-primary/5 px-4 py-2 flex items-center justify-between">
+        <div className="relative glass backdrop-blur-xl border border-white/10 rounded-full shadow-2xl shadow-primary/5 px-4 py-2 flex items-center justify-between">
           <div className="pl-2">
             <Logo />
           </div>
