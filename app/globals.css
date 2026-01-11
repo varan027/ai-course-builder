@@ -2,13 +2,34 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-  --background: #0f1113;
-  --foreground: #ededed;
-  --primary: #0fb96a;
-  --borderclr: #272a2d;
-  --cardbgclr: #131517;
-  --uibgclr: #1c1e20;
-  --graytext: #898A8B;
+  /* 1. BACKGROUND: Deep, rich void. Not pitch black (#000) which causes eye strain. */
+  --background: #09090b;
+
+  /* 2. FOREGROUND: Off-white. Pure white (#fff) is too harsh on dark backgrounds. */
+  --foreground: #fafafa;
+
+  /* 3. PRIMARY: "Emerald 500". A sharp, confident green that glows against black. */
+  --primary: #10b981;
+
+  /* 4. BORDERS: Subtle separation. Dark enough to disappear, light enough to define. */
+  --borderclr: #27272a;
+
+  /* 5. CARDS: Slightly elevated surface. Just one shade lighter than background. */
+  --cardbgclr: #18181b;
+
+  /* 6. UI ELEMENTS: Inputs/Dropdowns. Distinct "clickable" surface. */
+  --uibgclr: #27272a;
+
+  /* 7. SUBTEXT: Metallic gray. Readable but clearly secondary info. */
+  --graytext: #a1a1aa;
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(9, 9, 11, 0.6); /* Matches your new background variable */
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
 }
 
 @theme inline {
@@ -40,7 +61,7 @@ body {
   overflow-x: hidden;
 }
 
-body::before {
+/* body::before {
   content: "";
   position: fixed;
   top: 0;
@@ -55,4 +76,4 @@ body::before {
 ::selection {
   background: rgba(15, 185, 106, 0.2);
   color: #0fb96a;
-}
+} */

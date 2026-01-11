@@ -89,7 +89,7 @@ export default function CourseForm({
           id="description"
           placeholder="Course Description"
           onChange={(e) => handleInputChange("description", e.target.value)}
-          className="h-32"
+          className="h-28"
         />
 
         <div className="flex gap-4">
