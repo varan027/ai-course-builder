@@ -2,9 +2,8 @@ import { getAuthUser } from "@/lib/auth";
 import { assertCourseOwner } from "@/lib/permission";
 import CourseModel from "@/models/CourseModel";
 import { NextRequest, NextResponse } from "next/server";
-import ConnectToDB from "@/lib/db"; // Ensure DB connection is imported
+import ConnectToDB from "@/lib/db";
 
-// FIX: Type definition for Next.js 15 params
 type Props = {
   params: Promise<{
     courseId: string;
@@ -13,10 +12,9 @@ type Props = {
 
 export const GET = async (req: NextRequest, { params }: Props) => {
   try {
-    const { courseId } = await params; // 1. Await params
+    const { courseId } = await params;
     const user = await getAuthUser();
 
-    // 2. Ensure DB is connected (Safety check)
     await ConnectToDB();
 
     const course = await assertCourseOwner(courseId, user.id);
@@ -35,12 +33,11 @@ export const GET = async (req: NextRequest, { params }: Props) => {
 
 export const DELETE = async (req: NextRequest, { params }: Props) => {
   try {
-    const { courseId } = await params; // 1. Await params here too
+    const { courseId } = await params;
     const user = await getAuthUser();
 
     await ConnectToDB();
 
-    // Verify ownership before deleting
     await assertCourseOwner(courseId, user.id);
 
     const result = await CourseModel.deleteOne({

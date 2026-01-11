@@ -44,9 +44,9 @@ export const DashboardClient = () => {
   }, []);
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen py-20">
       
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-24">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-18">
         
         {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-10 gap-4">

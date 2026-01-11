@@ -7,7 +7,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background">
       <NetworkStatus />
       <NavBar />
-      <main className="pt-20">
+      <main className="">
         {children}
       </main>
     </div>

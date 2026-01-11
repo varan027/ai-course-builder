@@ -1,9 +1,9 @@
 "use client";
 import { useContext } from "react";
-import TopicInput from "../../../components/ui/TopicInput";
-import Dropdown from "../../../components/ui/Dropdown";
-import Button from "../../../components/ui/Button";
-import Textarea from "../../../components/ui/Textarea";
+import TopicInput from "@/components/ui/TopicInput";
+import Dropdown from "@/components/ui/Dropdown";
+import Button from "@/components/ui/Button";
+import Textarea from '@/components/ui/Textarea'
 import { UserInputContext } from "@/app/_context/UserInputContext";
 import {
   LEVEL_OPTIONS,
@@ -68,9 +68,9 @@ export default function CourseForm({
 
   
   return (
-    <div className="p-4 rounded-lg shadow-sm border bg-cardbgclr border-borderclr">
+    <div className="p-4 rounded-xl shadow-sm border bg-cardbgclr border-borderclr">
       <form
-        className="space-y-4 relative lg:h-[80vh]"
+        className="space-y-4 relative lg:h-[76vh]"
         onSubmit={handleGeneration}
       >
         <h1 className="text-center text-primary/90 font-semibold font-mono text-2xl">

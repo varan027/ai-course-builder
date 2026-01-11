@@ -26,7 +26,7 @@
 
 @layer utilities {
   .glass {
-    background: rgba(9, 9, 11, 0.6); /* Matches your new background variable */
+    background: rgba(9, 9, 11, 0.4); /* Matches your new background variable */
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }

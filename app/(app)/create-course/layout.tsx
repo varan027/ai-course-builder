@@ -1,6 +1,6 @@
 "use client"
 import { useState } from 'react'
-import { UserInputContext } from '../_context/UserInputContext'
+import { UserInputContext } from '@/app/_context/UserInputContext'
 import { FormValues } from "@/lib/types"
 
 const layout = ({children} : {children: React.ReactNode}) => {

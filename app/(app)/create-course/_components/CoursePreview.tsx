@@ -106,7 +106,7 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
     <div className="lg:w-[72vw] w-[96vw] px-4">
       {!courseState ? (
         <div className="">
-          <div className="bg-cardbgclr border border-borderclr rounded-lg p-6 md:h-155 h-80 flex items-center">
+          <div className="bg-cardbgclr border border-borderclr rounded-xl p-6 h-100 flex items-center">
             <h1 className="font-mono font-extrabold text-5xl md:text-7xl text-graytext ">
               GENERATE COURSES <br /> IN ONE CLICK
             </h1>

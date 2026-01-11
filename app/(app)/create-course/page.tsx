@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import Wrapper from "./_components/Wrapper";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 
 
@@ -12,7 +12,7 @@ const CourseCreatePage = async () => {
   }
 
   return (
-    <main className="lg:p-4 p-2 mt-18 ">
+    <main className="lg:p-4 p-2 mt-4 ">
       <Wrapper />
     </main>
   );

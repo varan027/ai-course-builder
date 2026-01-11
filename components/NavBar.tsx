@@ -31,7 +31,7 @@ const NavBar = () => {
           w-[90%] max-w-5xl
         `}
       >
-        <div className="relative glass backdrop-blur-xl border border-white/10 rounded-full shadow-2xl shadow-primary/5 px-4 py-2 flex items-center justify-between">
+        <div className="relative glass rounded-full shadow-2xl shadow-primary/5 px-4 py-2 flex items-center justify-between">
           <div className="pl-2">
             <Logo />
           </div>
