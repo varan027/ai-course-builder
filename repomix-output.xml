@@ -1,0 +1,2636 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+app/_context/UserInputContext.tsx
+app/(app)/create-course/_components/CourseForm.tsx
+app/(app)/create-course/_components/CoursePreview.tsx
+app/(app)/create-course/_components/Wrapper.tsx
+app/(app)/create-course/layout.tsx
+app/(app)/create-course/page.tsx
+app/(app)/dashboard/[courseId]/CourseDetailClient.tsx
+app/(app)/dashboard/[courseId]/page.tsx
+app/(app)/dashboard/DashboardClient.tsx
+app/(app)/dashboard/page.tsx
+app/(marketing)/layout.tsx
+app/(marketing)/page.tsx
+app/api/auth/[...nextauth]/route.ts
+app/api/courses/[courseId]/route.ts
+app/api/courses/create/route.ts
+app/api/courses/route.ts
+app/api/generate/route.ts
+app/auth/signin/page.tsx
+app/auth/signup/page.tsx
+app/globals.css
+app/icon.png
+app/layout.tsx
+app/providers.tsx
+components/Features.tsx
+components/Footer.tsx
+components/NavBar.tsx
+components/ProfileDropdown.tsx
+components/ui/Button.tsx
+components/ui/Card.tsx
+components/ui/Dropdown.tsx
+components/ui/Logo.tsx
+components/ui/Textarea.tsx
+components/ui/TopicInput.tsx
+constants/AiPrompt.ts
+constants/formOptions.ts
+eslint.config.mjs
+lib/ai.ts
+lib/auth.ts
+lib/data.ts
+lib/db.ts
+lib/permission.ts
+lib/types.ts
+lib/validators/courseInput.ts
+lib/youtube.ts
+models/CourseModel.ts
+next.config.ts
+package.json
+postcss.config.mjs
+public/file.svg
+public/globe.svg
+public/next.svg
+public/vercel.svg
+public/window.svg
+README.md
+tsconfig.json
+types/next-auth.d.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/(app)/create-course/_components/CourseForm.tsx">
+"use client";
+import { useContext } from "react";
+import TopicInput from "../../../components/ui/TopicInput";
+import Dropdown from "../../../components/ui/Dropdown";
+import Button from "../../../components/ui/Button";
+import Textarea from "../../../components/ui/Textarea";
+import { UserInputContext } from "@/app/_context/UserInputContext";
+import {
+  LEVEL_OPTIONS,
+  STYLE_OPTIONS,
+  DURATION_OPTIONS,
+  CHAPTER_OPTIONS,
+} from "@/constants/formOptions";
+import { CourseData } from "@/lib/types";
+
+interface CourseFormProps {
+  setCourseData: React.Dispatch<React.SetStateAction<CourseData | null>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export default function CourseForm({
+  setLoading,
+  setCourseData,
+}: CourseFormProps) {
+  const { userInput, setUserInput } = useContext(UserInputContext)!;
+
+  const handleInputChange = (field: string, value: any) => {
+    setUserInput((prev) => {
+      return { ...prev, [field]: value };
+    });
+  };
+
+  const GenerateCourseLayout = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userInput),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage =
+          errorData?.error || errorData?.message || JSON.stringify(errorData);
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      setCourseData(data.course);
+    } catch (error) {
+      console.error("Failed to generate course layout:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleGeneration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await GenerateCourseLayout();
+    } catch (error) {
+      console.error("Generation process failed:", error);
+    }
+  };
+
+  
+  return (
+    <div className="p-4 rounded-lg shadow-sm border bg-cardbgclr border-borderclr">
+      <form
+        className="space-y-4 relative lg:h-[80vh]"
+        onSubmit={handleGeneration}
+      >
+        <h1 className="text-center text-primary/90 font-semibold font-mono text-2xl">
+          Create Course
+        </h1>
+        <hr className="text-borderclr" />
+
+        <TopicInput
+          id="topic"
+          placeholder="Topic (e.g. React Basics)"
+          onChange={(e) => handleInputChange("topic", e.target.value)}
+          className="h-12"
+        />
+
+        <Textarea
+          id="description"
+          placeholder="Course Description"
+          onChange={(e) => handleInputChange("description", e.target.value)}
+          className="h-28"
+        />
+
+        <div className="flex gap-4">
+          <Dropdown
+            label="Level"
+            options={LEVEL_OPTIONS}
+            value={userInput.level}
+            onChange={(value) => {
+              handleInputChange("level", value);
+            }}
+            align="left"
+          />
+
+          <Dropdown
+            label="Style"
+            options={STYLE_OPTIONS}
+            value={userInput.style}
+            onChange={(value) => handleInputChange("style", value)}
+            align="left"
+          />
+        </div>
+
+        <div className="flex gap-4 ">
+          <Dropdown<number>
+            label="Chapter"
+            options={CHAPTER_OPTIONS}
+            value={userInput.chapters}
+            onChange={(value) => handleInputChange("chapters", value)}
+            align="left"
+          />
+
+          <Dropdown<number>
+            label="Duration"
+            options={DURATION_OPTIONS}
+            value={userInput.duration}
+            onChange={(value) => handleInputChange("duration", value)}
+            align="left"
+          />
+        </div>
+
+        <Button
+          className="w-full lg:absolute lg:bottom-4 font-medium"
+          type="submit"
+          disabled={userInput.topic === ""}
+        >
+          Generate Course
+        </Button>
+      </form>
+    </div>
+  );
+}
+</file>
+
+<file path="app/(app)/create-course/_components/CoursePreview.tsx">
+"use client";
+import type { CourseData } from "@/lib/types";
+import { useEffect, useState } from "react";
+import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
+import { BsBarChart } from "react-icons/bs";
+import { GoClock } from "react-icons/go";
+import { IoBookOutline, IoPlayOutline } from "react-icons/io5";
+import Button from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+export interface CourseProps {
+  loading: boolean;
+  activeCourse: CourseData | null;
+}
+
+const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
+  const router = useRouter();
+  const [courseState, setCourseState] = useState<CourseData | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (activeCourse) {
+      setCourseState(activeCourse);
+    }
+  }, [activeCourse]);
+
+  const toggle = (index: number) => {
+    setActiveIndex(activeIndex == index ? null : index);
+  };
+
+  const handleChaptersInlineEdit = (index: number, newName: string) => {
+    if (!courseState) return;
+    const updatedChapters = [...courseState.outline.chapters];
+    updatedChapters[index].chapterName = newName;
+
+    setCourseState({
+      ...courseState,
+      outline: {
+        ...courseState.outline,
+        chapters: updatedChapters,
+      },
+      chapters: updatedChapters,
+    });
+  };
+
+  const handleConfirm = async () => {
+    if (!courseState) return;
+    setIsSaving(true);
+
+    try {
+      const res = await fetch("api/courses/create", {
+        method: "POST",
+        headers: { "content-Type": "application/json" },
+        body: JSON.stringify({ course: courseState }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        router.push(`dashboard/${data.course._id}`);
+      } else {
+        const errorData = await res.json();
+        console.error("Server Error Details:", errorData);
+        alert(`Error: ${errorData.error || "Failed to save course"}`);
+      }
+
+      toast.success("Course created successfully!");
+    } catch (error) {
+      console.error("Error saving:", error);
+      toast.error("Error Saving");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="animate-pulse ml-4">
+        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-6 text-graytext/40 text-xl mb-4 flex">
+          <div className="w-1/2">
+            <div className="h-8 bg-uibgclr rounded-lg w-5/6 mb-6"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-4/6"></div>
+          </div>
+          <div className="h-38 bg-uibgclr rounded-lg w-1/2"></div>
+        </div>
+        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-6 text-graytext/40 text-xl mb-4 space-y-4">
+            <div className="h-8 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-full"></div>
+        </div>
+        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-6 text-graytext/40 text-xl mb-4 space-y-4">
+          <div className="bg-uibgclr/50 rounded-lg w-full p-6">
+            <div className="h-8 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-5/6"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lg:w-[72vw] w-[96vw] px-4">
+      {!courseState ? (
+        <div className="">
+          <div className="bg-cardbgclr border border-borderclr rounded-lg p-6 md:h-155 h-80 flex items-center">
+            <h1 className="font-mono font-extrabold text-5xl md:text-7xl text-graytext ">
+              GENERATE COURSES <br /> IN ONE CLICK
+            </h1>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <div key={courseState?._id} className="space-y-4">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-12 rounded-lg bg-cardbgclr border border-borderclr">
+              <div>
+                <h2 className="font-bold text-2xl text-primary">
+                  {courseState?.name}
+                </h2>
+                <p className="text-sm text-graytext/80 mt-3">
+                  {courseState?.description}
+                </p>
+              </div>
+              <div className="bg-uibgclr rounded-lg p-4">
+                <div className="text-graytext/60 text-center mt-8">
+                  Course Image
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 p-6 w-full bg-cardbgclr border border-borderclr rounded-lg">
+              <div className="text-primary flex items-center md:justify-center gap-4">
+                <BsBarChart size={30} />
+                <div>
+                  <p className="text-xs text-graytext">Skill Level</p>
+                  <p className="font-medium text-white">{courseState?.level}</p>
+                </div>
+              </div>
+              <div className="text-primary flex items-center md:justify-center gap-4">
+                <GoClock size={30} />
+                <div>
+                  <p className="text-xs text-graytext">Duration</p>
+                  <p className="font-medium text-white">
+                    {courseState?.duration}h
+                  </p>
+                </div>
+              </div>
+              <div className="text-primary flex items-center md:justify-center gap-4">
+                <IoBookOutline size={30} />
+                <div>
+                  <p className="text-xs text-graytext">No of Chapters</p>
+                  <p className="font-medium text-white">
+                    {courseState?.outline?.chapters?.length}
+                  </p>
+                </div>
+              </div>
+              <div className="text-primary flex items-center md:justify-center gap-4">
+                <IoPlayOutline size={30} />
+                <div>
+                  <p className="text-xs text-graytext">Skill Level</p>
+                  <p className="font-medium text-white">{courseState?.level}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 bg-cardbgclr border border-borderclr rounded-lg space-y-4">
+              <h2 className="text-lg font-semibold text-primary mb-4">
+                Chapters
+              </h2>
+              {courseState?.outline?.chapters?.map((chapter, index) => (
+                <div
+                  key={index}
+                  className="bg-uibgclr rounded-lg border border-borderclr p-4"
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="w-full flex items-center gap-4 font-medium text-white">
+                      <span className="bg-primary text-sm rounded-full w-7 h-7 text-black flex items-center justify-center font-semibold">
+                        {index + 1}
+                      </span>
+                      <input
+                        className="bg-transparent border-b border-transparent hover:border-gray-500 focus:border-primary focus:outline-none w-full py-1 transition-colors"
+                        value={chapter.chapterName}
+                        onChange={(e) =>
+                          handleChaptersInlineEdit(index, e.target.value)
+                        }
+                      />
+                    </div>
+                    <button
+                      className="cursor-pointer text-xl md:ml-28"
+                      onClick={() => {
+                        toggle(index);
+                      }}
+                    >
+                      {activeIndex == index ? (
+                        <IoIosArrowUp />
+                      ) : (
+                        <IoIosArrowDown />
+                      )}
+                    </button>
+                  </div>
+                  <div
+                    className={activeIndex == index ? "mt-4 block" : "hidden"}
+                  >
+                    <div className="font-normal text-graytext mt-3 text-sm ">
+                      {chapter.about}
+                    </div>
+                    <div className="text-xs text-graytext/70 font-normal mt-3">
+                      {chapter.duration}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end pb-10">
+              <Button
+                className="font-semibold text-lg"
+                onClick={handleConfirm}
+                disabled={isSaving}
+              >
+                {isSaving ? "Generating Course........." : "Confirm Generate"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CoursePreview;
+</file>
+
+<file path="app/(app)/create-course/_components/Wrapper.tsx">
+"use client"
+import CourseForm from './CourseForm';
+import CoursePreview from './CoursePreview';
+import { useState } from 'react';
+import { CourseData } from '@/lib/types';
+
+
+const Wrapper = () => {
+  const [activeCourse, setActiveCourse] = useState<CourseData | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+      
+  return (
+    <div>
+      <div className="flex :flex-row space-y-4 flex-col lg:items-start items-center">
+        <div className="lg:fixed lg:max-w-1/4 lg:h-[80vh]">
+          <CourseForm setCourseData={setActiveCourse} setLoading={setLoading} />
+        </div>
+        <div className="lg:ml-[26%]">
+          <CoursePreview loading={loading} activeCourse={activeCourse} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Wrapper
+</file>
+
+<file path="app/(app)/create-course/layout.tsx">
+"use client"
+import { useState } from 'react'
+import { UserInputContext } from '../_context/UserInputContext'
+import { FormValues } from "@/lib/types"
+
+const layout = ({children} : {children: React.ReactNode}) => {
+
+  const [userInput, setUserInput] = useState<FormValues>({} as FormValues);
+
+  return (
+    <div>
+      <UserInputContext.Provider value={{userInput, setUserInput}}>
+        <>  
+          {children}
+        </>
+      </UserInputContext.Provider>
+    </div>
+  )
+}
+
+export default layout
+</file>
+
+<file path="app/(app)/create-course/page.tsx">
+import { getServerSession } from "next-auth";
+import Wrapper from "./_components/Wrapper";
+import { authOptions } from "../api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+
+
+const CourseCreatePage = async () => {
+  const session = await getServerSession(authOptions);
+
+  if(!session?.user){
+    redirect("/");
+  }
+
+  return (
+    <main className="lg:p-4 p-2 mt-18 ">
+      <Wrapper />
+    </main>
+  );
+};
+
+export default CourseCreatePage;
+</file>
+
+<file path="app/(app)/dashboard/[courseId]/CourseDetailClient.tsx">
+"use client";
+
+import type { CourseData, Chapter } from "@/lib/types";
+import { useState, useEffect } from "react";
+import { IoPlayCircle } from "react-icons/io5";
+import Button from "@/components/ui/Button";
+import ReactMarkdown from "react-markdown";
+import { BiLeftArrowAlt, BiSolidError } from "react-icons/bi";
+import Link from "next/link";
+
+interface Props {
+  course: CourseData;
+}
+
+export default function CourseDetailClient({ course }: Props) {
+  const [activeChapterIndex, setActiveChapterIndex] = useState(0);
+  const [tab, setTab] = useState<"video" | "reading">("video");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [chapters, setChapters] = useState(course.chapters);
+  const activeChapter = chapters[activeChapterIndex];
+
+  return (
+    <div className="flex h-screen bg-background text-foreground overflow-hidden">
+
+      <aside className="w-80 bg-cardbgclr border-r border-borderclr flex-col overflow-y-auto hidden md:flex">
+        <Link href="/dashboard">
+          <button className="hover:text-primary flex items-center p-2  mt-4 ml-4 gap-2 cursor-pointer hover:bg-primary/4 w-22 rounded-lg transition-all duration-500">
+          <BiLeftArrowAlt size={20}/> Back
+        </button>
+        </Link>
+        <div className="p-4 border-b border-borderclr">
+          <h2 className="font-bold text-lg text-primary">{course.name}</h2>
+          <p className="text-xs text-graytext mt-1">
+            {chapters.length} Chapters
+          </p>
+        </div>
+        <div className="flex-1">
+          {chapters.map((chapter, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveChapterIndex(index)}
+              className={`w-full text-left p-4 border-b border-borderclr/50 hover:bg-uibgclr transition-colors flex items-start gap-3
+                ${
+                  activeChapterIndex === index
+                    ? "bg-primary/10 border-l-4 border-l-primary"
+                    : ""
+                }`}
+            >
+              <span className="mt-1 text-primary">
+                {activeChapterIndex === index ? (
+                  <IoPlayCircle size={20} />
+                ) : (
+                  <span className="text-xs font-mono ml-1">{index + 1}</span>
+                )}
+              </span>
+              <div>
+                <h3
+                  className={`text-sm font-medium ${
+                    activeChapterIndex === index
+                      ? "text-primary"
+                      : "text-gray-300"
+                  }`}
+                >
+                  {chapter.chapterName}
+                </h3>
+              </div>
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        <header className="h-16 glass backdrop-blur-xl flex items-center justify-between px-4 md:px-6 z-10 shrink-0 sticky top-0">
+          <h1 className="font-semibold text-lg truncate pr-4">
+            {activeChapterIndex + 1}. {activeChapter.chapterName}
+          </h1>
+          <div className="flex gap-2 bg-cardbgclr p-2 border border-borderclr rounded-lg">
+            <button
+              onClick={() => setTab("video")}
+              className={
+                tab === "video"
+                  ? "bg-primary text-black px-2 rounded"
+                  : "bg-transparent text-white px-2 cursor-pointer hover:text-primary"
+              }
+            >
+              Video
+            </button>
+            <button
+              onClick={() => setTab("reading")}
+              className={
+                tab === "reading"
+                  ? "bg-primary text-black px-2 rounded"
+                  : "bg-transparent text-white px-2 cursor-pointer hover:text-primary"
+              }
+            >
+              Reading
+            </button>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-6 md:p-12">
+          {tab === "video" && (
+            <div className="max-w-4xl mx-auto">
+              {activeChapter.videoId ? (
+                <div className="border-2 border-borderclr rounded-xl">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${activeChapter.videoId}`}
+                    className="w-full aspect-video rounded-xl"
+                  />
+                </div>
+              ) : isLoading ? (
+                <div className="animate-pulse">Loading....</div>
+              ) : (
+                <div className="text-center flex flex-col gap-4 justify-center items-center w-full aspect-video bg-cardbgclr border-2 border-borderclr rounded-xl">
+                  <BiSolidError size={40} color="#FFDE21" />
+                  <p className="text-sm">video not available</p>
+                  <a href={`https://www.youtube.com/results?search_query=${activeChapter.chapterName}`}>
+                    <Button className="bg-primary">Try Manually</Button>
+                  </a>
+                </div>
+              )}
+              <div className="bg-cardbgclr border border-borderclr p-4 mt-6 rounded-lg">
+                <p className="text-primary font-semibold mb-2 text-lg">About</p>
+                {activeChapter.about}
+              </div>
+            </div>
+          )}
+
+          {tab === "reading" && (
+            <div className="max-w-4xl mx-auto bg-cardbgclr p-8 rounded-xl border border-borderclr shadow-lg">
+              <article className="prose prose-sm md:prose-base lg:prose-lg prose-invert max-w-none prose-headings:text-primary">
+                <ReactMarkdown>{activeChapter.content}</ReactMarkdown>
+              </article>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+</file>
+
+<file path="app/(app)/dashboard/[courseId]/page.tsx">
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { notFound, redirect } from "next/navigation";
+import CourseDetailClient from "./CourseDetailClient";
+import { assertCourseOwner } from "@/lib/permission";
+
+interface PageProps {
+  params: Promise<{
+    courseId: string;
+  }>;
+}
+
+export default async function CourseDetailPage({ params }: PageProps) {
+
+  const { courseId } = await params;
+
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect("/");
+  }
+
+  try {
+    const course = await assertCourseOwner(courseId, session.user.id);
+
+    return <CourseDetailClient course={course} />;
+  } catch(error: any) {
+    console.log(error)
+  }
+}
+</file>
+
+<file path="app/(app)/dashboard/DashboardClient.tsx">
+"use client";
+
+import NavBar from "@/components/NavBar";
+import { CourseData } from "@/lib/types";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { IoBookOutline, IoTimeOutline, IoAdd, IoArrowForward } from "react-icons/io5";
+import { BsBarChart, BsCalendar3 } from "react-icons/bs";
+import Button from "@/components/ui/Button";
+
+// Helper to generate a consistent gradient based on the course ID string
+const getGradient = (id: string) => {
+  const gradients = [
+    "from-emerald-500 to-emerald-900",
+    "from-blue-500 to-blue-900",
+    "from-purple-500 to-purple-900",
+    "from-orange-500 to-orange-900",
+    "from-pink-500 to-pink-900",
+  ];
+  const index = id.charCodeAt(10) % gradients.length;
+  return gradients[index];
+};
+
+export const DashboardClient = () => {
+  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await fetch("/api/courses");
+        if (res.ok) {
+          const data = await res.json();
+          setCourses(data.courses);
+        }
+      } catch (error) {
+        console.error("Failed to fetch courses", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  return (
+    <div className="min-h-screen pb-20">
+      
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-24">
+        
+        {/* HEADER SECTION */}
+        <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-10 gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              My Learning Paths
+            </h1>
+            <p className="text-graytext text-sm md:text-base">
+              Continue where you left off or start a new journey.
+            </p>
+          </div>
+          <Link href="/create-course">
+            <Button className="flex items-center gap-2 shadow-lg shadow-primary/20">
+              <IoAdd size={20} />
+              Create New Course
+            </Button>
+          </Link>
+        </div>
+
+        {/* LOADING SKELETON */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-cardbgclr rounded-xl h-64 border border-borderclr animate-pulse p-6 flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div className="h-6 bg-uibgclr rounded w-3/4"></div>
+                  <div className="h-4 bg-uibgclr rounded w-full"></div>
+                </div>
+                <div className="flex justify-between">
+                  <div className="h-4 bg-uibgclr rounded w-1/4"></div>
+                  <div className="h-4 bg-uibgclr rounded w-1/4"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+        {!loading && courses.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 border border-dashed border-borderclr rounded-2xl bg-uibgclr/20">
+            <div className="w-16 h-16 bg-uibgclr rounded-full flex items-center justify-center mb-4">
+              <IoBookOutline size={32} className="text-graytext" />
+            </div>
+            <h2 className="text-xl font-semibold text-white mb-2">No courses yet</h2>
+            <p className="text-graytext mb-6 text-center max-w-sm">
+              You haven't generated any courses yet. Create your first AI-powered learning path today.
+            </p>
+            <Link href="/create-course">
+              <Button>Generate First Course</Button>
+            </Link>
+          </div>
+        )}
+
+        {/* COURSE GRID */}
+        {!loading && courses.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {courses.map((course) => (
+              <Link 
+                href={`/dashboard/${course._id}`} 
+                key={course._id}
+                className="group relative flex flex-col justify-between bg-cardbgclr border border-borderclr rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300"
+              >
+                {/* Visual Banner */}
+                <div className={`h-2  ${getGradient(course._id)}`}></div>
+                
+                <div className="p-6 flex-1 flex flex-col">
+                  {/* Title & Description */}
+                  <div className="mb-6">
+                    <h2 className="text-xl font-bold text-white group-hover:text-primary transition-colors line-clamp-2 mb-2">
+                      {course.name}
+                    </h2>
+                    <p className="text-sm text-graytext line-clamp-2">
+                      {course.description}
+                    </p>
+                  </div>
+
+                  {/* Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs text-gray-400 mt-auto">
+                    <div className="flex items-center gap-2">
+                      <BsBarChart className="text-primary" />
+                      {course.level}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <IoTimeOutline className="text-primary" />
+                      {course.duration}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <IoBookOutline className="text-primary" />
+                      {course.chapters?.length || 0} Chapters
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BsCalendar3 className="text-primary" />
+                      {new Date(course.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer / CTA */}
+                <div className="bg-uibgclr/50 p-4 border-t border-borderclr flex justify-between items-center group-hover:bg-uibgclr transition-colors">
+                  <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded">
+                    {course.style || "AI Course"}
+                  </span>
+                  <span className="text-sm font-medium flex items-center gap-1 text-white group-hover:gap-2 transition-all">
+                    View Course <IoArrowForward />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default DashboardClient;
+</file>
+
+<file path="app/(app)/dashboard/page.tsx">
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../api/auth/[...nextauth]/route'
+import { redirect } from 'next/navigation';
+import DashboardClient from './DashboardClient';
+
+const page = async () => {
+  const session = await getServerSession(authOptions);
+
+  if(!session?.user){
+    redirect("/")
+  }
+
+  return (
+    <div>
+      <DashboardClient/>
+    </div>
+  )
+}
+
+export default page
+</file>
+
+<file path="app/(marketing)/layout.tsx">
+import NavBar from "@/components/NavBar";
+import Footer from "@/components/Footer";
+
+export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <NavBar />
+      <main>{children}</main>
+      <Footer />
+    </>
+  );
+}
+</file>
+
+<file path="app/(marketing)/page.tsx">
+import Features from "@/components/Features";
+import Footer from "@/components/Footer";
+import NavBar from "@/components/NavBar";
+import Button from "@/components/ui/Button";
+import Link from "next/link";
+
+const page = () => {
+  return (
+    <div className="px-4 space-y-6 md:px-12 lg:px-24">
+
+      <div className="md:py-24 mt-24 md:text-center max-w-3xl mx-auto md:space-y-6 space-y-5 transition-all">
+        <h1 className="lg:text-6xl md:text-4xl text-2xl transition-all duration-600">
+          Master Any Skill With an
+          <br />
+          <span className="text-primary">AI-Powered</span> Learning Path
+        </h1>
+        <p className="text-xs lg:text-sm text-graytext">
+          LearnFlow creates personalized, step-by-step courses tailored to your
+          goals, learning style, and pace. <br /> Stop searching endlessly — get
+          a smart roadmap that adapts to you.
+        </p>
+        <div className="space-x-2">
+          <Button className="font-medium bg-primary/10 border border-primary/60 text-primary hover:bg-primary hover:text-black">
+            Get Started
+          </Button>
+          <Link href="/create-course">
+            <Button className="font-medium bg-primary/10 border border-primary/60 text-primary hover:bg-primary hover:text-black">
+              Generate
+            </Button>
+          </Link>
+        </div>
+        <p className="text-xs text-graytext">
+          Your unique learning journey starts with one click. <br />
+          Powered by AI. Designed for humans.
+        </p>
+      </div>
+      <hr className="border-borderclr" />
+      <Features />
+      <hr className="border-borderclr" />
+      <Footer />
+    </div>
+  );
+};
+
+export default page;
+</file>
+
+<file path="app/api/auth/[...nextauth]/route.ts">
+import NextAuth, { type NextAuthOptions } from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+
+export const authOptions: NextAuthOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    })
+  ],
+
+  session: {
+    strategy: "jwt",
+  },
+
+  callbacks: {
+    async jwt({ token, user}){
+      if(user){
+        token.id = user.id;
+      }
+      return token;
+    },
+
+    async session({session, token}){
+      if(session.user){
+        session.user.id = token.id as string;
+      }
+      return session;
+    }
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+const handler = NextAuth(authOptions);
+
+export {handler as GET, handler as POST}
+</file>
+
+<file path="app/providers.tsx">
+"use client"
+import { SessionProvider } from "next-auth/react";
+
+export default function Providers({children}: {children: React.ReactNode}){
+  return (
+    <SessionProvider>
+      {children}
+    </SessionProvider>
+  )
+}
+</file>
+
+<file path="components/ProfileDropdown.tsx">
+import { signOut } from "next-auth/react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { IoGridOutline, IoLogOutOutline, IoPersonCircleOutline } from "react-icons/io5";
+
+const ProfileDropdown = ({ session }: { session: any }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div
+      className="relative pl-2 md:pl-4 md:border-l border-white/10"
+      ref={ref}
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-3 group focus:outline-none"
+      >
+        <div className="hidden sm:block text-right leading-3">
+          <p className="text-xs font-bold text-white group-hover:text-primary transition-colors">
+            {session.user.name}
+          </p>
+          <p className="text-[10px] text-graytext">Free Plan</p>
+        </div>
+
+        <div className="relative">
+          <div className="relative h-9 w-9 bg-uibgclr rounded-full flex items-center justify-center text-white font-bold border border-white/10 overflow-hidden cursor-pointer">
+            {session.user.image ? (
+              <img
+                src={session.user.image}
+                alt="User"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              session.user.name?.charAt(0).toUpperCase()
+            )}
+          </div>
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-12 w-48 bg-cardbgclr border border-borderclr rounded-xl shadow-2xl p-1 animate-in fade-in slide-in-from-top-2 z-50">
+          <div className="px-3 py-2 border-b border-borderclr/50 mb-1">
+            <p className="text-xs text-graytext">Signed in as</p>
+            <p className="text-sm font-semibold text-white truncate">
+              {session.user.email}
+            </p>
+          </div>
+
+          <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+            <div className="flex items-center gap-2 px-3 py-2 text-sm text-graytext hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
+              <IoGridOutline /> Dashboard
+            </div>
+          </Link>
+
+          <Link href="/profile" onClick={() => setIsOpen(false)}>
+            <div className="flex items-center gap-2 px-3 py-2 text-sm text-graytext hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
+              <IoPersonCircleOutline /> My Profile
+            </div>
+          </Link>
+
+          <div className="h-px bg-borderclr/50 my-1 mx-2"></div>
+
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              if (confirm("Are you sure you want to log out?"))
+                signOut({ callbackUrl: "/" });
+            }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
+          >
+            <IoLogOutOutline /> Log out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ProfileDropdown;
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="lib/auth.ts">
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getServerSession, type Session } from "next-auth";
+
+export type AuthUser = Session["user"];
+
+export async function getAuthUser(): Promise<AuthUser> {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user || !session.user.id) {
+    throw new Error("Unauthorized");
+  }
+
+  return session.user;
+}
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="types/next-auth.d.ts">
+import { DefaultSession } from "next-auth";
+
+declare module "next-auth" {
+  interface Session {
+    user : {
+      id: string;
+    } & DefaultSession["user"];
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+  }
+}
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env
+.env.local
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+</file>
+
+<file path="app/api/courses/route.ts">
+import { getAuthUser } from "@/lib/auth";
+import { getUserCourses } from "@/lib/data";
+import { NextResponse } from "next/server";
+
+export const GET = async () => {
+  try{
+    const user = await getAuthUser();
+
+    const courses = await getUserCourses(user.id);
+    
+    return NextResponse.json({ courses }, { status: 200});
+  } catch (error : any) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: error.message === "unauthorized" ? 401 : 500}
+    )
+  }
+}
+</file>
+
+<file path="app/auth/signin/page.tsx">
+"use client";
+
+import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import Button from "@/components/ui/Button";
+
+export default function SignInPage() {
+  
+  // const params = useSearchParams();
+  // const callbackUrl = params.get("callbackUrl") || "/dashboard";
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="w-full max-w-md p-6 rounded-xl bg-cardbgclr border border-borderclr space-y-6">
+        <h1 className="text-2xl font-bold text-center text-primary">
+          Welcome Back
+        </h1>
+
+        <p className="text-sm text-graytext text-center">
+          Sign in to continue building your AI-powered courses
+        </p>
+
+        <Button
+          className="w-full"
+          onClick={() =>
+            signIn("google", {
+              callbackUrl: "/"
+            })
+          }
+        >
+          Sign in with Google
+        </Button>
+
+        <p className="text-xs text-graytext text-center">
+          Don’t have an account?{" "}
+          <a href="/auth/signup" className="text-primary underline">
+            Sign up
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/auth/signup/page.tsx">
+"use client";
+
+import { signIn } from "next-auth/react";
+import Button from "@/components/ui/Button";
+
+export default function SignUpPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="w-full max-w-md p-6 rounded-xl bg-cardbgclr border border-borderclr space-y-6">
+        <h1 className="text-2xl font-bold text-center text-primary">
+          Create Your Account
+        </h1>
+
+        <p className="text-sm text-graytext text-center">
+          Start generating personalized learning paths in seconds
+        </p>
+
+        <Button
+          className="w-full"
+          onClick={() =>
+            signIn("google", {
+              callbackUrl: "/",
+            })
+          }
+        >
+          Continue with Google
+        </Button>
+
+        <p className="text-xs text-graytext text-center">
+          Already have an account?{" "}
+          <a href="/auth/signin" className="text-primary underline">
+            Sign in
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="components/Footer.tsx">
+import React from 'react'
+import Logo from './ui/Logo'
+
+const Footer = () => {
+  return (
+    <footer className='py-6 mb-4 space-y-12 text-center text-xs text-graytext bg-cardbgclr rounded-xl px-6'>
+      <Logo />
+      <div className='my-2 text-end'>
+        <div>
+          Built with ❤️ by <span className='text-primary hover:underline'>varan</span>
+        </div>
+        <div>
+          &copy; {new Date().getFullYear()} LearnFlow. All rights reserved.
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+export default Footer
+</file>
+
+<file path="components/ui/Textarea.tsx">
+import { TextareaHTMLAttributes } from "react";
+
+interface Props extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  className?: string;
+}
+
+export default function Textarea({ className = "", ...props }: Props) {
+  return (
+    <textarea
+      className={`w-full px-3 py-2 bg-uibgclr text-sm rounded-lg
+                  focus:outline-none ${className}`}
+      {...props}
+    />
+  );
+}
+</file>
+
+<file path="components/ui/TopicInput.tsx">
+import { InputHTMLAttributes } from "react";
+
+interface Props extends InputHTMLAttributes<HTMLInputElement> {
+  className?: string;
+}
+
+const TopicInput = ({ className = "", ...props }: Props) => {
+  return (
+    <input
+      className={`w-full px-3 rounded-lg py-2 text-sm
+                  focus:outline-none bg-uibgclr ${className}`}
+      {...props}
+    />
+  );
+}
+
+export default TopicInput;
+</file>
+
+<file path="lib/data.ts">
+import ConnectToDB from "./db";
+import Course from "../models/CourseModel"
+import { CourseData } from "./types";
+
+
+export const getUserCourses = async (userId: string): Promise<CourseData[]> =>{
+  await ConnectToDB();
+
+  const courses = await Course.find({ userId }).sort({ createdAt: -1 }).lean();
+
+  return JSON.parse(JSON.stringify(courses));
+
+}
+</file>
+
+<file path="lib/db.ts">
+import mongoose from "mongoose";
+
+let cached = (global as any).mongoose;
+
+if(!cached){
+  cached = (global as any).mongoose = {conn: null, promise: null}
+}
+
+
+const ConnectToDB = async () =>{
+  const MONGODB_URI = process.env.MONGO_URI;
+  if (!MONGODB_URI) {
+    throw new Error("MONGO_URI is not defined");
+  }
+
+  if(!cached.promise){
+    const opts = {
+      bufferCommands: false
+    }
+    cached.promise = mongoose.connect(MONGODB_URI, opts)
+    .then((mongoose)=>{
+      console.log("DB connected : new connection created")
+      return mongoose;
+    });
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
+export default ConnectToDB;
+</file>
+
+<file path="lib/permission.ts">
+import CourseModel from "@/models/CourseModel";
+import ConnectToDB from "./db";
+import { CourseData } from "./types";
+
+export const assertCourseOwner = async (
+  courseId: string,
+  userId: string
+): Promise<CourseData> => {
+  await ConnectToDB();
+
+  const course = await CourseModel.findOne({
+    _id: courseId,
+    userId,
+  }).lean();
+
+  if (!course) {
+    throw new Error("Not allowed");
+  }
+
+  return {
+    ...course,
+    _id: course._id.toString(),
+    createdAt: course.createdAt?.toISOString(),
+    chapters: course.chapters?.map((chapter: any) => ({
+      ...chapter,
+      _id: chapter._id?.toString(),
+    })),
+  } as CourseData;
+};
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  devIndicators: false
+};
+
+export default nextConfig;
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "types/**/*.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="components/Features.tsx">
+import React from "react";
+import Card from "./ui/Card";
+
+const Features = () => {
+  return (
+    <div className="h-[42em] flex flex-col items-center max-w-260 mx-auto" id="features">
+      <h1 className="font-mono text-xl font-semibold">Features</h1>
+      <div className="md:grid md:grid-cols-6 md:grid-rows-6 mt-6 h-full flex flex-col gap-2 w-full">
+        <Card className="col-span-4 row-span-2">
+          <h2 className="mb-2">Personalized Learning Paths</h2>
+          <p className="text-xs text-graytext">
+            AI-generated courses tailored to your goals, learning style, and
+            pace.
+          </p>
+        </Card>
+        <Card className=" col-span-2 row-span-3">
+          <h2 className="mb-2">Step-by-Step Guidance</h2>
+          <p className="text-xs text-graytext">
+            Clear, structured roadmaps to help you master any skill efficiently.
+          </p>
+        </Card>
+        <Card className=" col-span-2 row-span-2">
+          <h2 className="mb-2">Adaptive Learning</h2>
+          <p className="text-xs text-graytext">
+            Courses that evolve based on your progress and feedback.
+          </p>
+        </Card>
+        <Card className="col-span-2 row-span-2">
+          <h2 className="mb-2">Diverse Learning Styles</h2>
+          <p className="text-xs text-graytext">
+            Content designed to suit visual, auditory, and kinesthetic learners.
+          </p>
+        </Card>
+        <Card className="col-span-2 row-span-3">
+          <h2 className="mb-2">Progress Tracking</h2>
+          <p className="text-xs text-graytext">
+            Monitor your learning journey with built-in progress indicators.
+          </p>
+        </Card>
+        <Card className="col-span-4 row-span-2">
+          <h2 className="mb-2">Resource Recommendations</h2>
+          <p className="text-xs text-graytext">
+            Curated articles, videos, and exercises to enhance your
+            understanding.
+          </p>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default Features;
+</file>
+
+<file path="components/ui/Logo.tsx">
+import React from "react";
+import Link from "next/link";
+
+const Logo = () => {
+  return (
+    <div>
+      <div className="flex items-center gap-2">
+        <div className="w-6 h-6 rounded-full flex items-center bg-primary justify-center shadow">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden
+          >
+            <path
+              d="M4 12h16"
+              stroke="#131517"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M12 4v16"
+              stroke="#131517"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+        <Link href="/">
+          <span className="font-semibold font-mono text-lg lg:text-2xl text-white hover:text-primary transition-all duration-900 ease-in-out">
+            LearnFlow
+          </span>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default Logo;
+</file>
+
+<file path="lib/validators/courseInput.ts">
+import z from "zod";
+
+export const courseInputSchema = z.object({
+  topic: z.string().min(3, "Topic must be at least 3 characters"),
+
+  description: z.string().min(10, "description must be atleat 10 characters").optional(),
+
+  level: z.enum(["Beginner", "Intermediate", "Advanced"]),
+
+  chapters: z.number().int().min(3).max(10),
+
+  style: z.enum(["Quality", "Speed", "Balanced"]),
+
+  duration: z.number().int().min(1).max(10),
+});
+
+export type courseInput = z.infer<typeof courseInputSchema>
+</file>
+
+<file path="app/api/courses/[courseId]/route.ts">
+import { getAuthUser } from "@/lib/auth";
+import { assertCourseOwner } from "@/lib/permission";
+import CourseModel from "@/models/CourseModel";
+import { NextRequest, NextResponse } from "next/server";
+import ConnectToDB from "@/lib/db"; // Ensure DB connection is imported
+
+// FIX: Type definition for Next.js 15 params
+type Props = {
+  params: Promise<{
+    courseId: string;
+  }>;
+};
+
+export const GET = async (req: NextRequest, { params }: Props) => {
+  try {
+    const { courseId } = await params; // 1. Await params
+    const user = await getAuthUser();
+
+    // 2. Ensure DB is connected (Safety check)
+    await ConnectToDB();
+
+    const course = await assertCourseOwner(courseId, user.id);
+    if (!course) {
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ course });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: error.message === "Unauthorized" ? 401 : 500 }
+    );
+  }
+};
+
+export const DELETE = async (req: NextRequest, { params }: Props) => {
+  try {
+    const { courseId } = await params; // 1. Await params here too
+    const user = await getAuthUser();
+
+    await ConnectToDB();
+
+    // Verify ownership before deleting
+    await assertCourseOwner(courseId, user.id);
+
+    const result = await CourseModel.deleteOne({
+      _id: courseId,
+      userId: user.id,
+    });
+
+    if (result.deletedCount === 0) {
+        return NextResponse.json({ error: "Course not found or already deleted" }, { status: 404 });
+    }
+
+    return NextResponse.json(
+      { message: "Course deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("Delete Error:", error);
+    return NextResponse.json(
+      { error: error.message },
+      { status: error.message === "Unauthorized" ? 401 : 500 }
+    );
+  }
+};
+</file>
+
+<file path="components/ui/Button.tsx">
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+const Button = ({ children, className = "", ...props }: Props) => {
+  return (
+    <button
+      className={`px-4 py-2 rounded-lg bg-primary text-black font-medium
+                  hover:bg-primary cursor-pointer transition-all duration-600 ease-in-out
+                  hover:scale-95 disabled:hover:cursor-not-allowed 
+                  disabled:hover:bg-primary/40 ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+export default Button;
+</file>
+
+<file path="constants/formOptions.ts">
+// constants/formOptions.ts
+
+export type Opt<T = string> = {
+  value: T;
+  label: string;
+  meta?: string;
+};
+
+
+export const LEVEL_OPTIONS: Opt<string>[] = [
+  { label: "Beginner", value: "Beginner" },
+  { label: "Intermediate", value: "Intermediate" },
+  { label: "Advanced", value: "Advanced" },
+];
+
+export const CHAPTER_OPTIONS: Opt<number>[] = [
+  { label: "3 Chapters", value: 3 },
+  { label: "4 Chapters", value: 4 },
+  { label: "5 Chapters", value: 5 },
+  { label: "6 Chapters", value: 6 },
+];
+
+export const STYLE_OPTIONS: Opt<string>[] = [
+  { label: "Quality (Detailed)", value: "Quality" },
+  { label: "Speed (Concise)", value: "Speed" },
+  { label: "Balanced", value: "Balanced" },
+];
+
+export const DURATION_OPTIONS: Opt<number>[] = [
+  { label: "1 Hour", value: 1 },
+  { label: "2 Hours", value: 2 },
+  { label: "5 Hours", value: 3 },
+];
+</file>
+
+<file path="lib/ai.ts">
+import { GoogleGenAI } from "@google/genai";
+
+const apiKey = process.env.GEMINI_API_KEY;
+if(!apiKey){
+  console.error("Error: NO API KEY")
+}
+
+export async function getGeminiResponse(inputText: string){
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+
+    const modelConfig = {
+      model: "gemini-flash-latest",
+      contents: [{ role: "user", parts: [{ text: inputText }] }],
+      tools: [{ googleSearch: {} }],
+    };
+
+    const response = await ai.models.generateContentStream(modelConfig);
+
+    let responseChunks = "";
+    for await (const chunk of response) {
+      if (chunk.text) {
+        responseChunks += chunk.text;
+      }
+    }
+
+    return JSON.parse(responseChunks.replace(/```json|```/g, "").trim());
+  } catch (error: any) {
+    console.error("🔥 GEMINI ERROR:", error?.message || error);
+    throw new Error("AI_GENERATION_FAILED");
+  }
+}
+
+export async function getGeminiTextResponse(prompt: string) {
+  
+  const ai = new GoogleGenAI({ apiKey });
+  const response = await ai.models.generateContent({
+    model: "gemini-flash-latest", 
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+  });
+
+  return response.text || "";
+}
+</file>
+
+<file path="lib/youtube.ts">
+export async function searchYoutube(query: string) {
+  try {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    // 1. Defenisve Check
+    if (!apiKey) return null;
+
+    // STRATEGY 1: Strict Search (Best Quality)
+    // - Shorts excluded
+    // - Medium duration (4-20 mins)
+    // - Embeddable only
+    const strictQuery = `${query} tutorial -shorts`;
+    const strictUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(
+      strictQuery
+    )}&key=${apiKey}&type=video&videoEmbeddable=true&videoDuration=medium`;
+
+    let res = await fetch(strictUrl);
+    let data = await res.json();
+
+    // If Strict search worked, return it
+    if (data.items && data.items.length > 0) {
+      return data.items[0].id.videoId;
+    }
+
+    // STRATEGY 2: Fallback / Loose Search (If strict failed)
+    // - Remove duration filter
+    // - Remove "-shorts" (better to show a short than nothing)
+    console.log("Strict search failed, trying loose search...");
+    const looseUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(
+      query + " tutorial"
+    )}&key=${apiKey}&type=video&videoEmbeddable=true`; // Still keep embeddable to prevent broken players
+
+    res = await fetch(looseUrl);
+    data = await res.json();
+
+    if (data.items && data.items.length > 0) {
+      return data.items[0].id.videoId;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Youtube Search Error", error);
+    return null;
+  }
+}
+</file>
+
+<file path="app/api/courses/create/route.ts">
+import { getAuthUser } from "@/lib/auth";
+import ConnectToDB from "@/lib/db";
+import { Chapter } from "@/lib/types";
+import CourseModel from "@/models/CourseModel";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest){
+  try{
+    await ConnectToDB();
+
+    const user = await getAuthUser();
+
+    const { course } = await req.json()
+
+    const initialChapters = course.chapters.map((chapter: Chapter )=> ({
+        chapterName: chapter.chapterName,
+        about: chapter.about,
+        duration: chapter.duration,
+        videoId: "",
+        content: "",
+    }));
+
+    const finalCourse = await CourseModel.create({
+      userId: user.id,
+      name: course.name,
+      description: course.description,
+      topic: course.topic,
+      level: course.level,
+      duration: course.duration,
+      style: course.style,
+      chapters: initialChapters,
+      outline: course.outline
+    })
+
+    return NextResponse.json({ course : finalCourse }, { status : 201 })
+  } catch (error: any){
+    console.error("Create Course Error", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+</file>
+
+<file path="components/ui/Card.tsx">
+import { ReactNode } from "react";
+
+interface Props {
+  children: ReactNode;
+  className?: string;
+}
+
+export default function Card({ children, className = "" }: Props) {
+  return (
+    <div className={`p-4 rounded-lg shadow-sm border-2 hover:scale-102 hover:border-primary/20 bg-cardbgclr border-borderclr hover:shadow-[0px_0px_1000px] hover:shadow-primary/5 ease-in transition-all duration-300 ${className}`}>
+      {children}
+    </div>
+  );
+}
+</file>
+
+<file path="constants/AiPrompt.ts">
+import { FormValues } from "@/lib/types";
+
+export function GenerateCoursePrompt(userInput: FormValues) {
+  const {
+    topic,
+    description,
+    level,
+    duration,
+    style,
+    chapters,
+  } = userInput;
+
+  return `
+Generate a complete course on the topic: "${topic}".
+
+${description ? `Course Description: ${description}` : ""}
+
+Audience Level: ${level}
+Total Course Duration: ${duration}
+Number of Chapters: ${chapters}
+Teaching Style: ${style}
+
+You MUST return the response in STRICT JSON format with this exact structure:
+
+{
+  "courseName": "Short, catchy course title",
+  "description": "A concise summary of what the learner will gain",
+  "chapters": [
+    {
+      "chapterName": "Chapter title only",
+      "about": "Clear explanation of what this chapter teaches",
+      "duration": "Approximate time",
+    }
+  ]
+}
+
+Rules:
+- Do NOT include markdown
+- Do NOT include code blocks
+- Do NOT include explanations
+- Output ONLY valid JSON
+- Chapter count must exactly match ${chapters}
+
+Return ONLY the JSON object.
+`;
+}
+
+export function GenerateChapterContentPrompt(chapterName: string, courseTopic: string, style: string) {
+  return `
+    You are an expert instructor. Write a comprehensive reading tutorial for the chapter: "${chapterName}" 
+    which is part of a course on "${courseTopic}".
+    
+    Teaching Style: ${style} (e.g., if 'Code', provide code examples. If 'Theory', explain concepts).
+
+    Requirements:
+    - Use Markdown formatting (headings, bold, lists, code blocks).
+    - Explain the concept clearly.
+    - Provide real-world examples.
+    - If technical, include a small code snippet or practical step.
+    - Keep it engaging and easy to read.
+    - Do NOT include any intro like "Here is the content...". Start directly with the content.
+  `;
+}
+</file>
+
+<file path="app/_context/UserInputContext.tsx">
+"use client"
+import { createContext, Dispatch, SetStateAction } from 'react'
+import { FormValues } from '@/lib/types';
+
+export interface UserInputContextType {
+  userInput: FormValues;
+  setUserInput: Dispatch<SetStateAction<FormValues>>;
+}
+
+export const UserInputContext = createContext<UserInputContextType | null>(null);
+</file>
+
+<file path="components/ui/Dropdown.tsx">
+"use client";
+import { useEffect, useRef, useState } from "react";
+import { IoIosArrowForward } from "react-icons/io";
+import type { Opt } from "@/constants/formOptions";
+
+interface Props<T> {
+  options: Opt<T>[];
+  value?: T;
+  onChange: (v: T) => void;
+  placeholder?: string;
+  align?: "right" | "left";
+  defaultOpen?: boolean;
+  className?: string;
+  label: string;
+}
+
+function Dropdown<T> ({
+  options,
+  value,
+  onChange,
+  placeholder = "select",
+  align = "right",
+  defaultOpen = false,
+  className = "",
+  label
+}: Props<T>) {
+  const [open, setOpen] = useState<boolean>(defaultOpen);
+  const [highlighted, setHighlighted] = useState<number>(-1);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (!ref.current) return;
+      if (!ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (!open) return;
+      if (e.key === "Escape") return setOpen(false);
+      if (e.key === "ArrowDown") return setHighlighted((h) => h + 1);
+      if (e.key === "ArrowUp") return setHighlighted((h) => Math.max(h - 1, 0));
+      if (e.key === "Enter" && highlighted >= 0) {
+        onChange(options[highlighted].value);
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDoc);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, highlighted, options, onChange]);
+
+  useEffect(() => {
+    if (open) setHighlighted(options.findIndex((o) => o.value === value) || 0);
+    else setHighlighted(-1);
+  }, [open, options, value]);
+
+  useEffect(() => {
+    if (highlighted < 0 || !ref.current) return;
+    const ul = ref.current.querySelector("ul");
+    const el = ul?.children[highlighted] as HTMLElement | undefined;
+    el?.scrollIntoView({ block: "nearest" });
+  }, [highlighted]);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div className={`flex-1/2 bg-uibgclr rounded-lg ${className}`}>
+      <div ref={ref} className="relative text-sm">
+        <button
+          type="button"
+          onClick={() => setOpen((s) => !s)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setOpen(true);
+              setHighlighted(0);
+            }
+          }}
+          className={`gap-2 cursor-pointer w-full flex items-center justify-between hover:brightness-105 transition px-3 py-2 text-[#E6EEF3]`}
+        >
+          <div className="text-start">
+            <label className="block text-xs text-gray-400 mb-2">
+            {label}
+            </label>
+            <span className="font-medium">
+              {selected ? selected.label : placeholder}
+            </span>
+          </div>
+          <span className="text-xs opacity-80"><IoIosArrowForward/></span>
+        </button>
+{/* absolute z-50 w-full mt-1 glass backdrop-blur-xl rounded-lg shadow-xl animate-in fade-in zoom-in-95 duration-100 max-h-60 overflow-y-auto scrollbar-thin */}
+        {open && (
+          <ul
+            role="listbox"
+            aria-label="Options"
+            className={`absolute mt-2 w-44 glass backdrop-blur-3xl rounded-xl p-2 shadow-[0_10px_30px_rgba(2,6,23,0.6)] border border-borderclr max-h-56 overflow-auto z-10 ${
+              align === "right" ? "right-0" : "left-0"
+            }`}
+          >
+            {options.map((opt, i) => {
+              const sel = opt.value === value;
+              const highlight = i === highlighted;
+              return (
+                <li
+                  key={String(opt.value)}
+                  role="option"
+                  aria-selected={sel}
+                  onMouseEnter={() => setHighlighted(i)}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  className={`flex items-center justify-between px-3 py-2 rounded-md cursor-pointer select-none ${
+                    highlight
+                      ? "bg-white/6 text-[#E6EEF3]"
+                      : "text-[#9AA3AD] hover:bg-white/3 hover:text-[#E6EEF3]"
+                  } ${sel ? "font-semibold" : ""}`}
+                >
+                  <div className="flex flex-col">
+                    <span>{opt.label}</span>
+                    {opt.meta && (
+                      <span className="text-[11px] text-[#7F8890]">
+                        {opt.meta}
+                      </span>
+                    )}
+                  </div>
+
+                  {sel && (
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="text-[#06D6A0]"
+                    >
+                      <path
+                        d="M20 6L9 17l-5-5"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Dropdown;
+</file>
+
+<file path="models/CourseModel.ts">
+import mongoose from "mongoose";
+
+const ChapterSchema = new mongoose.Schema({
+  chapterName: { type: String, required: true },
+  about: { type: String, required: true },
+  duration: { type: String, required: true },
+  videoId: { type: String, required: false },
+  content: { type: String, required: false }
+});
+
+const CourseSchema = new mongoose.Schema({
+  userId: { type: String, required: true, index: true },
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  topic: { type: String, required: true },
+  level: { type: String, required: true },
+  duration: { type: String, required: true },
+  style: { type: String, required: true },
+  chapters: [ChapterSchema],
+  outline: { type: Object },
+  createdAt: { type: Date, default: Date.now },
+});
+
+export default mongoose.models.Course || mongoose.model("Course", CourseSchema);
+</file>
+
+<file path="app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import Providers from "./providers";
+import { Toaster } from 'sonner';
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+
+export const metadata: Metadata = {
+  title: "LearnFlow",
+  description: "Generates learning paths tailored to your goals.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className={`${geistSans.className} ${geistMono.variable} antialiased font-sans`}>
+        <Providers>
+          {children}
+          <Toaster position="top-center" />
+        </Providers>
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="components/NavBar.tsx">
+"use client";
+
+import React, { useState } from "react";
+import Logo from "./ui/Logo";
+import { signOut, useSession } from "next-auth/react";
+import { IoClose, IoLogOutOutline, IoMenu, IoRocket } from "react-icons/io5";
+import Link from "next/link";
+import ProfileDropdown from "./ProfileDropdown";
+import { usePathname } from "next/navigation";
+
+const NavBar = () => {
+  const { data: session, status } = useSession();
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isCoursePage = pathname?.includes("/dashboard/") && pathname?.split("/").length > 2;
+  
+  if (isCoursePage) return null;
+
+  return (
+<>
+      <nav
+        className={`fixed z-50 left-1/2 -translate-x-1/2 transition-all duration-500 ease-in-out
+          ${
+            isVisible
+              ? "top-4 opacity-100 scale-100"
+              : "-top-24 opacity-0 scale-95 pointer-events-none"
+          }
+          w-[90%] max-w-5xl glass
+        `}
+      >
+        <div className="relative backdrop-blur-xl border border-white/10 rounded-full shadow-2xl shadow-primary/5 px-4 py-2 flex items-center justify-between">
+          <div className="pl-2">
+            <Logo />
+          </div>
+
+          <div className="flex items-center gap-3">
+            {status === "authenticated" ? (
+              <ProfileDropdown session={session} />
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link href="/auth/signin">
+                  <button className="px-4 py-2 text-xs font-medium text-graytext hover:text-white transition-colors">
+                    Log in
+                  </button>
+                </Link>
+                <Link href="/create-course">
+                  <button className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-full text-xs font-bold hover:bg-gray-200 transition-colors shadow-lg shadow-white/10">
+                    <IoRocket /> Get Started
+                  </button>
+                </Link>
+              </div>
+            )}
+
+            <button
+              className="md:hidden p-2 text-white bg-white/10 rounded-full"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <IoClose /> : <IoMenu />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div
+        className={`fixed inset-0 z-40 bg-black/90 backdrop-blur-2xl transition-all duration-300 md:hidden flex flex-col items-center justify-center space-y-8
+          ${
+            mobileMenuOpen
+              ? "opacity-100 visible"
+              : "opacity-0 invisible pointer-events-none"
+          }
+        `}
+      >
+        <Link
+          href="/create-course"
+          className="text-2xl font-bold text-white"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          Generator
+        </Link>
+        <Link
+          href="/dashboard"
+          className="text-2xl font-bold text-white"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          Dashboard
+        </Link>
+        {status === "authenticated" && (
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="text-xl font-bold text-red-400 flex items-center gap-2"
+          >
+            <IoLogOutOutline /> Logout
+          </button>
+        )}
+      </div>
+    </>
+  );
+};
+
+
+export default NavBar;
+</file>
+
+<file path="app/globals.css">
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  /* 1. BACKGROUND: Deep, rich void. Not pitch black (#000) which causes eye strain. */
+  --background: #09090b;
+
+  /* 2. FOREGROUND: Off-white. Pure white (#fff) is too harsh on dark backgrounds. */
+  --foreground: #fafafa;
+
+  /* 3. PRIMARY: "Emerald 500". A sharp, confident green that glows against black. */
+  --primary: #10b981;
+
+  /* 4. BORDERS: Subtle separation. Dark enough to disappear, light enough to define. */
+  --borderclr: #27272a;
+
+  /* 5. CARDS: Slightly elevated surface. Just one shade lighter than background. */
+  --cardbgclr: #18181b;
+
+  /* 6. UI ELEMENTS: Inputs/Dropdowns. Distinct "clickable" surface. */
+  --uibgclr: #27272a;
+
+  /* 7. SUBTEXT: Metallic gray. Readable but clearly secondary info. */
+  --graytext: #a1a1aa;
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(9, 9, 11, 0.6); /* Matches your new background variable */
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-borderclr: var(--borderclr);
+  --color-uibgclr: var(--uibgclr);
+  --color-cardbgclr: var(--cardbgclr);
+  --color-graytext: var(--graytext);
+  
+  
+  --animate-float: float 6s ease-in-out infinite;
+  --keyframes-float: {
+    0%, 100%: { transform: translateY(0); }
+    50%: { transform: translateY(-20px); }
+  }
+
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui;
+  --font-space: var(--font-space), sans-serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+/* body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 50;
+}
+
+::selection {
+  background: rgba(15, 185, 106, 0.2);
+  color: #0fb96a;
+} */
+</file>
+
+<file path="app/api/generate/route.ts">
+import { GenerateCoursePrompt } from "@/constants/AiPrompt";
+import { getGeminiResponse } from "@/lib/ai";
+import { getAuthUser } from "@/lib/auth";
+import { courseInputSchema } from "@/lib/validators/courseInput";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest) {
+  try {
+
+    const user = await getAuthUser();
+    const input = courseInputSchema.parse(await req.json());
+
+    const prompt = GenerateCoursePrompt(input);
+    console.log(prompt);
+    const courseOutline = await getGeminiResponse(prompt);
+
+    const course = {
+      userId: user.id,
+      name: courseOutline.courseName ?? "Untitled Course",
+      description: courseOutline.description ?? "",
+      topic: input.topic,
+      level: input.level,
+      duration: input.duration,
+      style: input.style,
+      chapters: courseOutline.chapters ?? [],
+      outline: courseOutline,
+    }
+    
+    console.log("outline", course);
+    
+
+    return NextResponse.json({ course }, { status: 201 });
+
+  } catch (error: any) {
+    console.error("api/generate error", error)
+    return NextResponse.json(
+      { error: error.message === "AI_GENERATION_FAILED"
+          ? "AI is temporarily unavailable. Please retry."
+          : "Internal server error", },
+      { status: error.message === "Unauthorized" ? 401 : 500 }
+    );
+  }
+}
+</file>
+
+<file path="lib/types.ts">
+export interface Chapter {
+  index: string;
+  chapterName: string;
+  about: string;
+  duration: string;
+  videoId?: string;
+  content?: string;
+}
+
+export interface CourseOutline {
+  courseName: string;
+  description: string;
+  chapters: Chapter[];
+}
+
+export interface CourseData {
+  _id: string;
+  courseId: string;
+  name: string;
+  description: string;
+  topic: string;
+  level: string;
+  duration: string;
+  style: string;
+  chapters: Chapter[];
+  outline: CourseOutline;
+  createdAt: string | Date;
+}
+
+export interface FormValues {
+  topic: string;
+  description?: string | undefined;
+  level: string;
+  style: string;
+  chapters: number;
+  duration: number;
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "ai-course-builder",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^3.0.6",
+    "@ai-sdk/react": "^3.0.29",
+    "@google/genai": "^1.33.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "ai": "^6.0.27",
+    "dotenv": "^17.2.3",
+    "mime": "^4.1.0",
+    "mongodb": "^7.0.0",
+    "mongoose": "^9.0.1",
+    "next": "^16.0.10",
+    "next-auth": "^4.24.13",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "react-icons": "^5.5.0",
+    "react-markdown": "^10.1.0",
+    "sonner": "^2.0.7",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20.19.27",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.8",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+</files>

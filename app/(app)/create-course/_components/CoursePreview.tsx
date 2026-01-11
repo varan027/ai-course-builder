@@ -65,10 +65,9 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
       }
 
       toast.success("Course created successfully!");
-      
     } catch (error) {
       console.error("Error saving:", error);
-      toast.error("Error Saving")
+      toast.error("Error Saving");
     } finally {
       setIsSaving(false);
     }
@@ -76,25 +75,28 @@ const CoursePreview = ({ loading, activeCourse }: CourseProps) => {
 
   if (loading) {
     return (
-      <div className="animate-pulse">
-        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-8 text-graytext/40 text-xl mb-4 flex">
+      <div className="animate-pulse ml-4">
+        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-6 text-graytext/40 text-xl mb-4 flex">
           <div className="w-1/2">
             <div className="h-8 bg-uibgclr rounded-lg w-5/6 mb-6"></div>
             <div className="h-4 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
             <div className="h-4 bg-uibgclr rounded-lg w-5/6 mb-4"></div>
             <div className="h-4 bg-uibgclr rounded-lg w-4/6"></div>
-            <div className="text-sm mt-12">Generating...</div>
           </div>
-          <div className="h-52 bg-uibgclr rounded-lg w-1/2"></div>
+          <div className="h-38 bg-uibgclr rounded-lg w-1/2"></div>
         </div>
-        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-8 text-graytext/40 text-xl mb-4 space-y-4">
+        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-6 text-graytext/40 text-xl mb-4 space-y-4">
+            <div className="h-8 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-full mb-4"></div>
+            <div className="h-4 bg-uibgclr rounded-lg w-full"></div>
+        </div>
+        <div className="bg-uibgclr/25 w-[70vw] rounded-lg p-6 text-graytext/40 text-xl mb-4 space-y-4">
           <div className="bg-uibgclr/50 rounded-lg w-full p-6">
             <div className="h-8 bg-uibgclr rounded-lg w-4/6 mb-6"></div>
             <div className="h-4 bg-uibgclr rounded-lg w-full mb-4"></div>
             <div className="h-4 bg-uibgclr rounded-lg w-full mb-4"></div>
             <div className="h-4 bg-uibgclr rounded-lg w-5/6"></div>
           </div>
-          <div className="h-16 bg-uibgclr/50 rounded-lg w-full"></div>
         </div>
       </div>
     );

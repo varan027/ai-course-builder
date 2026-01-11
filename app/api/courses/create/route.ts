@@ -33,7 +33,6 @@ export async function POST(req: NextRequest){
     })
 
     return NextResponse.json({ course : finalCourse }, { status : 201 })
-    
   } catch (error: any){
     console.error("Create Course Error", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
