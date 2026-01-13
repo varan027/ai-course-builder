@@ -9,6 +9,8 @@ import { BiLeftArrowAlt, BiSolidError } from "react-icons/bi";
 import Link from "next/link";
 import { toast } from "sonner";
 import { generateChapter } from "@/app/actions/generateChapter";
+import { Skeleton } from "@/components/ui/Skeleton";
+
 
 interface Props {
   course: CourseData;
@@ -116,92 +118,140 @@ export default function CourseDetailClient({ course }: Props) {
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col overflow-hidden relative">
-        <header className="h-16 glass backdrop-blur-xl flex items-center justify-between px-4 md:px-6 z-10 shrink-0 sticky top-0">
-          <h1 className="font-semibold text-lg truncate pr-4">
-            {activeChapterIndex + 1}. {activeChapter.chapterName}
-          </h1>
-          <div className="flex gap-2 bg-cardbgclr p-2 border border-borderclr rounded-lg">
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 flex flex-col overflow-hidden relative bg-[#09090b]">
+        {/* 1. STICKY HEADER with Segmented Control */}
+        <header className="h-18 border-b border-white/5 bg-[#09090b]/80 backdrop-blur-xl flex items-center justify-between px-6 z-10 shrink-0 sticky top-0">
+          <div>
+            <span className="text-xs text-primary font-mono mb-1 block">
+              CHAPTER {activeChapterIndex + 1}
+            </span>
+            <h1 className="font-bold text-xl text-white truncate max-w-[50vw]">
+              {activeChapter.chapterName}
+            </h1>
+          </div>
+
+          {/* Segmented Tab Control */}
+          <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
             <button
               onClick={() => setTab("video")}
-              className={
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-300 ${
                 tab === "video"
-                  ? "bg-primary text-black px-2 rounded"
-                  : "bg-transparent text-white px-2 cursor-pointer hover:text-primary"
-              }
+                  ? "bg-primary text-black shadow-lg shadow-primary/20"
+                  : "text-gray-400 hover:text-white"
+              }`}
             >
-              Video
+              Video Lesson
             </button>
             <button
               onClick={() => setTab("reading")}
-              className={
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-300 ${
                 tab === "reading"
-                  ? "bg-primary text-black px-2 rounded"
-                  : "bg-transparent text-white px-2 cursor-pointer hover:text-primary"
-              }
+                  ? "bg-primary text-black shadow-lg shadow-primary/20"
+                  : "text-gray-400 hover:text-white"
+              }`}
             >
-              Reading
+              Reading & Notes
             </button>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 md:p-12">
+        {/* 2. SCROLLABLE CONTENT */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 scroll-smooth">
+          {/* LOADING SKELETON */}
           {isGenerating && (
-            <div className="flex flex-col items-center justify-center h-full space-y-4">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-              <p className="text-graytext animate-pulse">
-                Generating Content...
-              </p>
+            <div className="max-w-4xl mx-auto space-y-8 animate-pulse">
+              <div className="w-full aspect-video bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-2 opacity-20">
+                  <IoPlayCircle size={40} />
+                  <p className="text-xs font-mono">AI is curating content...</p>
+                </div>
+              </div>
+              <div className="bg-cardbgclr border border-white/5 p-8 rounded-2xl space-y-4">
+                <Skeleton className="h-8 w-1/3 mb-6" />
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-11/12" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              </div>
             </div>
           )}
 
+          {/* ERROR STATE */}
           {!isGenerating && generationError && (
-            <div className="flex flex-col items-center justify-center h-full space-y-4 bg-red-500/5 rounded-xl border border-red-500/20 p-8">
-              <div className="bg-red-500/10 p-4 rounded-full">
-                <BiSolidError className="text-red-500 text-3xl" />
+            <div className="flex flex-col items-center justify-center h-[60vh] space-y-6 bg-red-500/5 rounded-3xl border border-red-500/10 p-12 max-w-2xl mx-auto mt-10">
+              <div className="bg-red-500/10 p-6 rounded-full animate-bounce">
+                <BiSolidError className="text-red-500 text-4xl" />
               </div>
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-white">
+              <div className="text-center space-y-2">
+                <h3 className="text-2xl font-bold text-white">
                   Generation Failed
                 </h3>
-                <Button
-                  onClick={() => setRetryTrigger((prev) => prev + 1)}
-                  className="mt-4 bg-red-500 hover:bg-red-600 text-white flex items-center gap-2 mx-auto"
-                >
-                  <IoReload /> Retry
-                </Button>
+                <p className="text-gray-400 max-w-xs mx-auto">
+                  Our AI agents hit a snag while researching this topic.
+                </p>
               </div>
+              <Button
+                onClick={() => setRetryTrigger((prev) => prev + 1)}
+                className="bg-red-500 hover:bg-red-600 text-white px-8"
+              >
+                <IoReload className="mr-2" /> Try Again
+              </Button>
             </div>
           )}
 
+          {/* VIDEO TAB CONTENT */}
           {!isGenerating && !generationError && tab === "video" && (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              {/* Cinematic Video Player */}
               {activeChapter.videoId ? (
-                <div className="border-2 border-borderclr rounded-xl overflow-hidden relative">
-                  <iframe
-                    key={activeChapter.videoId}
-                    src={`https://www.youtube.com/embed/${activeChapter.videoId}`}
-                    className="w-full aspect-video rounded-xl"
-                    allowFullScreen
-                  />
+                <div className="relative group">
+                  {/* Ambient Background Glow */}
+                  <div className="absolute -inset-1 bg-linear-to-r from-primary/20 to-blue-600/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition duration-1000"></div>
+
+                  <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+                    <iframe
+                      key={activeChapter.videoId}
+                      src={`https://www.youtube.com/embed/${activeChapter.videoId}?autoplay=0&rel=0&modestbranding=1`}
+                      className="w-full aspect-video"
+                      allowFullScreen
+                    />
+                  </div>
                 </div>
               ) : (
-                <div className="text-center flex flex-col gap-4 justify-center items-center w-full aspect-video bg-cardbgclr border-2 border-borderclr rounded-xl">
-                  <BiSolidError size={40} color="#FFDE21" />
-                  <p className="text-sm">Video not available</p>
+                <div className="text-center flex flex-col gap-4 justify-center items-center w-full aspect-video bg-white/5 border border-white/10 rounded-2xl">
+                  <BiSolidError size={40} className="text-yellow-500" />
+                  <p className="text-sm text-gray-400">
+                    Video unavailable for this topic
+                  </p>
                 </div>
               )}
-              <div className="bg-cardbgclr border border-borderclr p-4 mt-6 rounded-lg">
-                <p className="text-primary font-semibold mb-2 text-lg">About</p>
-                {activeChapter.about}
+
+              {/* About Section */}
+              <div className="bg-cardbgclr border border-white/5 p-8 rounded-2xl shadow-sm">
+                <h3 className="text-primary font-bold mb-4 text-lg flex items-center gap-2">
+                  <span className="w-1 h-6 bg-primary rounded-full"></span>
+                  Key Takeaways
+                </h3>
+                <p className="text-gray-300 leading-relaxed text-lg">
+                  {activeChapter.about}
+                </p>
               </div>
             </div>
           )}
 
+          {/* READING TAB CONTENT */}
           {!isGenerating && !generationError && tab === "reading" && (
-            <div className="max-w-4xl mx-auto bg-cardbgclr p-8 rounded-xl border border-borderclr shadow-lg">
-              <article className="prose prose-sm md:prose-base lg:prose-lg prose-invert max-w-none prose-headings:text-primary">
+            <div className="max-w-4xl mx-auto bg-cardbgclr p-10 rounded-2xl border border-white/5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <article
+                className="prose prose-lg prose-invert max-w-none 
+                prose-headings:text-white prose-headings:font-bold prose-h1:text-primary 
+                prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-white prose-code:text-primary prose-code:bg-white/5 prose-code:px-1 prose-code:rounded
+                prose-pre:bg-black prose-pre:border prose-pre:border-white/10
+              "
+              >
                 <ReactMarkdown>{activeChapter.content || ""}</ReactMarkdown>
               </article>
             </div>

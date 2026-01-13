@@ -92,12 +92,11 @@ function Dropdown<T> ({
           </div>
           <span className="text-xs opacity-80"><IoIosArrowForward/></span>
         </button>
-{/* absolute z-50 w-full mt-1 glass backdrop-blur-xl rounded-lg shadow-xl animate-in fade-in zoom-in-95 duration-100 max-h-60 overflow-y-auto scrollbar-thin */}
         {open && (
           <ul
             role="listbox"
             aria-label="Options"
-            className={`absolute mt-2 w-44 glass backdrop-blur-3xl rounded-xl p-2 shadow-[0_10px_30px_rgba(2,6,23,0.6)] border border-borderclr max-h-56 overflow-auto z-10 ${
+            className={`absolute mt-2 w-44 bg-uibgclr rounded-xl p-2 shadow-[0_10px_30px_rgba(2,6,23,0.6)] border border-borderclr max-h-56 overflow-auto z-10 ${
               align === "right" ? "right-0" : "left-0"
             }`}
           >
