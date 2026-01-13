@@ -11,7 +11,7 @@ const Wrapper = () => {
       
   return (
     <div>
-      <div className="flex :flex-row space-y-4 flex-col lg:items-start items-center pt-20">
+      <div className="flex :flex-row space-y-4 flex-col lg:items-start items-center pt-18">
         <div className="lg:fixed lg:max-w-1/4 lg:h-[80vh]">
           <CourseForm setCourseData={setActiveCourse} setLoading={setLoading} />
         </div>

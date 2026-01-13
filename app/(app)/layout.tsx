@@ -4,7 +4,7 @@ import { NetworkStatus } from "@/components/NetworkStatus";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <NetworkStatus />
       <NavBar />
       <main className="">
