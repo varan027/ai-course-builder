@@ -2,12 +2,12 @@
 
 import type { CourseData } from "@/lib/types";
 import { useState, useEffect } from "react";
-import { IoPlayCircle } from "react-icons/io5";
+import { IoPlayCircle, IoReload } from "react-icons/io5";
 import Button from "@/components/ui/Button";
 import ReactMarkdown from "react-markdown";
 import { BiLeftArrowAlt, BiSolidError } from "react-icons/bi";
 import Link from "next/link";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 import { generateChapter } from "@/app/actions/generateChapter";
 
 interface Props {
@@ -21,15 +21,20 @@ export default function CourseDetailClient({ course }: Props) {
   const activeChapter = chapters[activeChapterIndex];
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState(false);
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   useEffect(() => {
     const runGeneration = async () => {
-      if (activeChapter.content && activeChapter.videoId){
+      if (activeChapter.content && activeChapter.videoId) {
         setIsGenerating(false);
+        setGenerationError(false);
         return;
       }
 
       setIsGenerating(true);
+      setGenerationError(false);
+
       try {
         const result = await generateChapter({
           courseId: course._id,
@@ -40,71 +45,78 @@ export default function CourseDetailClient({ course }: Props) {
           const newChapters = [...chapters];
           newChapters[activeChapterIndex] = result.chapter;
           setChapters(newChapters);
-          toast.success("Chapter ready!");
         } else {
-          console.error(result.error);
+          setGenerationError(true);
           toast.error("Failed to generate content");
         }
       } catch (error) {
         console.error(error);
-        toast.error("Error generating chapter");
+        setGenerationError(true);
       } finally {
         setIsGenerating(false);
       }
     };
 
     runGeneration();
-  }, [activeChapterIndex, course._id]);
+  }, [activeChapterIndex, course._id, retryTrigger]);
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
+      {/* SIDEBAR */}
       <aside className="w-80 bg-cardbgclr border-r border-borderclr flex-col overflow-y-auto hidden md:flex">
         <Link href="/dashboard">
           <button className="hover:text-primary flex items-center p-2 mt-4 ml-4 gap-2 cursor-pointer hover:bg-primary/4 w-22 rounded-lg transition-all duration-500">
             <BiLeftArrowAlt size={20} /> Back
           </button>
         </Link>
+
         <div className="p-4 border-b border-borderclr">
           <h2 className="font-bold text-lg text-primary">{course.name}</h2>
           <p className="text-xs text-graytext mt-1">
             {chapters.length} Chapters
           </p>
         </div>
+
         <div className="flex-1">
-          {chapters.map((chapter, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveChapterIndex(index)}
-              className={`w-full text-left p-4 border-b border-borderclr/50 hover:bg-uibgclr transition-colors flex items-start gap-3
-                ${
-                  activeChapterIndex === index
-                    ? "bg-primary/10 border-l-4 border-l-primary"
-                    : ""
-                }`}
-            >
-              <span className="mt-1 text-primary">
-                {activeChapterIndex === index ? (
-                  <IoPlayCircle size={20} />
-                ) : (
-                  <span className="text-xs font-mono ml-1">{index + 1}</span>
-                )}
-              </span>
-              <div>
-                <h3
-                  className={`text-sm font-medium ${
-                    activeChapterIndex === index
-                      ? "text-primary"
-                      : "text-gray-300"
+          {chapters.map((chapter, index) => {
+            const isActive = activeChapterIndex === index;
+
+            return (
+              <button
+                key={index}
+                onClick={() => setActiveChapterIndex(index)}
+                className={`w-full text-left p-4 border-b border-borderclr/50 transition-colors flex items-start gap-3
+                  ${
+                    isActive
+                      ? "bg-primary/20 border-l-4 border-l-primary" // Active Style
+                      : "hover:bg-uibgclr border-l-4 border-l-transparent" // Inactive Style
                   }`}
-                >
-                  {chapter.chapterName}
-                </h3>
-              </div>
-            </button>
-          ))}
+              >
+                <span className="mt-1">
+                  {isActive ? (
+                    <IoPlayCircle size={20} className="text-primary" />
+                  ) : (
+                    <span className="text-xs font-mono ml-1 text-graytext">
+                      {index + 1}
+                    </span>
+                  )}
+                </span>
+                <div>
+                  <h3
+                    className={`text-sm font-medium ${
+                      isActive ? "text-primary font-bold" : "text-gray-300"
+                    }`}
+                  >
+                    {chapter.chapterName}
+                  </h3>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </aside>
 
+      {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <header className="h-16 glass backdrop-blur-xl flex items-center justify-between px-4 md:px-6 z-10 shrink-0 sticky top-0">
           <h1 className="font-semibold text-lg truncate pr-4">
@@ -139,17 +151,36 @@ export default function CourseDetailClient({ course }: Props) {
             <div className="flex flex-col items-center justify-center h-full space-y-4">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
               <p className="text-graytext animate-pulse">
-                Generating Content.
+                Generating Content...
               </p>
             </div>
           )}
 
-          {/* VIDEO TAB */}
-          {!isGenerating && tab === "video" && (
+          {!isGenerating && generationError && (
+            <div className="flex flex-col items-center justify-center h-full space-y-4 bg-red-500/5 rounded-xl border border-red-500/20 p-8">
+              <div className="bg-red-500/10 p-4 rounded-full">
+                <BiSolidError className="text-red-500 text-3xl" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-white">
+                  Generation Failed
+                </h3>
+                <Button
+                  onClick={() => setRetryTrigger((prev) => prev + 1)}
+                  className="mt-4 bg-red-500 hover:bg-red-600 text-white flex items-center gap-2 mx-auto"
+                >
+                  <IoReload /> Retry
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {!isGenerating && !generationError && tab === "video" && (
             <div className="max-w-4xl mx-auto">
               {activeChapter.videoId ? (
-                <div className="border-2 border-borderclr rounded-xl">
+                <div className="border-2 border-borderclr rounded-xl overflow-hidden relative">
                   <iframe
+                    key={activeChapter.videoId}
                     src={`https://www.youtube.com/embed/${activeChapter.videoId}`}
                     className="w-full aspect-video rounded-xl"
                     allowFullScreen
@@ -159,12 +190,6 @@ export default function CourseDetailClient({ course }: Props) {
                 <div className="text-center flex flex-col gap-4 justify-center items-center w-full aspect-video bg-cardbgclr border-2 border-borderclr rounded-xl">
                   <BiSolidError size={40} color="#FFDE21" />
                   <p className="text-sm">Video not available</p>
-                  <a
-                    href={`https://www.youtube.com/results?search_query=${activeChapter.chapterName}`}
-                    target="_blank"
-                  >
-                    <Button className="bg-primary">Try Manually</Button>
-                  </a>
                 </div>
               )}
               <div className="bg-cardbgclr border border-borderclr p-4 mt-6 rounded-lg">
@@ -174,8 +199,7 @@ export default function CourseDetailClient({ course }: Props) {
             </div>
           )}
 
-          {/* READING TAB */}
-          {!isGenerating && tab === "reading" && (
+          {!isGenerating && !generationError && tab === "reading" && (
             <div className="max-w-4xl mx-auto bg-cardbgclr p-8 rounded-xl border border-borderclr shadow-lg">
               <article className="prose prose-sm md:prose-base lg:prose-lg prose-invert max-w-none prose-headings:text-primary">
                 <ReactMarkdown>{activeChapter.content || ""}</ReactMarkdown>
