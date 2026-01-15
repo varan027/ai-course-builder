@@ -1,14 +1,14 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getServerSession, type Session } from "next-auth";
+import { getPrisma } from "./db";
+import { getSessionUserId } from "./session";
+import { users } from "./users";
 
-export type AuthUser = Session["user"];
+export async function getCurrentUser() {
+  const userId = await getSessionUserId();
+  if (!userId) return null;
 
-export async function getAuthUser(): Promise<AuthUser> {
-  const session = await getServerSession(authOptions);
+  const prisma = await getPrisma();
 
-  if (!session || !session.user || !session.user.id) {
-    throw new Error("Unauthorized");
-  }
-
-  return session.user;
+  return prisma.user.findUnique({
+    where: { id: userId}
+  })
 }

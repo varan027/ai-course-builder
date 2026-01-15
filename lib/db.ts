@@ -1,31 +1,14 @@
-import mongoose from "mongoose";
+import type { PrismaClient as PrismaClientType } from "@prisma/client";
 
-let cached = (global as any).mongoose;
+let prisma: PrismaClientType | null = null;
 
-if(!cached){
-  cached = (global as any).mongoose = {conn: null, promise: null}
+export async function getPrisma() {
+  if (prisma) return prisma;
+
+  const { PrismaClient } = await import("@prisma/client");
+  prisma = new PrismaClient({
+    log: ["error"],
+  });
+
+  return prisma;
 }
-
-
-const ConnectToDB = async () =>{
-  const MONGODB_URI = process.env.MONGO_URI;
-  if (!MONGODB_URI) {
-    throw new Error("MONGO_URI is not defined");
-  }
-
-  if(!cached.promise){
-    const opts = {
-      bufferCommands: false
-    }
-    cached.promise = mongoose.connect(MONGODB_URI, opts)
-    .then((mongoose)=>{
-      console.log("DB connected : new connection created")
-      return mongoose;
-    });
-  }
-
-  cached.conn = await cached.promise;
-  return cached.conn;
-}
-
-export default ConnectToDB;
