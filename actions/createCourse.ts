@@ -5,7 +5,7 @@ import { createCourseSchema } from "./createCourse.schems";
 import { getCurrentUser } from "@/lib/auth";
 
 export type FormState = {
-  error? : string | null;
+  error? : string;
 }
 
 export async function createCourse(prevState: FormState, formData: FormData) : Promise<FormState> {

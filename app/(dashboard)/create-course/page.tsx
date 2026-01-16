@@ -1,35 +1,56 @@
-'use client'
-import { createCourse, FormState } from '@/actions/createCourse'
-import { useActionState } from 'react';
-import SubmitButton from './SubmitButton';
+"use client";
+import { createCourse, FormState } from "@/actions/createCourse";
+import { useActionState } from "react";
+import SubmitButton from "./SubmitButton";
 
 const initialState: FormState = {};
 
 const page = () => {
-  const [state, formAction] = useActionState(createCourse, initialState)
+  const [state, formAction] = useActionState(createCourse, initialState);
   return (
-    <form action={formAction} >
-      <h1>Create Course</h1>
+    <div className="max-w-md mx-auto mt-16 px-4">
+      <h1 className="text-2xl font-semibold mb-2">Create a New Course</h1>
 
-      <input
-      name='topic'
-      placeholder='Course Topic'
-      required
-      />
+      <p className="text-sm text-gray-500 mb-6">
+        Generate a structured path with AI
+      </p>
 
-      <select name='level' required>
-        <option value="beginner">Beginner</option>
-        <option value="intermediate">Intermediate</option>
-        <option value="advanced">Advanced</option>
-      </select>
+      <form action={formAction} className="space-y-4">
+        <div>
+          <label htmlFor="topic" className="block text-sm font-medium mb-1">
+            Course Topic
+          </label>
+          <input
+            id="topic"
+            name="topic"
+            placeholder="Course Topic"
+            required
+            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
 
-      {state?.error && (
-        <p style={{ color: "red" }}>{state.error}</p>
-      )}
+        <div>
+          <label htmlFor="level" className="block text-sm font-medium mb-1">
+            Difficulty Level
+          </label>
+          <select
+            id="level"
+            name="level"
+            required
+            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+          >
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
 
-      <SubmitButton/>
-    </form>
-  )
-}
+        {state?.error && <p className="text-xs text-red-600" >{state.error}</p>}
 
-export default page
+        <SubmitButton />
+      </form>
+    </div>
+  );
+};
+
+export default page;
