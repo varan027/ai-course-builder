@@ -1,6 +1,5 @@
 import { getPrisma } from "./db";
 import { getSessionUserId } from "./session";
-import { users } from "./users";
 
 export async function getCurrentUser() {
   const userId = await getSessionUserId();

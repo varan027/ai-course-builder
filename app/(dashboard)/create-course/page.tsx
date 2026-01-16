@@ -2,6 +2,7 @@
 import { createCourse, FormState } from "@/actions/createCourse";
 import { useActionState } from "react";
 import SubmitButton from "./SubmitButton";
+import Link from "next/link";
 
 const initialState: FormState = {};
 
@@ -9,6 +10,9 @@ const page = () => {
   const [state, formAction] = useActionState(createCourse, initialState);
   return (
     <div className="max-w-md mx-auto mt-16 px-4">
+      <Link href={"/dashboard"}>
+        <button className="mb-10 bg-gray-800 px-3 py-1 rounded-md cursor-pointer">Back to dashboard</button>
+      </Link>
       <h1 className="text-2xl font-semibold mb-2">Create a New Course</h1>
 
       <p className="text-sm text-gray-500 mb-6">
@@ -45,7 +49,7 @@ const page = () => {
           </select>
         </div>
 
-        {state?.error && <p className="text-xs text-red-600" >{state.error}</p>}
+        {state?.error && <p className="text-xs text-red-600">{state.error}</p>}
 
         <SubmitButton />
       </form>

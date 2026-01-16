@@ -1,0 +1,1155 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+actions/auth.ts
+actions/createCourse.schems.ts
+actions/createCourse.ts
+actions/logout.ts
+app/(dashboard)/create-course/page.tsx
+app/(dashboard)/create-course/SubmitButton.tsx
+app/(dashboard)/dashboard/page.tsx
+app/(dashboard)/layout.tsx
+app/(marketing)/login/page.tsx
+app/(marketing)/signup/page.tsx
+app/favicon.ico
+app/globals.css
+app/layout.tsx
+app/page.tsx
+eslint.config.mjs
+lib/auth.ts
+lib/db.ts
+lib/session.ts
+lib/store.ts
+lib/users.ts
+next.config.ts
+package.json
+postcss.config.mjs
+prisma/migrations/20260115194420_init/migration.sql
+prisma/migrations/migration_lock.toml
+prisma/schema.prisma
+public/file.svg
+public/globe.svg
+public/next.svg
+public/vercel.svg
+public/window.svg
+README.md
+services/ai.service.ts
+services/auth.service.ts
+services/course.service.ts
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="actions/auth.ts">
+'use server'
+
+import { SESSION_KEY } from "@/lib/session";
+import { authService } from "@/services/auth.service";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+export type AuthState = {
+  error: string | null;
+};
+
+export async function Signup(prevState: AuthState, formData: FormData){
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if(!email || !password){
+    return { error: "Missing Fields!"}
+  }
+
+  try{
+    const user = await authService.signup(email, password);
+
+    const cookie = await cookies()
+    cookie.set(SESSION_KEY, user.id, {
+    httpOnly: true,
+    path: "/"
+  })
+    
+  }catch(err: any){
+    return { error: err.message }
+  }
+  redirect("/dashboard")
+}
+
+export async function login(prevState: AuthState, formData: FormData){
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if(!email || !password){
+    return { error: "Missing Fields!"}
+  }
+
+  try{
+    const user = await authService.login(email, password);
+    
+    const cookie = await cookies()
+    cookie.set(SESSION_KEY, user.id, {
+    httpOnly: true,
+    path: "/"
+  })
+    
+  }catch(err: any){
+    return { error: err.message }
+  }
+  redirect("/dashboard")
+}
+</file>
+
+<file path="actions/createCourse.schems.ts">
+import z from "zod";
+
+export const createCourseSchema = z.object({
+  topic: z.string().min(3, "Topic must be atleast 3 characters"),
+  level: z.enum(["beginner", "intermediate", "advanced"])
+})
+</file>
+
+<file path="actions/logout.ts">
+'use server'
+import { SESSION_KEY } from "@/lib/session";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+export async function logout(){
+  const cookie = await cookies();
+  cookie.delete(SESSION_KEY);
+  redirect("/login")
+}
+</file>
+
+<file path="app/(dashboard)/layout.tsx">
+export const dynamic = "force-dynamic";
+
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+
+export default async function DashboardLayout({ children } : { children: React.ReactNode}) {
+
+  const user = await getCurrentUser()
+  
+  if(!user){
+    redirect("/login")
+  }
+
+  return (
+    <>
+      {children}
+    </>
+  )
+}
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="lib/session.ts">
+import { cookies } from "next/headers";
+
+export const SESSION_KEY = "session_user";
+
+
+export async function getSessionUserId(){
+  const cookie = await cookies()
+  return cookie.get(SESSION_KEY)?.value
+}
+</file>
+
+<file path="lib/store.ts">
+import type { Course } from "@/services/course.service";
+
+export const courseStore: Course[] = [];
+</file>
+
+<file path="lib/users.ts">
+export type User = {
+  id: string;
+  email: string;
+  password: string;
+}
+
+export const users: User[] = [];
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="prisma/migrations/20260115194420_init/migration.sql">
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "Course" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "title" TEXT NOT NULL,
+    "level" TEXT NOT NULL,
+    "outline" JSONB NOT NULL,
+    "ownerId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Course_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+</file>
+
+<file path="prisma/migrations/migration_lock.toml">
+# Please do not edit this file manually
+# It should be added in your version-control system (e.g., Git)
+provider = "sqlite"
+</file>
+
+<file path="prisma/schema.prisma">
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  courses   Course[]
+  createdAt DateTime @default(now())
+}
+
+model Course {
+  id        String   @id @default(uuid())
+  title     String
+  level     String
+  outline   Json
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+}
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="services/ai.service.ts">
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const apiKey = process.env.GEMINI_API_KEY!;
+
+const genAI = new GoogleGenerativeAI(apiKey);
+
+export type CourseOutline = {
+  title: string;
+  modules: Modules[];
+};
+
+export type Modules = {
+  name: string;
+  lessons: {
+    title: string;
+    youtubeQuery: string;
+  }[];
+};
+
+export const aiService = {
+  async generateCourseOutline(
+    topic: string,
+    level: string
+  ): Promise<CourseOutline> {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
+
+    const prompt = `
+      Create a structured learning course.
+
+      Topic: ${topic}
+      Level: ${level}
+
+      Rules:
+      - Output ONLY valid JSON
+      - No markdown
+      - No explanations
+      - The goal is to help learners study using free YouTube content
+
+      Structure:
+      {
+        "title": string,
+        "modules": [
+          {
+            "name": string,
+            "lessons": [
+              {
+                "title": string,
+                "youtubeQuery": string
+              }
+            ]
+          }
+        ]
+      }
+
+      Guidelines:
+      - Generate 4–6 modules
+      - Each module has 3–5 lessons
+      - youtubeQuery should be a natural YouTube search query
+      - Queries should include "explained", "tutorial", or "for beginners" when appropriate
+      `;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    const cleaned = text
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(cleaned);
+  },
+};
+</file>
+
+<file path="services/auth.service.ts">
+import { getPrisma } from "@/lib/db"
+import { users } from "@/lib/users"
+
+export const authService = {
+  async signup(email: string, password: string) {
+    const prisma = await getPrisma()
+
+    const exists = await prisma.user.findUnique({
+      where: { email }
+    })
+    if(exists){
+      throw new Error("User already exists")
+    }
+    
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password
+      }
+    })
+
+    return user;
+  },
+
+  async login(email: string, password: string){
+    const prisma = await getPrisma()
+    const user = await prisma.user.findUnique({
+      where: { email }
+    })
+
+    if(!user || user.password !== password){
+      throw new Error("Invalid credentials")
+    }
+
+    return user;
+  },
+
+}
+</file>
+
+<file path="services/course.service.ts">
+import { courseStore } from "@/lib/store";
+import { User } from "@/lib/users";
+import { aiService, CourseOutline } from "./ai.service";
+import { getPrisma } from "@/lib/db";
+
+
+export type Course = {
+  id: string;
+  title: string;
+  level: string;
+  ownerId: string;
+  outline: CourseOutline;
+};
+
+export const courseService = {
+  async create(data: {topic : string; level: string}, user: User) {
+    
+    const outline = await aiService.generateCourseOutline(data.topic, data.level)
+    const prisma = await getPrisma()
+
+    const course = await prisma.course.create({
+      data:{
+        title: outline.title,
+        level: data.level,
+        outline,
+        ownerId: user.id
+      }
+    }) 
+
+    return course;
+  },
+
+  async getAllForUser(user: User) {
+    const prisma = await getPrisma()
+    
+    return prisma.course.findMany({
+      where: { ownerId: user.id},
+      orderBy: { createdAt: "desc"}
+    })
+  },
+
+  async getById(courseId: string, user: User){
+    const prisma = await getPrisma()
+
+    const course = await prisma.course.findFirst({
+      where: {
+        id: courseId,
+        ownerId: user.id,
+      }
+    })
+
+    if(!course){
+      throw new Error("Course Not Found")
+    }
+
+    return course;
+  }
+}
+</file>
+
+<file path="actions/createCourse.ts">
+"use server";
+import { courseService } from "@/services/course.service";
+import { redirect } from "next/navigation";
+import { createCourseSchema } from "./createCourse.schems";
+import { getCurrentUser } from "@/lib/auth";
+
+export type FormState = {
+  error? : string;
+}
+
+export async function createCourse(prevState: FormState, formData: FormData) : Promise<FormState> {
+  const rawData = {
+    topic: formData.get("topic"),
+    level: formData.get("level"),
+  };
+
+  const user = await getCurrentUser()
+
+  if(!user){
+    return { error: "Unauthorized"}
+  }
+
+  const parsed = createCourseSchema.safeParse(rawData);
+
+  if (!parsed.success) {
+    return {
+      error: parsed.error.message
+    }
+  }
+  const data = parsed.data;
+
+  await courseService.create(data, user);
+
+  redirect("/dashboard");
+}
+</file>
+
+<file path="app/(dashboard)/create-course/page.tsx">
+"use client";
+import { createCourse, FormState } from "@/actions/createCourse";
+import { useActionState } from "react";
+import SubmitButton from "./SubmitButton";
+
+const initialState: FormState = {};
+
+const page = () => {
+  const [state, formAction] = useActionState(createCourse, initialState);
+  return (
+    <div className="max-w-md mx-auto mt-16 px-4">
+      <h1 className="text-2xl font-semibold mb-2">Create a New Course</h1>
+
+      <p className="text-sm text-gray-500 mb-6">
+        Generate a structured path with AI
+      </p>
+
+      <form action={formAction} className="space-y-4">
+        <div>
+          <label htmlFor="topic" className="block text-sm font-medium mb-1">
+            Course Topic
+          </label>
+          <input
+            id="topic"
+            name="topic"
+            placeholder="Course Topic"
+            required
+            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="level" className="block text-sm font-medium mb-1">
+            Difficulty Level
+          </label>
+          <select
+            id="level"
+            name="level"
+            required
+            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+          >
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+
+        {state?.error && <p className="text-xs text-red-600" >{state.error}</p>}
+
+        <SubmitButton />
+      </form>
+    </div>
+  );
+};
+
+export default page;
+</file>
+
+<file path="app/(dashboard)/create-course/SubmitButton.tsx">
+'use client'
+import { useFormStatus } from 'react-dom'
+
+const SubmitButton = () => {
+  const { pending } = useFormStatus();
+  return (
+    <button type='submit' disabled={pending} className='border px-3 py-1 rounded-md cursor-pointer'>
+      {pending ? "Creating...." : "Create"}
+    </button>
+  )
+}
+
+export default SubmitButton;
+</file>
+
+<file path="app/(dashboard)/dashboard/page.tsx">
+import { logout } from "@/actions/logout";
+import { getCurrentUser } from "@/lib/auth";
+import { CourseOutline, Modules } from "@/services/ai.service";
+import { courseService } from "@/services/course.service";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+const page = async () => {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
+  const courses = await courseService.getAllForUser(user);
+
+  function isCourseOutline(outline: unknown): outline is CourseOutline {
+    return (
+      typeof outline === "object" &&
+      outline !== null &&
+      "modules" in outline &&
+      Array.isArray((outline as any).modules)
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto px-6 py-16">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-10">
+        <div>
+          <h1 className="text-2xl font-semibold">Courses</h1>
+          <p className="text-sm text-gray-400 mt-1">
+            AI Generated learning paths
+          </p>
+        </div>
+        <form action={logout}>
+          <button
+            type="submit"
+            className="text-sm text-gray-400 hover:text-red-700 cursor-pointer border px-3 py-1 rounded-md"
+          >
+            Logout
+          </button>
+        </form>
+      </div>
+
+      <div className="flex justify-between mb-10">
+        <h1 className="text-xl font-medium">
+          Hi, { " "}
+          <span>{user.email}</span>
+        </h1>
+        <Link href={"/create-course"}>
+          <button className="text-black bg-white py-2 rounded-md text-sm px-3 cursor-pointer">
+            Create Course
+          </button>
+        </Link>
+      </div>
+
+      {/* Empty state */}
+      {courses.length === 0 && (
+        <div className="border rounded-lg p-8 text-center">
+          <p className="text-gray-300 mb-4">You haven't created any Courses</p>
+          <p className="text-sm text-gray-500">
+            Create your first AI-Powered Learning path to get started
+          </p>
+        </div>
+      )}
+
+      {/* Courses */}
+
+      <div className="space-y-10">
+        {courses.map((course) => (
+          <div key={course.id} className="border rounded-lg p-6">
+            <h2 className="text-xl font-medium mb-4 text-red-500">
+              {" "}
+              {course.title}{" "}
+            </h2>
+
+            {isCourseOutline(course.outline) && (
+              <div className="space-y-6">
+                {course.outline.modules.map((m) => (
+                  <div key={m.name}>
+                    <h3 className="text-amber-300 font-semibold mb-2">
+                      {m.name}
+                    </h3>
+
+                    <ul className="ml-4 space-y-2">
+                      {m.lessons.map((l) => (
+                        <li key={l.title} className="">
+                          <span>{l.title}</span>
+
+                          <a
+                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
+                              l.youtubeQuery
+                            )}`}
+                            target="blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 text-xs hover:underline ml-10"
+                          >
+                            Search on Youtube
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default page;
+</file>
+
+<file path="app/(marketing)/login/page.tsx">
+"use client";
+
+import { AuthState, login } from "@/actions/auth";
+import Link from "next/link";
+import { useActionState } from "react";
+
+const initialState: AuthState = {
+  error: null,
+};
+
+const page = () => {
+  const [state, formAction] = useActionState(login, initialState);
+  return (
+    <div className="max-w-md mx-auto mt-20 px-4">
+      <h1 className="text-2xl font-semibold mb-2">Welcome back</h1>
+
+      <p className="text-sm text-gray-500 mb-6">
+        Log in to access your courses.
+      </p>
+
+      <form action={formAction} className="space-y-4">
+        <input
+          name="email"
+          type="email"
+          placeholder="Email address"
+          required
+          className="w-full border rounded-md px-3 py-2 text-sm"
+        />
+
+        <input
+          name="password"
+          type="password"
+          placeholder="Password"
+          required
+          className="w-full border rounded-md px-3 py-2 text-sm"
+        />
+
+        {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+
+        <button className="w-full text-black bg-white py-2 rounded-md text-sm">
+          Login
+        </button>
+        <p className="text-sm text-gray-600 mt-4 text-center">
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="text-blue-600 hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </form>
+    </div>
+  );
+};
+
+export default page;
+</file>
+
+<file path="app/(marketing)/signup/page.tsx">
+"use client";
+
+import { AuthState, Signup } from "@/actions/auth";
+import Link from "next/link";
+import { useActionState } from "react";
+
+const initialState: AuthState = {
+  error: null,
+};
+
+const page = () => {
+  const [state, formAction] = useActionState(Signup, initialState);
+  return (
+    <div className="max-w-md mx-auto mt-20 px-4">
+      <h1 className="text-2xl font-semibold mb-2">Create an account</h1>
+
+      <p className="text-sm text-gray-500 mb-6">
+        Sign up to generate AI-powered learning paths.
+      </p>
+
+      <form action={formAction} className="space-y-4">
+        <input
+          name="email"
+          type="email"
+          placeholder="Email address"
+          required
+          className="w-full border rounded-md px-3 py-2 text-sm"
+        />
+
+        <input
+          name="password"
+          type="password"
+          placeholder="Password"
+          required
+          className="w-full border rounded-md px-3 py-2 text-sm"
+        />
+
+        {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+
+        <button className="w-full text-black bg-white py-2 rounded-md text-sm">
+          Sign up
+        </button>
+        <p className="text-sm text-gray-600 mt-4 text-center">
+          Already have an account?{" "}
+          <Link href="/login" className="text-blue-600 hover:underline">
+            Log in
+          </Link>
+        </p>
+      </form>
+    </div>
+  );
+};
+
+export default page;
+</file>
+
+<file path="lib/auth.ts">
+import { getPrisma } from "./db";
+import { getSessionUserId } from "./session";
+import { users } from "./users";
+
+export async function getCurrentUser() {
+  const userId = await getSessionUserId();
+  if (!userId) return null;
+
+  const prisma = await getPrisma();
+
+  return prisma.user.findUnique({
+    where: { id: userId}
+  })
+}
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+node_modules/.prisma
+</file>
+
+<file path="lib/db.ts">
+import type { PrismaClient as PrismaClientType } from "@prisma/client";
+
+let prisma: PrismaClientType | null = null;
+
+export async function getPrisma() {
+  if (prisma) return prisma;
+
+  const { PrismaClient } = await import("@prisma/client");
+  prisma = new PrismaClient({
+    log: ["error"],
+  });
+
+  return prisma;
+}
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "ai-course-builder",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cross-env NEXT_DISABLE_TURBOPACK=1 next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^6.19.2",
+    "next": "16.1.1",
+    "prisma": "^6.19.2",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="app/globals.css">
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+</file>
+
+<file path="app/page.tsx">
+import Link from "next/link";
+
+export default function HomePage() {
+  return (
+    <main className="max-w-4xl mx-auto px-6 py-24 text-center">
+      <h1 className="text-3xl font-semibold mb-4">
+        AI Course Builder
+      </h1>
+
+      <p className="text-gray-600 max-w-xl mx-auto mb-10">
+        Generate structured learning paths from unstructured content using AI.
+        Stop guessing what to learn next.
+      </p>
+
+      <div className="flex justify-center gap-4">
+        <Link
+          href="/signup"
+          className="px-5 py-2 rounded-md bg-white text-black text-sm"
+        >
+          Get Started
+        </Link>
+
+        <Link
+          href="/login"
+          className="px-5 py-2 rounded-md border text-sm"
+        >
+          Login
+        </Link>
+      </div>
+    </main>
+  );
+}
+</file>
+
+</files>

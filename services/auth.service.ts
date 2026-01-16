@@ -1,5 +1,5 @@
 import { getPrisma } from "@/lib/db"
-import { users } from "@/lib/users"
+import { hashPassword, verifyPassword } from "@/lib/password"
 
 export const authService = {
   async signup(email: string, password: string) {
@@ -12,10 +12,12 @@ export const authService = {
       throw new Error("User already exists")
     }
     
+    const hashedPassword = await hashPassword(password);
+
     const user = await prisma.user.create({
       data: {
         email,
-        password
+        password: hashedPassword
       }
     })
 
@@ -28,9 +30,11 @@ export const authService = {
       where: { email }
     })
 
-    if(!user || user.password !== password){
+    if(!user){
       throw new Error("Invalid credentials")
     }
+
+    const isPassValid = await verifyPassword(password, user.password)
 
     return user;
   },
