@@ -1,7 +1,8 @@
 import { aiService } from "./ai.service";
 import { getPrisma } from "@/lib/db";
-import { CourseOutline, CourseOutlineSchema } from "@/lib/ai/schema";
+import { CourseConfigSchema, CourseOutline, CourseOutlineSchema } from "@/lib/ai/schema";
 import { User } from "@prisma/client";
+import { CreateCourseInput } from "@/actions/createCourse.schema";
 
 export type Course = {
   id: string;
@@ -13,14 +14,16 @@ export type Course = {
 
 export const courseService = {
   async create(
-    data: { topic: string; level: string; chapters: string; duration: string },
+    data: CreateCourseInput,
     user: User
   ) {
     const outline = await aiService.generateCourseOutline(
-      data.topic,
-      data.level,
-      data.chapters,
-      data.level
+      {
+        topic: data.topic,
+        level: data.level,
+        chapters: data.chapters,
+        duration: data.duration,
+      }
     );
     const prisma = await getPrisma();
 
@@ -75,3 +78,13 @@ export const courseService = {
     };
   },
 };
+
+
+function toAIConfig(input: CreateCourseInput) {
+  return CourseConfigSchema.parse({
+    topic: input.topic,
+    level: input.level,
+    chapters: input.chapters,
+    duration: input.duration,
+  });
+}

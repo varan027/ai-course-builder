@@ -58,7 +58,6 @@ const page = async () => {
         {courses.map((course) => (
           <div key={course.id} className="border rounded-lg p-6">
             <h2 className="text-xl font-medium mb-4 text-red-500">
-              {" "}
               {course.title}{" "}
             </h2>
 
@@ -66,15 +65,20 @@ const page = async () => {
               <div className="space-y-6">
                 {course.outline.chapters.map((chapter) => (
                   <div key={chapter.title}>
-                    <h3 className="text-amber-300 font-semibold mb-2">
+                    <h3 className="text-amber-300 font-semibold mb-1">
                       {chapter.title}
                     </h3>
+
+                    <p className="text-xs text-gray-400 mb-2">
+                      ⏱ {chapter.durationMinutes} minutes
+                    </p>
+
                     <p className="text-sm">{chapter.about}</p>
 
                     <ul className="ml-4 space-y-2">
                       <a
                         href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-                          chapter.youtubeQuery
+                          chapter.youtubeQuery,
                         )}`}
                         target="blank"
                         rel="noopener noreferrer"

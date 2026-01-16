@@ -17,11 +17,12 @@ Level: ${level}
 Rules:
 - Output ONLY valid JSON
 - EXACTLY ${chapters} chapters
-- Each chapter represents about ${duration} minutes of learning
+- Total course duration is ${duration} minutes
+- Divide the total duration reasonably across chapters
+- Each chapter MUST include durationMinutes
 - No markdown
 - No explanations
 - No extra fields
-- "about" should briefly explain what the learner will gain
 
 JSON format:
 {
@@ -30,9 +31,11 @@ JSON format:
     {
       "title": string,
       "about": string,
+      "durationMinutes": number,
       "youtubeQuery": string
     }
   ]
 }
+
 
 `;
