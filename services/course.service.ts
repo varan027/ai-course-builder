@@ -1,8 +1,7 @@
-import { courseStore } from "@/lib/store";
-import { User } from "@/lib/users";
-import { aiService, CourseOutline } from "./ai.service";
+import { aiService } from "./ai.service";
 import { getPrisma } from "@/lib/db";
-
+import { CourseOutline, CourseOutlineSchema } from "@/lib/ai/schema";
+import { User } from "@prisma/client";
 
 export type Course = {
   id: string;
@@ -13,46 +12,66 @@ export type Course = {
 };
 
 export const courseService = {
-  async create(data: {topic : string; level: string}, user: User) {
-    
-    const outline = await aiService.generateCourseOutline(data.topic, data.level)
-    const prisma = await getPrisma()
+  async create(
+    data: { topic: string; level: string; chapters: string; duration: string },
+    user: User
+  ) {
+    const outline = await aiService.generateCourseOutline(
+      data.topic,
+      data.level,
+      data.chapters,
+      data.level
+    );
+    const prisma = await getPrisma();
 
     const course = await prisma.course.create({
-      data:{
+      data: {
         title: outline.title,
         level: data.level,
         outline,
-        ownerId: user.id
-      }
-    }) 
+        ownerId: user.id,
+      },
+    });
 
     return course;
   },
 
   async getAllForUser(user: User) {
-    const prisma = await getPrisma()
-    
-    return prisma.course.findMany({
-      where: { ownerId: user.id},
-      orderBy: { createdAt: "desc"}
-    })
+    const prisma = await getPrisma();
+
+    const courses = prisma.course.findMany({
+      where: { ownerId: user.id },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return (await courses).map((course) => {
+      const parsedOutline = CourseOutlineSchema.parse(course.outline);
+
+      return {
+        ...course,
+        outline: parsedOutline,
+      };
+    });
   },
 
-  async getById(courseId: string, user: User){
-    const prisma = await getPrisma()
+  async getById(courseId: string, user: User) {
+    const prisma = await getPrisma();
 
     const course = await prisma.course.findFirst({
       where: {
         id: courseId,
         ownerId: user.id,
-      }
-    })
+      },
+    });
 
-    if(!course){
-      throw new Error("Course Not Found")
+    if (!course) {
+      throw new Error("Course Not Found");
     }
+    const parsedOutline = CourseOutlineSchema.parse(course.outline);
 
-    return course;
-  }
-}
+    return {
+      ...course,
+      outline: parsedOutline,
+    };
+  },
+};

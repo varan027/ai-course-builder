@@ -1,67 +1,24 @@
+import { parseCourseOutline } from "@/lib/ai/parser";
+import { COURSE_OUTLINE_PROMPT } from "@/lib/ai/prompts";
+import { CourseOutline } from "@/lib/ai/schema";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const apiKey = process.env.GEMINI_API_KEY!;
 
 const genAI = new GoogleGenerativeAI(apiKey);
 
-export type CourseOutline = {
-  title: string;
-  modules: Modules[];
-};
-
-export type Modules = {
-  name: string;
-  lessons: {
-    title: string;
-    youtubeQuery: string;
-  }[];
-};
-
 export const aiService = {
   async generateCourseOutline(
     topic: string,
-    level: string
+    level: string,
+    chapters: string,
+    duration: string
   ): Promise<CourseOutline> {
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
     });
 
-    const prompt = `
-      Create a structured learning course.
-
-      Topic: ${topic}
-      Level: ${level}
-
-      Rules:
-      - Output ONLY valid JSON
-      - No markdown
-      - No explanations
-      - The goal is to help learners study using free YouTube content
-
-      Structure:
-      {
-        "title": string,
-        "modules": [
-          {
-            "name": string,
-            "lessons": [
-              {
-                "title": string,
-                "youtubeQuery": string
-              }
-            ]
-          }
-        ]
-      }
-
-      Guidelines:
-      - Generate 4–6 modules
-      - Each module has 3–5 lessons
-      - youtubeQuery should be a natural YouTube search query
-      - Queries should include "explained", "tutorial", or "for beginners" when appropriate
-      `;
-
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(COURSE_OUTLINE_PROMPT({topic, level, chapters, duration}));
     const text = result.response.text();
 
     const cleaned = text
@@ -69,6 +26,6 @@ export const aiService = {
       .replace(/```/g, "")
       .trim();
 
-    return JSON.parse(cleaned);
+    return parseCourseOutline(cleaned);
   },
 };

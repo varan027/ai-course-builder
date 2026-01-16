@@ -45,6 +45,9 @@ actions/auth.ts
 actions/createCourse.schems.ts
 actions/createCourse.ts
 actions/logout.ts
+app/(course)/courses/[courseId]/[chapterId]/page.tsx
+app/(course)/courses/[courseId]/layout.tsx
+app/(course)/courses/[courseId]/page.tsx
 app/(dashboard)/create-course/page.tsx
 app/(dashboard)/create-course/SubmitButton.tsx
 app/(dashboard)/dashboard/page.tsx
@@ -56,8 +59,12 @@ app/globals.css
 app/layout.tsx
 app/page.tsx
 eslint.config.mjs
+lib/ai/parser.ts
+lib/ai/prompts.ts
+lib/ai/schema.ts
 lib/auth.ts
 lib/db.ts
+lib/password.ts
 lib/session.ts
 lib/store.ts
 lib/users.ts
@@ -81,6 +88,92 @@ tsconfig.json
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="lib/ai/parser.ts">
+import { error } from "node:console";
+import { CourseOutlineSchema } from "./schema";
+
+export function parseCourseOutline(rawText: string)  {
+  let parsed : unknown;
+
+  try{
+    parsed = JSON.parse(rawText)
+  } catch {
+    throw new Error("AI returned invalid JSON");
+  }
+
+  const result = CourseOutlineSchema.safeParse(parsed);
+
+  if(!result.success){
+    console.error("AI Schema Violation:", result.error.format);
+    throw new Error("AI output failed validation")
+  }
+
+  return result.data;
+}
+</file>
+
+<file path="lib/ai/prompts.ts">
+export const COURSE_OUTLINE_PROMPT = ({
+  topic,
+  level,
+  chapters,
+  duration,
+}: {
+  topic: string;
+  level: string;
+  chapters: string;
+  duration: string;
+}) => `
+Create a structured learning course.
+
+Topic: ${topic}
+Level: ${level}
+
+Rules:
+- Output ONLY valid JSON
+- EXACTLY ${chapters} chapters
+- Each chapter represents about ${duration} minutes of learning
+- No markdown
+- No explanations
+- No extra fields
+
+JSON format:
+{
+  "title": string,
+  "chapters": [
+    {
+      "title": string,
+      "youtubeQuery": string
+    }
+  ]
+}
+`;
+</file>
+
+<file path="lib/ai/schema.ts">
+import z from "zod";
+
+export const CourseConfigSchema = z.object({
+  level: z.enum(["beginner", "intermediate", "advanced"]),
+  durationMinutes: z.enum(["5", "10", "15"]),
+  chapterCount: z.enum(["5", "8", "12"]),
+});
+
+
+export const ChapterSchema = z.object({
+  title: z.string().min(3),
+  about: z.string().min(10),
+  youtubeQuery: z.string().min(5)
+})
+
+export const CourseOutlineSchema = z.object({
+  title: z.string().min(3),
+  chapters: z.array(ChapterSchema).min(1)
+})
+
+export type CourseOutline = z.infer<typeof CourseOutlineSchema>
+</file>
 
 <file path="actions/auth.ts">
 'use server'
@@ -163,6 +256,49 @@ export async function logout(){
 }
 </file>
 
+<file path="app/(course)/courses/[courseId]/[chapterId]/page.tsx">
+import React from 'react'
+
+const page = () => {
+  return (
+    <div>page</div>
+  )
+}
+
+export default page
+</file>
+
+<file path="app/(course)/courses/[courseId]/layout.tsx">
+import React from 'react'
+
+const layout = ({ children } : { children : React.ReactNode }) => {
+  return (
+    <div className='flex'>
+      <aside className='w-[200] bg-amber-900'>
+        Sidebar 
+      </aside>
+      <main className='flex-1'>
+        {children}
+      </main>
+    </div>
+  )
+}
+
+export default layout
+</file>
+
+<file path="app/(course)/courses/[courseId]/page.tsx">
+import React from 'react'
+
+const page = () => {
+  return (
+    <div>page course view</div>
+  )
+}
+
+export default page
+</file>
+
 <file path="app/(dashboard)/layout.tsx">
 export const dynamic = "force-dynamic";
 
@@ -204,6 +340,20 @@ const eslintConfig = defineConfig([
 ]);
 
 export default eslintConfig;
+</file>
+
+<file path="lib/password.ts">
+import bcrypt from "bcryptjs";
+
+const SALT_ROUNDS = 10
+
+export async function hashPassword(password:string) {
+  return bcrypt.hash(password, SALT_ROUNDS)
+}
+
+export async function verifyPassword(password: string, hashedPassword: string) {
+  return bcrypt.compare(password, hashedPassword)
+}
 </file>
 
 <file path="lib/session.ts">
@@ -366,6 +516,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 </file>
 
 <file path="services/ai.service.ts">
+import { parseCourseOutline } from "@/lib/ai/parser";
+import { COURSE_OUTLINE_PROMPT } from "@/lib/ai/prompts";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const apiKey = process.env.GEMINI_API_KEY!;
@@ -394,42 +546,7 @@ export const aiService = {
       model: "gemini-2.5-flash",
     });
 
-    const prompt = `
-      Create a structured learning course.
-
-      Topic: ${topic}
-      Level: ${level}
-
-      Rules:
-      - Output ONLY valid JSON
-      - No markdown
-      - No explanations
-      - The goal is to help learners study using free YouTube content
-
-      Structure:
-      {
-        "title": string,
-        "modules": [
-          {
-            "name": string,
-            "lessons": [
-              {
-                "title": string,
-                "youtubeQuery": string
-              }
-            ]
-          }
-        ]
-      }
-
-      Guidelines:
-      - Generate 4–6 modules
-      - Each module has 3–5 lessons
-      - youtubeQuery should be a natural YouTube search query
-      - Queries should include "explained", "tutorial", or "for beginners" when appropriate
-      `;
-
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(COURSE_OUTLINE_PROMPT(topic, level));
     const text = result.response.text();
 
     const cleaned = text
@@ -437,57 +554,16 @@ export const aiService = {
       .replace(/```/g, "")
       .trim();
 
-    return JSON.parse(cleaned);
+    return parseCourseOutline(cleaned);
   },
 };
 </file>
 
-<file path="services/auth.service.ts">
-import { getPrisma } from "@/lib/db"
-import { users } from "@/lib/users"
-
-export const authService = {
-  async signup(email: string, password: string) {
-    const prisma = await getPrisma()
-
-    const exists = await prisma.user.findUnique({
-      where: { email }
-    })
-    if(exists){
-      throw new Error("User already exists")
-    }
-    
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password
-      }
-    })
-
-    return user;
-  },
-
-  async login(email: string, password: string){
-    const prisma = await getPrisma()
-    const user = await prisma.user.findUnique({
-      where: { email }
-    })
-
-    if(!user || user.password !== password){
-      throw new Error("Invalid credentials")
-    }
-
-    return user;
-  },
-
-}
-</file>
-
 <file path="services/course.service.ts">
-import { courseStore } from "@/lib/store";
 import { User } from "@/lib/users";
-import { aiService, CourseOutline } from "./ai.service";
+import { aiService } from "./ai.service";
 import { getPrisma } from "@/lib/db";
+import { CourseOutline, CourseOutlineSchema } from "@/lib/ai/schema";
 
 
 export type Course = {
@@ -519,9 +595,18 @@ export const courseService = {
   async getAllForUser(user: User) {
     const prisma = await getPrisma()
     
-    return prisma.course.findMany({
+    const courses = prisma.course.findMany({
       where: { ownerId: user.id},
       orderBy: { createdAt: "desc"}
+    })
+
+    return (await courses).map((course) => {
+      const parsedOutline = CourseOutlineSchema.parse(course.outline)
+
+      return {
+        ...course,
+        outline: parsedOutline,
+      }
     })
   },
 
@@ -582,65 +667,6 @@ export async function createCourse(prevState: FormState, formData: FormData) : P
 }
 </file>
 
-<file path="app/(dashboard)/create-course/page.tsx">
-"use client";
-import { createCourse, FormState } from "@/actions/createCourse";
-import { useActionState } from "react";
-import SubmitButton from "./SubmitButton";
-
-const initialState: FormState = {};
-
-const page = () => {
-  const [state, formAction] = useActionState(createCourse, initialState);
-  return (
-    <div className="max-w-md mx-auto mt-16 px-4">
-      <h1 className="text-2xl font-semibold mb-2">Create a New Course</h1>
-
-      <p className="text-sm text-gray-500 mb-6">
-        Generate a structured path with AI
-      </p>
-
-      <form action={formAction} className="space-y-4">
-        <div>
-          <label htmlFor="topic" className="block text-sm font-medium mb-1">
-            Course Topic
-          </label>
-          <input
-            id="topic"
-            name="topic"
-            placeholder="Course Topic"
-            required
-            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="level" className="block text-sm font-medium mb-1">
-            Difficulty Level
-          </label>
-          <select
-            id="level"
-            name="level"
-            required
-            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
-          >
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
-          </select>
-        </div>
-
-        {state?.error && <p className="text-xs text-red-600" >{state.error}</p>}
-
-        <SubmitButton />
-      </form>
-    </div>
-  );
-};
-
-export default page;
-</file>
-
 <file path="app/(dashboard)/create-course/SubmitButton.tsx">
 'use client'
 import { useFormStatus } from 'react-dom'
@@ -655,122 +681,6 @@ const SubmitButton = () => {
 }
 
 export default SubmitButton;
-</file>
-
-<file path="app/(dashboard)/dashboard/page.tsx">
-import { logout } from "@/actions/logout";
-import { getCurrentUser } from "@/lib/auth";
-import { CourseOutline, Modules } from "@/services/ai.service";
-import { courseService } from "@/services/course.service";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-
-const page = async () => {
-  const user = await getCurrentUser();
-  if (!user) {
-    redirect("/login");
-  }
-  const courses = await courseService.getAllForUser(user);
-
-  function isCourseOutline(outline: unknown): outline is CourseOutline {
-    return (
-      typeof outline === "object" &&
-      outline !== null &&
-      "modules" in outline &&
-      Array.isArray((outline as any).modules)
-    );
-  }
-
-  return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-10">
-        <div>
-          <h1 className="text-2xl font-semibold">Courses</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            AI Generated learning paths
-          </p>
-        </div>
-        <form action={logout}>
-          <button
-            type="submit"
-            className="text-sm text-gray-400 hover:text-red-700 cursor-pointer border px-3 py-1 rounded-md"
-          >
-            Logout
-          </button>
-        </form>
-      </div>
-
-      <div className="flex justify-between mb-10">
-        <h1 className="text-xl font-medium">
-          Hi, { " "}
-          <span>{user.email}</span>
-        </h1>
-        <Link href={"/create-course"}>
-          <button className="text-black bg-white py-2 rounded-md text-sm px-3 cursor-pointer">
-            Create Course
-          </button>
-        </Link>
-      </div>
-
-      {/* Empty state */}
-      {courses.length === 0 && (
-        <div className="border rounded-lg p-8 text-center">
-          <p className="text-gray-300 mb-4">You haven't created any Courses</p>
-          <p className="text-sm text-gray-500">
-            Create your first AI-Powered Learning path to get started
-          </p>
-        </div>
-      )}
-
-      {/* Courses */}
-
-      <div className="space-y-10">
-        {courses.map((course) => (
-          <div key={course.id} className="border rounded-lg p-6">
-            <h2 className="text-xl font-medium mb-4 text-red-500">
-              {" "}
-              {course.title}{" "}
-            </h2>
-
-            {isCourseOutline(course.outline) && (
-              <div className="space-y-6">
-                {course.outline.modules.map((m) => (
-                  <div key={m.name}>
-                    <h3 className="text-amber-300 font-semibold mb-2">
-                      {m.name}
-                    </h3>
-
-                    <ul className="ml-4 space-y-2">
-                      {m.lessons.map((l) => (
-                        <li key={l.title} className="">
-                          <span>{l.title}</span>
-
-                          <a
-                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-                              l.youtubeQuery
-                            )}`}
-                            target="blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 text-xs hover:underline ml-10"
-                          >
-                            Search on Youtube
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default page;
 </file>
 
 <file path="app/(marketing)/login/page.tsx">
@@ -887,23 +797,6 @@ const page = () => {
 export default page;
 </file>
 
-<file path="lib/auth.ts">
-import { getPrisma } from "./db";
-import { getSessionUserId } from "./session";
-import { users } from "./users";
-
-export async function getCurrentUser() {
-  const userId = await getSessionUserId();
-  if (!userId) return null;
-
-  const prisma = await getPrisma();
-
-  return prisma.user.findUnique({
-    where: { id: userId}
-  })
-}
-</file>
-
 <file path=".gitignore">
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
@@ -953,6 +846,186 @@ prisma/dev.db-journal
 node_modules/.prisma
 </file>
 
+<file path="app/(dashboard)/create-course/page.tsx">
+"use client";
+import { createCourse, FormState } from "@/actions/createCourse";
+import { useActionState } from "react";
+import SubmitButton from "./SubmitButton";
+import Link from "next/link";
+
+const initialState: FormState = {};
+
+const page = () => {
+  const [state, formAction] = useActionState(createCourse, initialState);
+  return (
+    <div className="max-w-md mx-auto mt-16 px-4">
+      <Link href={"/dashboard"}>
+        <button className="mb-10 bg-gray-800 px-3 py-1 rounded-md cursor-pointer">Back to dashboard</button>
+      </Link>
+      <h1 className="text-2xl font-semibold mb-2">Create a New Course</h1>
+
+      <p className="text-sm text-gray-500 mb-6">
+        Generate a structured path with AI
+      </p>
+
+      <form action={formAction} className="space-y-4">
+        <div>
+          <label htmlFor="topic" className="block text-sm font-medium mb-1">
+            Course Topic
+          </label>
+          <input
+            id="topic"
+            name="topic"
+            placeholder="Course Topic"
+            required
+            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="level" className="block text-sm font-medium mb-1">
+            Difficulty Level
+          </label>
+          <select
+            id="level"
+            name="level"
+            required
+            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+          >
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+
+        {state?.error && <p className="text-xs text-red-600">{state.error}</p>}
+
+        <SubmitButton />
+      </form>
+    </div>
+  );
+};
+
+export default page;
+</file>
+
+<file path="app/(dashboard)/dashboard/page.tsx">
+import { logout } from "@/actions/logout";
+import { getCurrentUser } from "@/lib/auth";
+import { CourseOutline, Modules } from "@/services/ai.service";
+import { courseService } from "@/services/course.service";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+const page = async () => {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
+  const courses = await courseService.getAllForUser(user);
+
+  return (
+    <div className="max-w-5xl mx-auto px-6 py-16">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-10">
+        <div>
+          <h1 className="text-2xl font-semibold">Courses</h1>
+          <p className="text-sm text-gray-400 mt-1">
+            AI Generated learning paths
+          </p>
+        </div>
+        <form action={logout}>
+          <button
+            type="submit"
+            className="text-sm text-gray-400 hover:text-red-700 cursor-pointer border px-3 py-1 rounded-md"
+          >
+            Logout
+          </button>
+        </form>
+      </div>
+
+      <div className="flex justify-between mb-10">
+        <h1 className="text-xl font-medium">
+          Hi, <span>{user.email}</span>
+        </h1>
+        <Link href={"/create-course"}>
+          <button className="text-black bg-white py-2 rounded-md text-sm px-3 cursor-pointer">
+            Create Course
+          </button>
+        </Link>
+      </div>
+
+      {/* Empty state */}
+      {courses.length === 0 && (
+        <div className="border rounded-lg p-8 text-center">
+          <p className="text-gray-300 mb-4">You haven't created any Courses</p>
+          <p className="text-sm text-gray-500">
+            Create your first AI-Powered Learning path to get started
+          </p>
+        </div>
+      )}
+
+      {/* Courses */}
+
+      <div className="space-y-10">
+        {courses.map((course) => (
+          <div key={course.id} className="border rounded-lg p-6">
+            <h2 className="text-xl font-medium mb-4 text-red-500">
+              {" "}
+              {course.title}{" "}
+            </h2>
+
+            {course.outline && (
+              <div className="space-y-6">
+                {course.outline.chapters.map((chapter) => (
+                  <div key={chapter.title}>
+                    <h3 className="text-amber-300 font-semibold mb-2">
+                      {chapter.title}
+                    </h3>
+                    <p className="text-sm">{chapter.about}</p>
+
+                    <ul className="ml-4 space-y-2">
+                      <a
+                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
+                          chapter.youtubeQuery
+                        )}`}
+                        target="blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 text-xs hover:underline ml-10"
+                      >
+                        Search on Youtube
+                      </a>
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default page;
+</file>
+
+<file path="lib/auth.ts">
+import { getPrisma } from "./db";
+import { getSessionUserId } from "./session";
+
+export async function getCurrentUser() {
+  const userId = await getSessionUserId();
+  if (!userId) return null;
+
+  const prisma = await getPrisma();
+
+  return prisma.user.findUnique({
+    where: { id: userId}
+  })
+}
+</file>
+
 <file path="lib/db.ts">
 import type { PrismaClient as PrismaClientType } from "@prisma/client";
 
@@ -978,6 +1051,55 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+</file>
+
+<file path="services/auth.service.ts">
+import { getPrisma } from "@/lib/db"
+import { hashPassword, verifyPassword } from "@/lib/password"
+
+export const authService = {
+  async signup(email: string, password: string) {
+    const prisma = await getPrisma()
+
+    const exists = await prisma.user.findUnique({
+      where: { email }
+    })
+    if(exists){
+      throw new Error("User already exists")
+    }
+    
+    const hashedPassword = await hashPassword(password);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword
+      }
+    })
+
+    return user;
+  },
+
+  async login(email: string, password: string){
+    const prisma = await getPrisma()
+    const user = await prisma.user.findUnique({
+      where: { email }
+    })
+
+    if(!user){
+      throw new Error("Invalid credentials")
+    }
+
+    const isPassValid = await verifyPassword(password, user.password)
+
+    if(!isPassValid){
+      throw new Error("Invalid Password")
+    }
+
+    return user;
+  },
+
+}
 </file>
 
 <file path="tsconfig.json">
@@ -1054,40 +1176,6 @@ export default function RootLayout({
 }
 </file>
 
-<file path="package.json">
-{
-  "name": "ai-course-builder",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "cross-env NEXT_DISABLE_TURBOPACK=1 next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "@prisma/client": "^6.19.2",
-    "next": "16.1.1",
-    "prisma": "^6.19.2",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "zod": "^4.3.5"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "cross-env": "^10.1.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.1",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
-}
-</file>
-
 <file path="app/globals.css">
 @import "tailwindcss";
 
@@ -1114,6 +1202,43 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "ai-course-builder",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cross-env NEXT_DISABLE_TURBOPACK=1 next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^6.19.2",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "next": "16.1.1",
+    "prisma": "^6.19.2",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
 }
 </file>
 

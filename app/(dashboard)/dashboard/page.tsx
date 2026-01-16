@@ -1,6 +1,5 @@
 import { logout } from "@/actions/logout";
 import { getCurrentUser } from "@/lib/auth";
-import { CourseOutline, Modules } from "@/services/ai.service";
 import { courseService } from "@/services/course.service";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -11,15 +10,6 @@ const page = async () => {
     redirect("/login");
   }
   const courses = await courseService.getAllForUser(user);
-
-  function isCourseOutline(outline: unknown): outline is CourseOutline {
-    return (
-      typeof outline === "object" &&
-      outline !== null &&
-      "modules" in outline &&
-      Array.isArray((outline as any).modules)
-    );
-  }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-16">
@@ -43,8 +33,7 @@ const page = async () => {
 
       <div className="flex justify-between mb-10">
         <h1 className="text-xl font-medium">
-          Hi, { " "}
-          <span>{user.email}</span>
+          Hi, <span>{user.email}</span>
         </h1>
         <Link href={"/create-course"}>
           <button className="text-black bg-white py-2 rounded-md text-sm px-3 cursor-pointer">
@@ -73,31 +62,26 @@ const page = async () => {
               {course.title}{" "}
             </h2>
 
-            {isCourseOutline(course.outline) && (
+            {course.outline && (
               <div className="space-y-6">
-                {course.outline.modules.map((m) => (
-                  <div key={m.name}>
+                {course.outline.chapters.map((chapter) => (
+                  <div key={chapter.title}>
                     <h3 className="text-amber-300 font-semibold mb-2">
-                      {m.name}
+                      {chapter.title}
                     </h3>
+                    <p className="text-sm">{chapter.about}</p>
 
                     <ul className="ml-4 space-y-2">
-                      {m.lessons.map((l) => (
-                        <li key={l.title} className="">
-                          <span>{l.title}</span>
-
-                          <a
-                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-                              l.youtubeQuery
-                            )}`}
-                            target="blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 text-xs hover:underline ml-10"
-                          >
-                            Search on Youtube
-                          </a>
-                        </li>
-                      ))}
+                      <a
+                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
+                          chapter.youtubeQuery
+                        )}`}
+                        target="blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 text-xs hover:underline ml-10"
+                      >
+                        Search on Youtube
+                      </a>
                     </ul>
                   </div>
                 ))}
