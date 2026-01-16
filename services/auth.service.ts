@@ -36,6 +36,10 @@ export const authService = {
 
     const isPassValid = await verifyPassword(password, user.password)
 
+    if(!isPassValid){
+      throw new Error("Invalid Password")
+    }
+
     return user;
   },
 
