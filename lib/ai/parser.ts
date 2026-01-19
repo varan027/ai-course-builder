@@ -1,21 +1,34 @@
-import { error } from "node:console";
+import { AIOutputInvalidError } from "../errors/domain";
 import { CourseOutlineSchema } from "./schema";
 
-export function parseCourseOutline(rawText: string)  {
-  let parsed : unknown;
+/**
+ * AI Parser = Gatekeeper
+ * - Accepts raw AI text
+ * - Ensures valid JSON
+ * - Ensures schema correctness
+ * - Fails fast on any violation
+ */
+export function parseCourseOutline(rawText: string) {
+  let parsed: unknown;
 
-  try{
-    parsed = JSON.parse(rawText)
+  // STEP 1: Is it valid JSON?
+  try {
+    parsed = JSON.parse(rawText);
   } catch {
-    throw new Error("AI returned invalid JSON");
+    throw new AIOutputInvalidError(
+      "AI returned invalid JSON"
+    );
   }
 
+  // STEP 2: Does it match our contract?
   const result = CourseOutlineSchema.safeParse(parsed);
 
-  if(!result.success){
-    console.error("AI Schema Violation:", result.error.format());
-    throw new Error("AI output failed validation")
+  if (!result.success) {
+    throw new AIOutputInvalidError(
+      "AI output does not match CourseOutlineSchema"
+    );
   }
 
+  // STEP 3: Return clean, trusted data
   return result.data;
 }

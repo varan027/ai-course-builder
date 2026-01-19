@@ -34,7 +34,12 @@ export async function createCourse(
   }
   const data = parsed.data;
 
-  await courseService.create(data, user);
-
-  redirect("/dashboard");
+  try {
+    await courseService.create(data, user);
+    redirect("/dashboard");
+  } catch (err) {
+    return {
+      error: "AI failed to generate the course. Please try again.",
+    };
+  }
 }
