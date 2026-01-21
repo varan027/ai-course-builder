@@ -1,8 +1,16 @@
 import { aiService } from "./ai.service";
 import { courseRepository } from "@/lib/repositories/course.repo";
-import { CourseOutlineSchema } from "@/lib/ai/schema";
+import { CourseOutline, CourseOutlineSchema } from "@/lib/ai/schema";
 import { User } from "@prisma/client";
 import { CreateCourseInput } from "@/actions/createCourse.schema";
+
+export type Course = {
+  id: string;
+  title: string;
+  level: string;
+  outline: CourseOutline;
+  ownerId: string;
+};
 
 export const courseService = {
   async create(data: CreateCourseInput, user: User) {

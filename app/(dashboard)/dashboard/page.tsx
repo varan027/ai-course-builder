@@ -54,43 +54,15 @@ const page = async () => {
 
       {/* Courses */}
 
-      <div className="space-y-10">
+      <div className="space-y-10 grid grid-cols-3">
         {courses.map((course) => (
-          <div key={course.id} className="border rounded-lg p-6">
-            <h2 className="text-xl font-medium mb-4 text-red-500">
-              {course.title}{" "}
-            </h2>
-
-            {course.outline && (
-              <div className="space-y-6">
-                {course.outline.chapters.map((chapter) => (
-                  <div key={chapter.title}>
-                    <h3 className="text-amber-300 font-semibold mb-1">
-                      {chapter.title}
-                    </h3>
-
-                    <p className="text-xs text-gray-400 mb-2">
-                      ⏱ {chapter.durationMinutes} minutes
-                    </p>
-
-                    <p className="text-sm">{chapter.about}</p>
-
-                    <ul className="ml-4 space-y-2">
-                      <a
-                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-                          chapter.youtubeQuery,
-                        )}`}
-                        target="blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 text-xs hover:underline ml-10"
-                      >
-                        Search on Youtube
-                      </a>
-                    </ul>
-                  </div>
-                ))}
+          <div key={course.id}>
+            <Link href={`/courses/${course.id}`}>
+              <div className="border rounded-lg p-4">
+                <h2 className="font-medium text-red-500">{course.title} </h2>
+                <p>{course.level} </p>
               </div>
-            )}
+            </Link>
           </div>
         ))}
       </div>

@@ -38,6 +38,12 @@ export async function createCourse(
     await courseService.create(data, user);
     redirect("/dashboard");
   } catch (err) {
+    if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+      throw err;
+    }
+
+    console.error("CREATE COURSE FAILED:", err);
+
     return {
       error: "AI failed to generate the course. Please try again.",
     };

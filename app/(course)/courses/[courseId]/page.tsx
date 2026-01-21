@@ -1,9 +1,10 @@
-import React from 'react'
+import { redirect } from "next/navigation";
 
-const page = () => {
-  return (
-    <div>page course view</div>
-  )
+export default async function CourseIndexPage({
+  params,
+}: {
+  params: Promise<{ courseId: string }>;
+}) {
+  const { courseId } = await params; // ✅ REQUIRED
+  redirect(`/courses/${courseId}/0`);
 }
-
-export default page
