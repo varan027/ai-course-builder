@@ -5,6 +5,7 @@ export default async function CourseIndexPage({
 }: {
   params: Promise<{ courseId: string }>;
 }) {
-  const { courseId } = await params; // ✅ REQUIRED
+  const { courseId } = await params;
+
   redirect(`/courses/${courseId}/0`);
 }

@@ -1,45 +1,43 @@
-"use client";
+import { courseService } from "@/services/course.service";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-import { useContext } from "react";
-import { useParams, redirect } from "next/navigation";
-import { CourseContext } from "../courseContext";
+export default async function ChapterPage({
+  params,
+}: {
+  params: Promise<{ courseId: string; chapterId: string }>;
+}) {
+  const { courseId, chapterId } = await params;
 
-export default function ChapterPage() {
-  const course = useContext(CourseContext);
-  const params = useParams();
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
-  if (!course) {
-    redirect("/dashboard");
-  }
+  const course = await courseService.getById(courseId, user);
 
-  const chapterIndex = Number(params.chapterId);
-  const chapter = course.outline.chapters[chapterIndex];
+  const index = Number(chapterId);
+  const chapter = course.outline.chapters[index];
 
   if (!chapter) {
-    redirect(`/courses/${course.id}`);
+    redirect(`/courses/${courseId}/0`);
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold mb-2">
-        {chapter.title}
-      </h1>
+    <div className="max-w-3xl">
+      <h1 className="text-2xl font-semibold mb-2">{chapter.title}</h1>
 
       <p className="text-sm text-gray-500 mb-4">
         ⏱ {chapter.durationMinutes} minutes
       </p>
 
-      <p className="mb-6">
-        {chapter.about}
-      </p>
+      <p className="mb-6">{chapter.about}</p>
 
       <a
         href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-          chapter.youtubeQuery
+          chapter.youtubeQuery,
         )}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 underline text-sm"
+        className="text-blue-600 text-sm underline"
       >
         Search this topic on YouTube
       </a>
