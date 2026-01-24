@@ -46,10 +46,10 @@ actions/createCourse.schema.ts
 actions/createCourse.ts
 actions/logout.ts
 app/(course)/courses/[courseId]/[chapterId]/page.tsx
-app/(course)/courses/[courseId]/courseContext.tsx
-app/(course)/courses/[courseId]/CourseProvider.tsx
 app/(course)/courses/[courseId]/layout.tsx
 app/(course)/courses/[courseId]/page.tsx
+app/(course)/courses/courseContext.tsx
+app/(course)/courses/CourseProvider.tsx
 app/(dashboard)/create-course/page.tsx
 app/(dashboard)/create-course/SubmitButton.tsx
 app/(dashboard)/dashboard/page.tsx
@@ -85,40 +85,12 @@ README.md
 services/ai.service.ts
 services/auth.service.ts
 services/course.service.ts
+services/youtube.service.ts
 tsconfig.json
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path="app/(course)/courses/[courseId]/courseContext.tsx">
-'use client'
-import { createContext } from "react";
-import { Course } from "@/services/course.service";
-
-export const CourseContext = createContext<Course | null>(null);
-</file>
-
-<file path="app/(course)/courses/[courseId]/CourseProvider.tsx">
-"use client";
-
-import { CourseContext } from "./courseContext";
-import { Course } from "@/services/course.service";
-
-export default function CourseProvider({
-  course,
-  children,
-}: {
-  course: Course;
-  children: React.ReactNode;
-}) {
-  return (
-    <CourseContext.Provider value={course}>
-      {children}
-    </CourseContext.Provider>
-  );
-}
-</file>
 
 <file path="actions/auth.ts">
 'use server'
@@ -205,121 +177,32 @@ export async function logout(){
 }
 </file>
 
-<file path="app/(course)/courses/[courseId]/[chapterId]/page.tsx">
+<file path="app/(course)/courses/courseContext.tsx">
+'use client'
+import { createContext } from "react";
+import { Course } from "@/services/course.service";
+
+export const CourseContext = createContext<Course | null>(null);
+</file>
+
+<file path="app/(course)/courses/CourseProvider.tsx">
 "use client";
 
-import { useContext } from "react";
-import { useParams, redirect } from "next/navigation";
-import { CourseContext } from "../courseContext";
+import { CourseContext } from "./courseContext";
+import { Course } from "@/services/course.service";
 
-export default function ChapterPage() {
-  const course = useContext(CourseContext);
-  const params = useParams();
-
-  if (!course) {
-    redirect("/dashboard");
-  }
-
-  const chapterIndex = Number(params.chapterId);
-  const chapter = course.outline.chapters[chapterIndex];
-
-  if (!chapter) {
-    redirect(`/courses/${course.id}`);
-  }
-
-  return (
-    <div>
-      <h1 className="text-2xl font-semibold mb-2">
-        {chapter.title}
-      </h1>
-
-      <p className="text-sm text-gray-500 mb-4">
-        ⏱ {chapter.durationMinutes} minutes
-      </p>
-
-      <p className="mb-6">
-        {chapter.about}
-      </p>
-
-      <a
-        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-          chapter.youtubeQuery
-        )}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 underline text-sm"
-      >
-        Search this topic on YouTube
-      </a>
-    </div>
-  );
-}
-</file>
-
-<file path="app/(course)/courses/[courseId]/layout.tsx">
-import { courseService } from "@/services/course.service";
-import { getCurrentUser } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import Link from "next/link";
-import CourseProvider from "./CourseProvider";
-
-export default async function CourseLayout({
+export default function CourseProvider({
+  course,
   children,
-  params,
 }: {
+  course: Course;
   children: React.ReactNode;
-  params: Promise<{ courseId: string }>;
 }) {
-  const { courseId } = await params; // ✅ FIX
-
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const course = await courseService.getById(courseId, user);
-
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <aside className="w-64 border-r px-4 py-6">
-        <h2 className="font-semibold mb-4 text-sm text-gray-600">
-          Chapters
-        </h2>
-
-        <ul className="space-y-2">
-          {course.outline.chapters.map((chapter, index) => (
-            <li key={chapter.title}>
-              <Link
-                href={`/courses/${course.id}/${index}`}
-                className="block rounded px-2 py-1 text-sm hover:bg-gray-100"
-              >
-                {index + 1}. {chapter.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 px-6 py-8">
-        <CourseProvider course={course}>
-          {children}
-        </CourseProvider>
-      </main>
-    </div>
+    <CourseContext.Provider value={course}>
+      {children}
+    </CourseContext.Provider>
   );
-}
-</file>
-
-<file path="app/(course)/courses/[courseId]/page.tsx">
-import { redirect } from "next/navigation";
-
-export default async function CourseIndexPage({
-  params,
-}: {
-  params: Promise<{ courseId: string }>;
-}) {
-  const { courseId } = await params; // ✅ REQUIRED
-  redirect(`/courses/${courseId}/0`);
 }
 </file>
 
@@ -582,6 +465,43 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 </file>
 
+<file path="services/youtube.service.ts">
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY!;
+const BASE_URL = "https://www.googleapis.com/youtube/v3/search";
+
+export type YouTubeVideo = {
+  videoId: string;
+  title: string;
+};
+
+export const youtubeService = {
+  async searchTopVideo(query: string): Promise<YouTubeVideo | null> {
+    const url = new URL(BASE_URL);
+    url.searchParams.set("part", "snippet");
+    url.searchParams.set("q", query);
+    url.searchParams.set("type", "video");
+    url.searchParams.set("maxResults", "1");
+    url.searchParams.set("key", YOUTUBE_API_KEY);
+
+    const res = await fetch(url.toString());
+
+    if (!res.ok) {
+      throw new Error("YouTube API request failed");
+    }
+
+    const data = await res.json();
+
+    const item = data.items?.[0];
+    if (!item) return null;
+
+    return {
+      videoId: item.id.videoId,
+      title: item.snippet.title,
+    };
+  },
+};
+</file>
+
 <file path="app/(dashboard)/create-course/SubmitButton.tsx">
 'use client'
 import { useFormStatus } from 'react-dom'
@@ -712,43 +632,6 @@ const page = () => {
 export default page;
 </file>
 
-<file path="lib/ai/parser.ts">
-import { AIOutputInvalidError } from "../errors/domain";
-import { CourseOutlineSchema } from "./schema";
-
-/**
- * AI Parser = Gatekeeper
- * - Accepts raw AI text
- * - Ensures valid JSON
- * - Ensures schema correctness
- * - Fails fast on any violation
- */
-export function parseCourseOutline(rawText: string) {
-  let parsed: unknown;
-
-  // STEP 1: Is it valid JSON?
-  try {
-    parsed = JSON.parse(rawText);
-  } catch {
-    throw new AIOutputInvalidError(
-      "AI returned invalid JSON"
-    );
-  }
-
-  // STEP 2: Does it match our contract?
-  const result = CourseOutlineSchema.safeParse(parsed);
-
-  if (!result.success) {
-    throw new AIOutputInvalidError(
-      "AI output does not match CourseOutlineSchema"
-    );
-  }
-
-  // STEP 3: Return clean, trusted data
-  return result.data;
-}
-</file>
-
 <file path="lib/ai/prompts.ts">
 export const COURSE_OUTLINE_PROMPT = ({
   topic,
@@ -842,28 +725,166 @@ prisma/dev.db-journal
 node_modules/.prisma
 </file>
 
+<file path="app/(course)/courses/[courseId]/[chapterId]/page.tsx">
+import { courseService } from "@/services/course.service";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+
+export default async function ChapterPage({
+  params,
+}: {
+  params: Promise<{ courseId: string; chapterId: string }>;
+}) {
+  const { courseId, chapterId } = await params;
+
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const course = await courseService.getById(courseId, user);
+
+  const index = Number(chapterId);
+  const chapter = course.outline.chapters[index];
+
+  if (!chapter) {
+    redirect(`/courses/${courseId}/0`);
+  }
+
+  return (
+    <div className="max-w-3xl">
+      <h1 className="text-2xl font-semibold mb-2">{chapter.title}</h1>
+
+      <p className="text-sm text-gray-500 mb-4">
+        ⏱ {chapter.durationMinutes} minutes
+      </p>
+
+      <p className="mb-6">{chapter.about}</p>
+
+      {chapter.youtubeVideoId ? (
+        <iframe
+          className="w-full h-64 rounded-md"
+          src={`https://www.youtube.com/embed/${chapter.youtubeVideoId}`}
+          title={chapter.title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      ) : (
+        <a
+          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
+            chapter.youtubeQuery,
+          )}`}
+          target="_blank"
+          className="text-blue-600 underline"
+        >
+          Search on YouTube
+        </a>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="app/(course)/courses/[courseId]/layout.tsx">
+import { courseService } from "@/services/course.service";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+
+export default async function CourseLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ courseId: string }>;
+}) {
+  const { courseId } = await params;
+
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const course = await courseService.getById(courseId, user);
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <aside className="w-64 border-r px-4 py-6">
+        <h2 className="font-semibold mb-4">{course.title}</h2>
+
+        <ul className="space-y-2">
+          {course.outline.chapters.map((chapter, index) => (
+            <li key={index}>
+              <Link
+                href={`/courses/${course.id}/${index}`}
+                className="block text-sm text-gray-600 hover:text-white"
+              >
+                {index + 1}. {chapter.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 px-6 py-8">{children}</main>
+    </div>
+  );
+}
+</file>
+
+<file path="app/(course)/courses/[courseId]/page.tsx">
+import { redirect } from "next/navigation";
+
+export default async function CourseIndexPage({
+  params,
+}: {
+  params: Promise<{ courseId: string }>;
+}) {
+  const { courseId } = await params;
+
+  redirect(`/courses/${courseId}/0`);
+}
+</file>
+
+<file path="lib/ai/parser.ts">
+import { AIOutputInvalidError } from "../errors/domain";
+import { CourseOutlineSchema } from "./schema";
+
+export function parseCourseOutline(rawText: string) {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    throw new AIOutputInvalidError("AI returned invalid JSON");
+  }
+
+  const result = CourseOutlineSchema.safeParse(parsed);
+
+  if (!result.success) {
+    console.error(
+      "AI SCHEMA ERROR:",
+      JSON.stringify(result.error.format(), null, 2),
+    );
+
+    throw new AIOutputInvalidError(
+      "AI output does not match CourseOutlineSchema",
+    );
+  }
+
+  return result.data;
+}
+</file>
+
 <file path="lib/ai/schema.ts">
 import { z } from "zod";
 
-/**
- * A single chapter in a course
- * - durationMinutes is decided by AI
- * - youtubeQuery is used by UI only
- */
 export const ChapterSchema = z.object({
   title: z.string().min(3),
   about: z.string().min(10),
   durationMinutes: z.number().int().positive(),
   youtubeQuery: z.string().min(5),
+  youtubeVideoId: z.string().optional(),
 });
 
-/**
- * Final AI output contract
- * This schema is used by:
- * - AI validation
- * - Database JSON validation
- * - UI rendering
- */
 export const CourseOutlineSchema = z.object({
   title: z.string().min(3),
   chapters: z.array(ChapterSchema).min(1),
@@ -1040,54 +1061,6 @@ export const authService = {
 }
 </file>
 
-<file path="actions/createCourse.ts">
-"use server";
-import { courseService } from "@/services/course.service";
-import { redirect } from "next/navigation";
-import { createCourseSchema } from "./createCourse.schema";
-import { getCurrentUser } from "@/lib/auth";
-
-export type FormState = {
-  error?: string;
-};
-
-export async function createCourse(
-  prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const rawData = {
-    topic: formData.get("topic"),
-    level: formData.get("level"),
-    chapters: formData.get("chapters"),
-    duration: formData.get("duration"),
-  };
-
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return { error: "Unauthorized" };
-  }
-
-  const parsed = createCourseSchema.safeParse(rawData);
-
-  if (!parsed.success) {
-    return {
-      error: parsed.error.message,
-    };
-  }
-  const data = parsed.data;
-
-  try {
-    await courseService.create(data, user);
-    redirect("/dashboard");
-  } catch (err) {
-    return {
-      error: "AI failed to generate the course. Please try again.",
-    };
-  }
-}
-</file>
-
 <file path="app/(dashboard)/create-course/page.tsx">
 "use client";
 import { createCourse, FormState } from "@/actions/createCourse";
@@ -1181,12 +1154,67 @@ const page = () => {
 export default page;
 </file>
 
+<file path="actions/createCourse.ts">
+"use server";
+import { courseService } from "@/services/course.service";
+import { redirect } from "next/navigation";
+import { createCourseSchema } from "./createCourse.schema";
+import { getCurrentUser } from "@/lib/auth";
+
+export type FormState = {
+  error?: string;
+};
+
+export async function createCourse(
+  prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const rawData = {
+    topic: formData.get("topic"),
+    level: formData.get("level"),
+    chapters: formData.get("chapters"),
+    duration: formData.get("duration"),
+  };
+
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return { error: "Unauthorized" };
+  }
+
+  const parsed = createCourseSchema.safeParse(rawData);
+
+  if (!parsed.success) {
+    return {
+      error: parsed.error.message,
+    };
+  }
+  const data = parsed.data;
+
+  try {
+    await courseService.create(data, user);
+    redirect("/dashboard");
+  } catch (err) {
+    if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+      throw err;
+    }
+
+    console.error("CREATE COURSE FAILED:", err);
+
+    return {
+      error: "AI failed to generate the course. Please try again.",
+    };
+  }
+}
+</file>
+
 <file path="services/course.service.ts">
 import { aiService } from "./ai.service";
 import { courseRepository } from "@/lib/repositories/course.repo";
 import { CourseOutline, CourseOutlineSchema } from "@/lib/ai/schema";
 import { User } from "@prisma/client";
 import { CreateCourseInput } from "@/actions/createCourse.schema";
+import { youtubeService } from "./youtube.service";
 
 export type Course = {
   id: string;
@@ -1198,14 +1226,31 @@ export type Course = {
 
 export const courseService = {
   async create(data: CreateCourseInput, user: User) {
-    // 1. Ask AI for course outline
     const outline = await aiService.generateCourseOutline(data);
 
-    // 2. Save using repository
+    const videoChapters = await Promise.all(
+      outline.chapters.map(async (chapter) => {
+        try{
+          const video = await youtubeService.searchTopVideo(chapter.youtubeQuery)
+          return {
+            ...chapter,
+            youtubeVideoId: video?.videoId
+          }
+        } catch {
+          return chapter;
+        }
+      })
+    )
+
+    const finalOutline: CourseOutline = {
+      ...outline,
+      chapters: videoChapters,
+    };
+
     return courseRepository.create({
-      title: outline.title,
+      title: finalOutline.title,
       level: data.level,
-      outline,
+      outline: finalOutline,
       ownerId: user.id,
     });
   },

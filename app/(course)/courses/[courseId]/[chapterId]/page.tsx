@@ -31,16 +31,25 @@ export default async function ChapterPage({
 
       <p className="mb-6">{chapter.about}</p>
 
-      <a
-        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-          chapter.youtubeQuery,
-        )}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 text-sm underline"
-      >
-        Search this topic on YouTube
-      </a>
+      {chapter.youtubeVideoId ? (
+        <iframe
+          className="w-full h-64 rounded-md"
+          src={`https://www.youtube.com/embed/${chapter.youtubeVideoId}`}
+          title={chapter.title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      ) : (
+        <a
+          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
+            chapter.youtubeQuery,
+          )}`}
+          target="_blank"
+          className="text-blue-600 underline"
+        >
+          Search on YouTube
+        </a>
+      )}
     </div>
   );
 }
