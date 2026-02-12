@@ -65,7 +65,7 @@ const page = async () => {
 
         {/* Course Grid */}
         {courses.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02]">
+          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-3xl bg-white/2">
             <div className="p-4 bg-primary/10 rounded-full mb-4">
               <BookOpen className="w-8 h-8 text-primary" />
             </div>
@@ -89,7 +89,7 @@ const page = async () => {
                 key={course.id}
                 className="group"
               >
-                <Card className="h-full bg-white/[0.03] border-white/5 hover:border-primary/50 hover:bg-white/[0.05] transition-all duration-300 rounded-2xl overflow-hidden relative">
+                <Card className="h-full bg-white/3 border-white/5 hover:border-primary/50 hover:bg-white/5 transition-all duration-300 rounded-2xl overflow-hidden relative">
                   <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                       <Plus className="w-4 h-4 text-primary" />

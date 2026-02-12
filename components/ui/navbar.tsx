@@ -1,23 +1,33 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   return (
-    <nav className="w-full border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto flex items-center justify-between h-16 px-6">
-        <Link href="/" className="font-semibold text-lg tracking-tight">
-          PathForge
+    <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/60 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-20 px-6">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:rotate-12 transition-transform">
+            <span className="text-black font-black text-xl">P</span>
+          </div>
+          <span className="font-bold text-xl tracking-tighter text-white">
+            PathForge
+          </span>
         </Link>
 
-        <div className="flex items-center gap-4">
-          <Link href="/login">
-            <Button variant="ghost" className="cursor-pointer">Login</Button>
+        <div className="flex items-center gap-6">
+          <Link
+            href="/login"
+            className="text-sm font-medium text-muted-foreground hover:text-white transition-colors"
+          >
+            Login
           </Link>
           <Link href="/signup">
-            <Button className="cursor-pointer">Get Started</Button>
+            <Button className="h-10 px-5 rounded-xl bg-white text-black font-bold hover:bg-gray-200 transition-all">
+              Join for Free
+            </Button>
           </Link>
         </div>
       </div>
     </nav>
-  )
+  );
 }
