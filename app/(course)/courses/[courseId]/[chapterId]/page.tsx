@@ -1,6 +1,7 @@
 import { courseService } from "@/services/course.service";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { toggleProgress } from "@/actions/toggleProgress";
 
 export default async function ChapterPage({
   params,
@@ -50,6 +51,17 @@ export default async function ChapterPage({
           Search on YouTube
         </a>
       )}
+
+      <form action={
+        async () => {
+          "use server";
+          await toggleProgress(courseId, index)
+        }
+      }>
+        <button className="mt-4 border px-3 py-1 rounded-md">
+          Mark as Complete
+        </button>
+      </form>
     </div>
   );
 }

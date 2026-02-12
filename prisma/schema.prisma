@@ -25,5 +25,17 @@ model Course {
   outline   Json
   ownerId   String
   owner     User     @relation(fields: [ownerId], references: [id])
+  status    String   @default("CREATING")
   createdAt DateTime @default(now())
+}
+
+model ChapterProgress {
+  id        String   @id @default(uuid())
+  userId    String
+  courseId  String
+  chapter   Int
+  completed Boolean @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId, chapter])
 }
