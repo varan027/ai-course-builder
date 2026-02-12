@@ -7,24 +7,36 @@
   --radius: 0.75rem;
 }
 
+/* Replace your .dark section in app/globals.css */
 .dark {
-  --background: 222 10% 5%;
-  --foreground: 210 20% 98%;
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
 
-  --card: 222 40% 0%;
-  --card-foreground: 210 20% 98%;
+  --card: 240 10% 5%;
+  --card-foreground: 0 0% 98%;
 
-  --primary: 155 64% 40%;
-  --primary-foreground: 0 0% 0%;
+  --primary: 158 94% 30%; /* More vibrant Emerald */
+  --primary-foreground: 144 100% 5%;
 
-  --secondary: 222 30% 14%;
-  --secondary-foreground: 210 20% 98%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
 
-  --muted: 222 30% 16%;
-  --muted-foreground: 215 20% 65%;
+  --muted: 240 3.7% 10%;
+  --muted-foreground: 240 5% 64.9%;
 
-  --border: 222 10% 20%;
-  --ring: 158 64% 52%;
+  --border: 240 3.7% 12%;
+  --ring: 158 94% 30%;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
 }
 
 /*TAILWIND V4 THEME TOKENS*/
