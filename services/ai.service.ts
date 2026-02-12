@@ -4,7 +4,11 @@ import { COURSE_OUTLINE_PROMPT } from "@/lib/ai/prompts";
 import { CourseOutline } from "@/lib/ai/schema";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = process.env.GEMINI_API_KEY!;
+const apiKey = process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
+  throw new Error("Missing Gemini API key");
+}
 
 const genAI = new GoogleGenerativeAI(apiKey);
 

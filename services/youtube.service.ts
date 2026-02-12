@@ -1,7 +1,7 @@
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 if(YOUTUBE_API_KEY){
-  console.log("Inavaid API Key")
+  throw new Error("Missing Youtube API Key")
 }
 const BASE_URL = "https://www.googleapis.com/youtube/v3/search";
 
@@ -13,6 +13,7 @@ export type YouTubeVideo = {
 export const youtubeService = {
   async searchTopVideo(query: string): Promise<YouTubeVideo | null> {
     const url = new URL(BASE_URL);
+    url.searchParams.set("key", YOUTUBE_API_KEY!);
     url.searchParams.set("part", "snippet");
     url.searchParams.set("q", query);
     url.searchParams.set("type", "video");
