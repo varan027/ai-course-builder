@@ -1,31 +1,34 @@
+import { Button } from "@/components/ui/button";
+import { Navbar } from "@/components/ui/navbar";
 import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="max-w-4xl mx-auto px-6 py-24 text-center">
-      <h1 className="text-3xl font-semibold mb-4">
-        AI Course Builder
-      </h1>
+    <main className="relative min-h-screen">
+      <Navbar />
+      {/* subtle background glow */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.15),transparent_60%)]" />
 
-      <p className="text-gray-600 max-w-xl mx-auto mb-10">
-        Generate structured learning paths from unstructured content using AI.
-        Stop guessing what to learn next.
-      </p>
+      <div className="max-w-4xl text-center mx-auto py-32 px-6">
+        <h1 className="text-6xl font-semibold tracking-tight leading-tight">
+          Build Structured Learning Systems.
+        </h1>
 
-      <div className="flex justify-center gap-4">
-        <Link
-          href="/signup"
-          className="px-5 py-2 rounded-md bg-white text-black text-sm"
-        >
-          Get Started
-        </Link>
+        <p className="mt-6 text-lg text-muted-foreground">
+          AI-generated roadmaps. Curated videos. Measurable progress. No more
+          random YouTube hopping.
+        </p>
 
-        <Link
-          href="/login"
-          className="px-5 py-2 rounded-md border text-sm"
-        >
-          Login
-        </Link>
+        <div className="mt-10 flex justify-center gap-6">
+          <Link href="/signup">
+            <Button size="lg" className="cursor-pointer">Get Started</Button>
+          </Link>
+          <Link href="/login">
+            <Button size="lg" variant="outline" className="cursor-pointer">
+              Explore
+            </Button>
+          </Link>
+        </div>
       </div>
     </main>
   );

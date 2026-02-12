@@ -1,4 +1,5 @@
 import { logout } from "@/actions/logout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
 import { courseService } from "@/services/course.service";
 import Link from "next/link";
@@ -12,7 +13,7 @@ const page = async () => {
   const courses = await courseService.getAllForUser(user);
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
+    <div className="max-w-6xl mx-auto px-8 py-20 space-y-16">
       {/* Header */}
       <div className="flex items-start justify-between mb-10">
         <div>
@@ -54,16 +55,18 @@ const page = async () => {
 
       {/* Courses */}
 
-      <div className="space-y-10 grid grid-cols-3">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {courses.map((course) => (
-          <div key={course.id}>
-            <Link href={`/courses/${course.id}`}>
-              <div className="border rounded-lg p-4">
-                <h2 className="font-medium text-red-500">{course.title} </h2>
-                <p>{course.level} </p>
-              </div>
-            </Link>
-          </div>
+          <Link href={`/courses/${course.id}`} key={course.id}>
+            <Card className="hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
+              <CardHeader>
+                <CardTitle>{course.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{course.level}</p>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>
