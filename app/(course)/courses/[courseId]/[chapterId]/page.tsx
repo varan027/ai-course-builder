@@ -59,11 +59,12 @@ export default async function ChapterPage({
         <form action={async () => {
           "use server";
           await toggleProgress(courseId, index);
+          redirect(`/courses/${courseId}/${index}`);
         }}>
-          <Button 
+          <Button
             size="lg"
             variant={isCompleted ? "outline" : "default"}
-            className={`h-14 px-8 rounded-xl font-bold transition-all ${
+            className={`h-14 px-8 rounded-xl font-bold transition-all cursor-pointer ${
               isCompleted 
                 ? "border-primary/20 text-primary hover:bg-primary/5" 
                 : "bg-primary text-black hover:scale-[1.02]"

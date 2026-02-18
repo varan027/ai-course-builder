@@ -7,10 +7,10 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto flex items-center justify-between h-20 px-6">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:rotate-12 transition-transform">
-            <span className="text-black font-black text-xl">P</span>
+            <span className="text-black font-black text-2xl">✣</span>
           </div>
           <span className="font-bold text-xl tracking-tighter text-white">
-            PathForge
+            LearnPathAI
           </span>
         </Link>
 

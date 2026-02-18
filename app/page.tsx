@@ -78,7 +78,7 @@ export default function HomePage() {
       {/* Social Proof / Footer Minimal */}
       <footer className="border-t border-white/5 py-12 text-center">
         <p className="text-xs text-muted-foreground uppercase tracking-[0.2em]">
-          Designed for Lifelong Learners • 2026 PathForge
+          Designed for Lifelong Learners • 2026 LearnPathAI
         </p>
       </footer>
     </main>
