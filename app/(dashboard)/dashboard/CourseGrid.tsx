@@ -22,7 +22,7 @@ export default function CourseGrid({ courses }: { courses: CourseWithMeta[] }) {
         hidden: {},
         visible: { transition: { staggerChildren: 0.05 } },
       }}
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 auto-rows-fr"
     >
       {courses.map((course) => (
         <motion.div
@@ -34,7 +34,7 @@ export default function CourseGrid({ courses }: { courses: CourseWithMeta[] }) {
           transition={{ duration: 0.3 }}
         >
           <Link href={`/courses/${course.id}`} className="group">
-            <Card className="relative bg-[#121212] border border-white/10 hover:border-white/20 transition-all duration-300 rounded-2xl p-8 hover:scale-[1.01] hover:shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
+            <Card className="relative h-full flex flex-col bg-[#121212] border border-white/10 hover:border-white/20 transition-all duration-300 rounded-2xl p-8 hover:scale-[1.01] hover:shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
               {/* Top Accent Line */}
               <div className="absolute top-0 left-0 h-[2px] w-full bg-gradient-to-r from-primary/0 via-primary/40 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -51,17 +51,19 @@ export default function CourseGrid({ courses }: { courses: CourseWithMeta[] }) {
                   )}
                 </div>
 
-                <CardTitle className="text-xl font-semibold tracking-tight group-hover:text-primary transition-colors duration-200">
+                <CardTitle className="text-xl font-semibold tracking-tight leading-snug min-h-[56px] line-clamp-2">
                   {course.title}
                 </CardTitle>
               </CardHeader>
+
+              {/* This pushes bottom content down */}
+              <div className="flex-1" />
 
               <CardContent className="p-0 space-y-5">
                 <p className="text-sm text-muted-foreground">
                   {course.totalModules} Modules
                 </p>
 
-                {/* Progress Section */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Completion</span>

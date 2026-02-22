@@ -21,7 +21,7 @@ export default async function CourseLayout({
 
   const course = await courseService.getById(courseId, user);
   const progress = await progressService.getProgress(user.id, courseId);
-  
+
   const completedSet = new Set(
     progress.filter((p) => p.completed).map((p) => p.chapter),
   );
@@ -32,37 +32,43 @@ export default async function CourseLayout({
 
   return (
     <div className="flex min-h-screen bg-[#050505]">
-      <aside className="w-80 border-r border-white/5 bg-[#0A0A0A] flex flex-col fixed h-full z-20">
+      <aside className="w-80 border-r border-white/10 bg-linear-to-b from-[#0f0f0f] to-[#0a0a0a] flex flex-col fixed h-full z-20 shadow-[10px_0_40px_rgba(0,0,0,0.4)]">
         <div className="p-6 border-b border-white/5">
           <Link href="/dashboard">
-            <Button variant="ghost" size="sm" className="mb-4 -ml-2 text-muted-foreground hover:text-primary transition-colors">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-4 -ml-2 text-muted-foreground hover:text-primary transition-colors"
+            >
               <ChevronLeft className="w-4 h-4 mr-1" /> Library
             </Button>
           </Link>
-          <h2 className="font-bold text-lg text-white line-clamp-2 mb-4 leading-tight">{course.title}</h2>
+          <h2 className="font-bold text-lg text-white line-clamp-2 mb-4 leading-tight">
+            {course.title}
+          </h2>
           <div className="space-y-2">
             <div className="flex justify-between text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
               <span>Progress</span>
               <span className="text-primary">{progressPercentage}%</span>
             </div>
-            <Progress value={progressPercentage} className="h-1.5 bg-white/5" />
+            <Progress value={progressPercentage} className="h-2 bg-[#141414]" />
           </div>
         </div>
 
         <nav className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          {/* Use the new Client Component here */}
-          <SidebarNav 
-            courseId={courseId} 
-            chapters={course.outline.chapters} 
-            completedSet={completedSet} 
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 mb-3">
+            Chapters
+          </div>
+          <SidebarNav
+            courseId={courseId}
+            chapters={course.outline.chapters}
+            completedSet={completedSet}
           />
         </nav>
       </aside>
 
       <main className="flex-1 ml-80 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.03),transparent_40%)]">
-        <div className="max-w-4xl mx-auto px-12 py-12">
-          {children}
-        </div>
+        <div className="max-w-4xl mx-auto px-12 py-12">{children}</div>
       </main>
     </div>
   );
