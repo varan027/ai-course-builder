@@ -2,128 +2,139 @@ import { logout } from "@/actions/logout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
 import { courseService } from "@/services/course.service";
+import { progressService } from "@/services/progress.service";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, BookOpen, LogOut, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const page = async () => {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+
   const courses = await courseService.getAllForUser(user);
 
+  const totalModules = courses.reduce(
+    (sum, course) => sum + course.outline.chapters.length,
+    0,
+  );
+
   return (
-    <div className="min-h-screen bg-[#050505]">
-      {/* Top Navigation */}
-      <header className="border-b border-white/5 bg-black/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform">
-                <span className="text-black font-black text-3xl">∬</span>
-              </div>
-              <span className="font-bold text-xl tracking-tighter text-primary">
-                Syllarc
-              </span>
+    <div className="relative">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_60%)] pointer-events-none" />
+      {/* Minimal Header */}
+      <header className="border-b border-white/10 bg-[#0b0b0b]">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="font-semibold text-lg tracking-tight">
+            Syllarc
+          </Link>
+
+          <div className="flex items-center gap-6">
+            <Link
+              href="/create-course"
+              className="text-sm text-muted-foreground hover:text-white transition-colors"
+            >
+              Generate
             </Link>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-              <Link href="/dashboard" className="text-white">
-                My Library
-              </Link>
-              <Link
-                href="/create-course"
-                className="hover:text-white transition-colors"
-              >
-                Generator
-              </Link>
-            </nav>
+
+            <form action={logout}>
+              <button className="text-sm text-muted-foreground hover:text-white transition-colors">
+                Logout
+              </button>
+            </form>
           </div>
-          <form action={logout}>
-            <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors px-3 py-2 rounded-lg hover:bg-destructive/5">
-              <LogOut className="w-4 h-4" /> Logout
-            </button>
-          </form>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Welcome Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <h2 className="text-4xl font-bold tracking-tight mb-2">
-              My Library
-            </h2>
-            <p className="text-muted-foreground">
-              Welcome back,{" "}
-              <span className="text-white font-medium">
-                {user.email.split("@")[0]}
-              </span>
-              . Ready to learn?
-            </p>
-          </div>
-          <Link href="/create-course">
-            <Button className="h-12 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
-              <Plus className="w-5 h-5 mr-2" /> New Course
-            </Button>
-          </Link>
-        </div>
-
-        {/* Course Grid */}
-        {courses.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-3xl bg-white/2">
-            <div className="p-4 bg-primary/10 rounded-full mb-4">
-              <BookOpen className="w-8 h-8 text-primary" />
+      <main className="max-w-6xl mx-auto px-6 py-20">
+        <div className="p-12 rounded-3xl bg-linear-to-b from-[#111111] to-[#0c0c0c] border border-white/10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold mb-2">Welcome back</h2>
+              <p className="text-muted-foreground">
+                {courses.length} learning arcs • {totalModules} modules
+              </p>
             </div>
-            <h3 className="text-xl font-semibold mb-1">
-              Your library is empty
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              Start by generating your first AI-powered course.
-            </p>
+
             <Link href="/create-course">
-              <Button variant="outline" className="rounded-xl">
-                Create Course
+              <Button className="h-11 px-6 rounded-xl font-medium">
+                New Arc
               </Button>
             </Link>
           </div>
+        </div>
+
+        <div className="h-10" />
+
+        {courses.length === 0 ? (
+          <div className="py-20 text-center border border-white/10 rounded-3xl bg-[#0f0f0f]">
+            <h3 className="text-xl font-semibold mb-2">No learning arcs yet</h3>
+            <p className="text-muted-foreground mb-6">
+              Generate your first structured curriculum.
+            </p>
+            <Link href="/create-course">
+              <Button className="rounded-xl px-6 h-11">Create Course</Button>
+            </Link>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
-              <Link
-                href={`/courses/${course.id}`}
-                key={course.id}
-                className="group"
-              >
-                <Card className="h-full bg-white/3 border-white/5 hover:border-primary/50 hover:bg-white/5 transition-all duration-300 rounded-2xl overflow-hidden relative">
-                  <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                      <Plus className="w-4 h-4 text-primary" />
-                    </div>
-                  </div>
-                  <CardHeader className="pb-2">
-                    <div className="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">
-                      {course.level}
-                    </div>
-                    <CardTitle className="text-xl group-hover:text-primary transition-colors">
-                      {course.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                      {/* Note: In your actual app, you might want to show total chapters here */}
-                      {(course.outline as any).chapters?.length || 0} Modules •
-                      Structured Learning
-                    </p>
-                    <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                      <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                        <div className="bg-primary h-full w-[10%]" />{" "}
-                        {/* Static placeholder, you can map real progress here */}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {await Promise.all(
+              courses.map(async (course) => {
+                const progress = await progressService.getProgress(
+                  user.id,
+                  course.id,
+                );
+
+                const completedCount = progress.filter(
+                  (p) => p.completed,
+                ).length;
+
+                const total = course.outline.chapters.length;
+                const progressPercent =
+                  total > 0 ? Math.round((completedCount / total) * 100) : 0;
+
+                return (
+                  <Link
+                    href={`/courses/${course.id}`}
+                    key={course.id}
+                    className="group"
+                  >
+                    <Card className="bg-[#121212] border border-white/10 hover:border-white/20 transition-all duration-200 rounded-2xl p-8 hover:scale-[1.01] hover:shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
+                      <CardHeader className="p-0 mb-6">
+                        <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
+                          {course.level}
+                        </div>
+                        <CardTitle className="text-xl font-semibold tracking-tight">
+                          {course.title}
+                        </CardTitle>
+                      </CardHeader>
+
+                      <CardContent className="p-0 space-y-6">
+                        <p className="text-sm text-muted-foreground">
+                          {total} Modules
+                        </p>
+
+                        {/* Premium Progress */}
+                        <div className="space-y-3">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Completion</span>
+                            <span className="text-white">
+                              {progressPercent}%
+                            </span>
+                          </div>
+
+                          <div className="w-full h-2.5 bg-[#181818] rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary transition-all duration-700 ease-out"
+                              style={{ width: `${progressPercent}%` }}
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              }),
+            )}
           </div>
         )}
       </main>
