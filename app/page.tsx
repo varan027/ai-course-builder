@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/ui/navbar";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -38,10 +39,16 @@ export default function HomePage() {
             </Button>
           </Link>
         </div>
-        <div className="mt-20 flex justify-center">
-          <div className="w-full max-w-4xl bg-[#0d0d0d] border border-white/10 rounded-3xl p-8 shadow-2xl">
-            <div className="h-64 bg-[#121212] rounded-2xl flex items-center justify-center text-muted-foreground">
-              Dashboard Preview
+        <div className="mt-24 flex justify-center">
+          <div className="w-full max-w-5xl bg-[#0d0d0d] border border-white/10 rounded-3xl p-6 shadow-2xl">
+            <div className="relative w-full aspect-video rounded-2xl overflow-hidden">
+              <Image
+                src="/dashboard-preview.png"
+                alt="Syllarc Dashboard"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-[#050505] via-transparent to-transparent" />
             </div>
           </div>
         </div>
