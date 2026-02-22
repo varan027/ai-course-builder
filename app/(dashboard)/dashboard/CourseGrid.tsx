@@ -36,7 +36,7 @@ export default function CourseGrid({ courses }: { courses: CourseWithMeta[] }) {
           <Link href={`/courses/${course.id}`} className="group">
             <Card className="relative h-full flex flex-col bg-[#121212] border border-white/10 hover:border-white/20 transition-all duration-300 rounded-2xl p-8 hover:scale-[1.01] hover:shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
               {/* Top Accent Line */}
-              <div className="absolute top-0 left-0 h-[2px] w-full bg-gradient-to-r from-primary/0 via-primary/40 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute top-0 left-0 h-0.5 w-full bg-linear-to-r from-primary/0 via-primary/40 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
               <CardHeader className="p-0 mb-6">
                 <div className="flex items-center justify-between mb-3">
@@ -51,7 +51,7 @@ export default function CourseGrid({ courses }: { courses: CourseWithMeta[] }) {
                   )}
                 </div>
 
-                <CardTitle className="text-xl font-semibold tracking-tight leading-snug min-h-[56px] line-clamp-2">
+                <CardTitle className="text-xl font-semibold tracking-tight leading-snug min-h-14 line-clamp-2">
                   {course.title}
                 </CardTitle>
               </CardHeader>

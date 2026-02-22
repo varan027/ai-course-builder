@@ -5,6 +5,7 @@ import { toggleProgress } from "@/actions/toggleProgress";
 import { progressService } from "@/services/progress.service";
 import { Button } from "@/components/ui/button";
 import { Check, RotateCcw, Clock } from "lucide-react";
+import Link from "next/link";
 
 export default async function ChapterPage({
   params,
@@ -22,14 +23,13 @@ export default async function ChapterPage({
 
   if (!chapter) redirect(`/courses/${courseId}/0`);
 
-  // Check if this specific chapter is completed
   const progress = await progressService.getProgress(user.id, courseId);
   const isCompleted = progress.some((p) => p.chapter === index && p.completed);
 
   return (
     <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-3 duration-500">
-      <div className="flex items-center gap-3 mb-6">
-        <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tighter">
+      <div className="flex items-center gap-4 mb-8">
+        <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
           Module {index + 1}
         </span>
         <span className="flex items-center gap-1 text-muted-foreground text-sm">
@@ -37,10 +37,19 @@ export default async function ChapterPage({
         </span>
       </div>
 
-      <h1 className="text-4xl font-bold mb-4 text-white tracking-tight">{chapter.title}</h1>
-      <p className="text-lg text-muted-foreground mb-8 leading-relaxed">{chapter.about}</p>
+      <h1 className="text-4xl md:text-5xl font-semibold tracking-tight leading-tight mb-6">
+        {chapter.title}
+      </h1>
+      <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6 mb-10">
+        <h3 className="text-sm uppercase tracking-widest text-muted-foreground mb-3">
+          What you'll learn
+        </h3>
+        <p className="text-base leading-relaxed text-white/90">
+          {chapter.about}
+        </p>
+      </div>
 
-      <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-black mb-10">
+      <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.6)] bg-black mb-14">
         {chapter.youtubeVideoId ? (
           <iframe
             className="w-full h-full"
@@ -55,18 +64,25 @@ export default async function ChapterPage({
         )}
       </div>
 
-      <div className="flex justify-end pt-6 border-t border-white/5">
-        <form action={async () => {
-          "use server";
-          await toggleProgress(courseId, index);
-          redirect(`/courses/${courseId}/${index}`);
-        }}>
+      <div className="flex justify-center pt-10 border-t border-white/10">
+        <form
+          action={async () => {
+            "use server";
+            await toggleProgress(courseId, index);
+            redirect(`/courses/${courseId}/${index}`);
+          }}
+        >
+          {isCompleted && (
+            <div className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-4 text-primary text-sm">
+              ✓ You've completed this module.
+            </div>
+          )}
           <Button
             size="lg"
             variant={isCompleted ? "outline" : "default"}
-            className={`h-14 px-8 rounded-xl font-bold transition-all cursor-pointer ${
-              isCompleted 
-                ? "border-primary/20 text-primary hover:bg-primary/5" 
+            className={`h-14 px-10 rounded-2xl font-semibold transition-all duration-200 ${
+              isCompleted
+                ? "border-primary/20 text-primary hover:bg-primary/5"
                 : "bg-primary text-black hover:scale-[1.02]"
             }`}
           >
@@ -80,6 +96,21 @@ export default async function ChapterPage({
               </span>
             )}
           </Button>
+          <div className="flex justify-between mt-12">
+            {index > 0 ? (
+              <Link href={`/courses/${courseId}/${index - 1}`}>
+                <Button variant="ghost">Previous</Button>
+              </Link>
+            ) : (
+              <div />
+            )}
+
+            {index < course.outline.chapters.length - 1 && (
+              <Link href={`/courses/${courseId}/${index + 1}`}>
+                <Button variant="ghost">Next</Button>
+              </Link>
+            )}
+          </div>
         </form>
       </div>
     </div>
