@@ -18,9 +18,14 @@ const page = async () => {
       <header className="border-b border-white/5 bg-black/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <h1 className="text-xl font-bold tracking-tighter text-primary">
-              LearnPathAI
-            </h1>
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform">
+                <span className="text-black font-black text-3xl">∬</span>
+              </div>
+              <span className="font-bold text-xl tracking-tighter text-primary">
+                Syllarc
+              </span>
+            </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
               <Link href="/dashboard" className="text-white">
                 My Library

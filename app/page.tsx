@@ -24,8 +24,8 @@ export default function HomePage() {
           <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-emerald-400">Start mastering.</span>
         </h1>
 
-        <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed">
-          PathForge transforms any topic into a structured learning journey. We handle the curation; you handle the growth.
+        <p className="max-w-xl mx-auto text-md md:text-lg text-muted-foreground mb-10 leading-relaxed">
+          Syllarc transforms any topic into a structured learning arc - intelligently generated, carefully validated.
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-20">
