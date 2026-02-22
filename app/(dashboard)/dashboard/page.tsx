@@ -6,6 +6,17 @@ import { progressService } from "@/services/progress.service";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import CourseGrid from "./CourseGrid";
+
+type CourseWithMeta = {
+  id: string;
+  title: string;
+  level: string;
+  outline: any;
+  totalModules: number;
+  progressPercent: number;
+};
 
 const page = async () => {
   const user = await getCurrentUser();
@@ -18,6 +29,33 @@ const page = async () => {
     0,
   );
 
+  const coursesWithMeta: CourseWithMeta[] = await Promise.all(
+    courses.map(async (course) => {
+      const progress = await progressService.getProgress(user.id, course.id);
+
+      const completedCount = progress.filter((p) => p.completed).length;
+      const total = (course.outline as any).chapters.length;
+
+      return {
+        id: course.id,
+        title: course.title,
+        level: course.level,
+        outline: course.outline,
+        totalModules: total,
+        progressPercent:
+          total > 0 ? Math.round((completedCount / total) * 100) : 0,
+      };
+    }),
+  );
+
+  const completedCount = coursesWithMeta.filter(
+    (c) => c.progressPercent === 100,
+  ).length;
+
+  const inProgressCount = coursesWithMeta.filter(
+    (c) => c.progressPercent > 0 && c.progressPercent < 100,
+  ).length;
+
   return (
     <div className="relative">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_60%)] pointer-events-none" />
@@ -25,7 +63,14 @@ const page = async () => {
       <header className="border-b border-white/10 bg-[#0b0b0b]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="font-semibold text-lg tracking-tight">
-            Syllarc
+            <div className="flex items-baseline gap-2">
+              <span className="font-semibold tracking-tight text-white">
+                Syllarc
+              </span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                Learning Architecture
+              </span>
+            </div>
           </Link>
 
           <div className="flex items-center gap-6">
@@ -46,13 +91,20 @@ const page = async () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-20">
-        <div className="p-12 rounded-3xl bg-linear-to-b from-[#111111] to-[#0c0c0c] border border-white/10">
+        <div className="p-12 rounded-3xl bg-linear-to-b from-[#111111] to-[#0c0c0c] border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-semibold mb-2">Welcome back</h2>
-              <p className="text-muted-foreground">
-                {courses.length} learning arcs • {totalModules} modules
-              </p>
+              <h2 className="text-2xl font-semibold tracking-tight mb-2">
+                Learning Overview
+              </h2>
+              <div className="space-y-1">
+                <p className="text-muted-foreground">
+                  {courses.length} learning arcs • {totalModules} modules
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {completedCount} completed • {inProgressCount} in progress
+                </p>
+              </div>
             </div>
 
             <Link href="/create-course">
@@ -76,65 +128,11 @@ const page = async () => {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {await Promise.all(
-              courses.map(async (course) => {
-                const progress = await progressService.getProgress(
-                  user.id,
-                  course.id,
-                );
-
-                const completedCount = progress.filter(
-                  (p) => p.completed,
-                ).length;
-
-                const total = course.outline.chapters.length;
-                const progressPercent =
-                  total > 0 ? Math.round((completedCount / total) * 100) : 0;
-
-                return (
-                  <Link
-                    href={`/courses/${course.id}`}
-                    key={course.id}
-                    className="group"
-                  >
-                    <Card className="bg-[#121212] border border-white/10 hover:border-white/20 transition-all duration-200 rounded-2xl p-8 hover:scale-[1.01] hover:shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
-                      <CardHeader className="p-0 mb-6">
-                        <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
-                          {course.level}
-                        </div>
-                        <CardTitle className="text-xl font-semibold tracking-tight">
-                          {course.title}
-                        </CardTitle>
-                      </CardHeader>
-
-                      <CardContent className="p-0 space-y-6">
-                        <p className="text-sm text-muted-foreground">
-                          {total} Modules
-                        </p>
-
-                        {/* Premium Progress */}
-                        <div className="space-y-3">
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>Completion</span>
-                            <span className="text-white">
-                              {progressPercent}%
-                            </span>
-                          </div>
-
-                          <div className="w-full h-2.5 bg-[#181818] rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary transition-all duration-700 ease-out"
-                              style={{ width: `${progressPercent}%` }}
-                            />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              }),
-            )}
+          <div>
+            <div className="mb-6 text-sm text-muted-foreground uppercase tracking-widest">
+              Your Arcs
+            </div>
+            <CourseGrid courses={coursesWithMeta} />
           </div>
         )}
       </main>
