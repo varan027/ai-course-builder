@@ -1,7 +1,7 @@
 import { aiService } from "./ai.service";
 import { courseRepository } from "@/lib/repositories/course.repo";
 import { CourseOutline, CourseOutlineSchema } from "@/lib/ai/schema";
-import { User } from "@prisma/client";
+import type { User } from "@prisma/client";
 import { CreateCourseInput } from "@/actions/createCourse.schema";
 import { youtubeService } from "./youtube.service";
 
@@ -45,7 +45,7 @@ export const courseService = {
   },
 
   async getAllForUser(user: User) {
-    const courses = await courseRepository.findAllByOwner(user.id);
+    const courses : Course[] = await courseRepository.findAllByOwner(user.id);
 
     return courses.map((course) => ({
       ...course,
