@@ -45,11 +45,11 @@ export const courseService = {
   },
 
   async getAllForUser(user: User) {
-    const courses : Course[] = await courseRepository.findAllByOwner(user.id);
+    const courses = await courseRepository.findAllByOwner(user.id);
 
-    return courses.map((course) => ({
+    return courses.map((course : Course) => ({
       ...course,
-      outline: CourseOutlineSchema.parse(course.outline),
+      outline: CourseOutlineSchema.parse(course.outline as CourseOutline),
     }));
   },
 
