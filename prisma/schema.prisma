@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -11,7 +11,7 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
-
+  progress  SkillProgress[]
   goals     Goal[]
 
   createdAt DateTime @default(now())
@@ -19,18 +19,17 @@ model User {
 
 model Goal {
   id        String   @id @default(uuid())
-
   title     String
-
   roadmap   Json
 
   ownerId   String
-
   owner     User     @relation(fields: [ownerId], references: [id])
 
-  status    GoalStatus @default(CREATING)
+  generationStatus GoalGenerationStatus @default(CREATING)
+  learningStatus   GoalLearningStatus   @default(ACTIVE)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   progress  SkillProgress[]
 }
@@ -38,7 +37,7 @@ model Goal {
 model SkillProgress {
   id        String   @id @default(uuid())
 
-  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 
   goalId    String
 
@@ -53,15 +52,15 @@ model SkillProgress {
   @@unique([userId, goalId, skillId])
 }
 
-enum GoalStatus {
+enum GoalGenerationStatus {
   CREATING
   READY
+  FAILED
 }
 
-enum SkillStatus {
-  NOT_STARTED
-  EXPLORING
-  PRACTICING
-  APPLYING
-  MASTERED
+enum GoalLearningStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
 }
