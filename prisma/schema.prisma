@@ -65,5 +65,3 @@ enum SkillStatus {
   APPLYING
   MASTERED
 }
-
-current schema
