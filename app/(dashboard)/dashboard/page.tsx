@@ -1,143 +1,233 @@
 import { logout } from "@/actions/logout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
-import { courseService } from "@/services/course.service";
+import { goalService } from "@/services/goal.service";
 import { progressService } from "@/services/progress.service";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import CourseGrid from "./CourseGrid";
+import { Progress } from "@/components/ui/progress";
+import CourseGrid from "./GoalGrid";
 
-type CourseWithMeta = {
+export type GoalWithMeta = {
   id: string;
   title: string;
-  level: string;
-  outline: any;
-  totalModules: number;
+  roadmap: any;
+  totalSkills: number;
   progressPercent: number;
 };
 
-const page = async () => {
+export default async function DashboardPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
-  const courses = await courseService.getAllForUser(user);
+  if (!user) {
+    redirect("/login");
+  }
 
-  const totalModules = courses.reduce(
-    (sum, course) => sum + course.outline.chapters.length,
-    0,
-  );
+  const goals = await goalService.getAllForUser(user);
 
-  const coursesWithMeta: CourseWithMeta[] = await Promise.all(
-    courses.map(async (course) => {
-      const progress = await progressService.getProgress(user.id, course.id);
+  const goalsWithMeta: GoalWithMeta[] = await Promise.all(
+    goals.map(async (goal) => {
+      const progress = await progressService.getProgress(
+        user.id,
+        goal.id
+      );
 
-      const completedCount = progress.filter((p) => p.completed).length;
-      const total = (course.outline as any).chapters.length;
+      const masteredCount = progress.filter(
+        (p) => p.status === "MASTERED"
+      ).length;
+
+      const totalSkills = goal.roadmap.skills.length;
 
       return {
-        id: course.id,
-        title: course.title,
-        level: course.level,
-        outline: course.outline,
-        totalModules: total,
+        id: goal.id,
+        title: goal.title,
+        roadmap: goal.roadmap,
+        totalSkills,
         progressPercent:
-          total > 0 ? Math.round((completedCount / total) * 100) : 0,
+          totalSkills > 0
+            ? Math.round(
+                (masteredCount / totalSkills) * 100
+              )
+            : 0,
       };
-    }),
+    })
   );
 
-  const completedCount = coursesWithMeta.filter(
-    (c) => c.progressPercent === 100,
-  ).length;
+  const currentGoal = goalsWithMeta[0];
 
-  const inProgressCount = coursesWithMeta.filter(
-    (c) => c.progressPercent > 0 && c.progressPercent < 100,
-  ).length;
+  const nextSkill =
+    currentGoal?.roadmap?.skills?.find(
+      (skill: any) =>
+        !(
+          currentGoal.progressPercent === 100
+        )
+    ) ?? currentGoal?.roadmap?.skills?.[0];
+
+  const totalSkills = goalsWithMeta.reduce(
+    (sum, goal) => sum + goal.totalSkills,
+    0
+  );
+
+  const masteredSkills = goalsWithMeta.reduce(
+    (sum, goal) =>
+      sum +
+      Math.round(
+        (goal.progressPercent / 100) *
+          goal.totalSkills
+      ),
+    0
+  );
 
   return (
-    <div className="relative">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_60%)] pointer-events-none" />
-      {/* Minimal Header */}
+    <div className="min-h-screen bg-[#050505]">
       <header className="border-b border-white/10 bg-[#0b0b0b]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="font-semibold text-lg tracking-tight">
-            <div className="flex items-baseline gap-2">
-              <span className="font-semibold tracking-tight text-white">
+          <Link href="/">
+            <div>
+              <div className="text-white font-semibold tracking-tight">
                 Syllarc
-              </span>
-              <span className="text-xs text-muted-foreground hidden sm:inline">
-                Learning Architecture
-              </span>
+              </div>
+
+              <div className="text-xs text-muted-foreground">
+                Learning Operating System
+              </div>
             </div>
           </Link>
 
-          <div className="flex items-center gap-6">
-            <Link
-              href="/create-course"
-              className="text-sm text-muted-foreground hover:text-white transition-colors"
-            >
-              Generate
+          <div className="flex items-center gap-4">
+            <Link href="/create-goal">
+              <Button
+                variant="ghost"
+                className="text-muted-foreground"
+              >
+                New Goal
+              </Button>
             </Link>
 
             <form action={logout}>
-              <button className="text-sm text-muted-foreground hover:text-white transition-colors">
+              <Button variant="ghost">
                 Logout
-              </button>
+              </Button>
             </form>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-20">
-        <div className="p-12 rounded-3xl bg-linear-to-b from-[#111111] to-[#0c0c0c] border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
-          <div className="flex items-center justify-between">
+      <main className="max-w-6xl mx-auto px-6 py-12 space-y-8">
+        <section className="rounded-3xl border border-white/10 bg-linear-to-b from-[#111111] to-[#0c0c0c] p-10">
+          <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight mb-2">
-                Learning Overview
-              </h2>
-              <div className="space-y-1">
-                <p className="text-muted-foreground">
-                  {courses.length} learning arcs • {totalModules} modules
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {completedCount} completed • {inProgressCount} in progress
-                </p>
-              </div>
+              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                Current Goal
+              </p>
+
+              <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mt-4">
+                {currentGoal?.title ?? "Create your first goal"}
+              </h1>
             </div>
 
-            <Link href="/create-course">
-              <Button className="h-11 px-6 rounded-xl font-medium">
-                New Arc
+            <div className="max-w-md space-y-2">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Progress</span>
+
+                <span>
+                  {currentGoal?.progressPercent ?? 0}%
+                </span>
+              </div>
+
+              <Progress
+                value={currentGoal?.progressPercent ?? 0}
+              />
+            </div>
+
+            {currentGoal && (
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                    Next Skill
+                  </p>
+
+                  <p className="text-2xl font-medium mt-3">
+                    {nextSkill?.title}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                    Project Challenge
+                  </p>
+
+                  <p className="text-2xl font-medium mt-3">
+                    {nextSkill?.projectChallenge ??
+                      "No challenge yet"}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="grid md:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
+              Goals
+            </p>
+
+            <p className="text-3xl font-semibold mt-3">
+              {goals.length}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
+              Skills
+            </p>
+
+            <p className="text-3xl font-semibold mt-3">
+              {totalSkills}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
+              Mastered
+            </p>
+
+            <p className="text-3xl font-semibold mt-3">
+              {masteredSkills}
+            </p>
+          </div>
+        </section>
+
+        {goals.length === 0 ? (
+          <section className="rounded-3xl border border-white/10 bg-[#0f0f0f] py-20 text-center">
+            <h2 className="text-2xl font-semibold mb-4">
+              Start Your First Learning Journey
+            </h2>
+
+            <p className="text-muted-foreground mb-8">
+              Tell Syllarc what you want to become.
+              We'll generate the roadmap.
+            </p>
+
+            <Link href="/create-goal">
+              <Button>
+                Create Goal
               </Button>
             </Link>
-          </div>
-        </div>
-
-        <div className="h-10" />
-
-        {courses.length === 0 ? (
-          <div className="py-20 text-center border border-white/10 rounded-3xl bg-[#0f0f0f]">
-            <h3 className="text-xl font-semibold mb-2">No learning arcs yet</h3>
-            <p className="text-muted-foreground mb-6">
-              Generate your first structured curriculum.
-            </p>
-            <Link href="/create-course">
-              <Button className="rounded-xl px-6 h-11">Create Course</Button>
-            </Link>
-          </div>
+          </section>
         ) : (
-          <div>
-            <div className="mb-6 text-sm text-muted-foreground uppercase tracking-widest">
-              Your Arcs
+          <section>
+            <div className="mb-6">
+              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                Your Roadmaps
+              </p>
             </div>
-            <CourseGrid courses={coursesWithMeta} />
-          </div>
+
+            <CourseGrid courses={goalsWithMeta} />
+          </section>
         )}
       </main>
     </div>
   );
-};
-
-export default page;
+}

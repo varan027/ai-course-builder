@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,28 +11,57 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
-  courses   Course[]
+
+  goals     Goal[]
+
   createdAt DateTime @default(now())
 }
 
-model Course {
+model Goal {
   id        String   @id @default(uuid())
+
   title     String
-  level     String
-  outline   Json
+
+  roadmap   Json
+
   ownerId   String
+
   owner     User     @relation(fields: [ownerId], references: [id])
-  status    String   @default("CREATING")
+
+  status    GoalStatus @default(CREATING)
+
   createdAt DateTime @default(now())
+
+  progress  SkillProgress[]
 }
 
-model ChapterProgress {
+model SkillProgress {
   id        String   @id @default(uuid())
+
   userId    String
-  courseId  String
-  chapter   Int
-  completed Boolean @default(false)
+
+  goalId    String
+
+  skillId   String
+
+  status    SkillStatus @default(NOT_STARTED)
+
+  goal       Goal @relation(fields: [goalId], references: [id])
+
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, courseId, chapter])
+  @@unique([userId, goalId, skillId])
+}
+
+enum GoalStatus {
+  CREATING
+  READY
+}
+
+enum SkillStatus {
+  NOT_STARTED
+  EXPLORING
+  PRACTICING
+  APPLYING
+  MASTERED
 }

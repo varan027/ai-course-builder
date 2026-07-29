@@ -1,5 +1,5 @@
 'use client'
 import { createContext } from "react";
-import { Course } from "@/services/course.service";
+import { Goal } from "@/services/goal.service";
 
-export const CourseContext = createContext<Course | null>(null);
+export const CourseContext = createContext<Goal | null>(null);

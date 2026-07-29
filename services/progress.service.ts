@@ -1,42 +1,58 @@
-import { getPrisma } from "@/lib/db"
+import { getPrisma } from "@/lib/db";
 
-
-export const progressService =  {
-  async toggleChapter(userId: string, courseId: string, chapter: number){
+export const progressService = {
+  async toggleSkill(
+    userId: string,
+    goalId: string,
+    skillId: string
+  ) {
     const prisma = await getPrisma();
 
-    const existing = await prisma.chapterProgress.findUnique({
+    const existing = await prisma.skillProgress.findUnique({
       where: {
-        userId_courseId_chapter: {
+        userId_goalId_skillId: {
           userId,
-          courseId,
-          chapter,
+          goalId,
+          skillId,
         },
-      }
-    })
+      },
+    });
 
-    if(existing){
-      return prisma.chapterProgress.update({
-        where: { id: existing.id },
-        data: { completed:!existing.completed }
+    if (existing) {
+      return prisma.skillProgress.update({
+        where: {
+          id: existing.id,
+        },
+        data: {
+          status:
+            existing.status === "MASTERED"
+              ? "NOT_STARTED"
+              : "MASTERED",
+        },
       });
     }
 
-    return prisma.chapterProgress.create({
+    return prisma.skillProgress.create({
       data: {
         userId,
-        courseId,
-        chapter,
-        completed: true,
-      }
-    })
+        goalId,
+        skillId,
+        status: "MASTERED",
+      },
+    });
   },
 
-  async getProgress(userId: string, courseId: string){
+  async getProgress(
+    userId: string,
+    goalId: string
+  ) {
     const prisma = await getPrisma();
 
-    return prisma.chapterProgress.findMany({
-      where: { userId, courseId }
-    })
-  }
-}
+    return prisma.skillProgress.findMany({
+      where: {
+        userId,
+        goalId,
+      },
+    });
+  },
+};

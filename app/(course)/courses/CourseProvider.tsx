@@ -1,17 +1,17 @@
 "use client";
 
 import { CourseContext } from "./courseContext";
-import { Course } from "@/services/course.service";
+import { Goal } from "@/services/goal.service";
 
 export default function CourseProvider({
-  course,
+  goal,
   children,
 }: {
-  course: Course;
+  goal: Goal;
   children: React.ReactNode;
 }) {
   return (
-    <CourseContext.Provider value={course}>
+    <CourseContext.Provider value={goal}>
       {children}
     </CourseContext.Provider>
   );
