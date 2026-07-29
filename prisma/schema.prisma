@@ -11,7 +11,7 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
-  progress  SkillProgress[]
+
   goals     Goal[]
 
   createdAt DateTime @default(now())
@@ -19,17 +19,18 @@ model User {
 
 model Goal {
   id        String   @id @default(uuid())
+
   title     String
+
   roadmap   Json
 
   ownerId   String
+
   owner     User     @relation(fields: [ownerId], references: [id])
 
-  generationStatus GoalGenerationStatus @default(CREATING)
-  learningStatus   GoalLearningStatus   @default(ACTIVE)
+  status    GoalStatus @default(CREATING)
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   progress  SkillProgress[]
 }
@@ -37,7 +38,7 @@ model Goal {
 model SkillProgress {
   id        String   @id @default(uuid())
 
-  user      User     @relation(fields: [userId], references: [id])
+  userId    String
 
   goalId    String
 
@@ -52,15 +53,17 @@ model SkillProgress {
   @@unique([userId, goalId, skillId])
 }
 
-enum GoalGenerationStatus {
+enum GoalStatus {
   CREATING
   READY
-  FAILED
 }
 
-enum GoalLearningStatus {
-  ACTIVE
-  PAUSED
-  COMPLETED
-  ARCHIVED
+enum SkillStatus {
+  NOT_STARTED
+  EXPLORING
+  PRACTICING
+  APPLYING
+  MASTERED
 }
+
+current schema
