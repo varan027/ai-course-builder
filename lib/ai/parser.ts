@@ -1,7 +1,7 @@
 import { AIOutputInvalidError } from "../errors/domain";
-import { CourseOutlineSchema } from "./schema";
+import { RoadmapSchema } from "./schema";
 
-export function parseCourseOutline(rawText: string) {
+export function parseRoadmap(rawText: string) {
   let parsed: unknown;
 
   try {
@@ -10,7 +10,7 @@ export function parseCourseOutline(rawText: string) {
     throw new AIOutputInvalidError("AI returned invalid JSON");
   }
 
-  const result = CourseOutlineSchema.safeParse(parsed);
+  const result = RoadmapSchema.safeParse(parsed);
 
   if (!result.success) {
     console.error(

@@ -3,10 +3,10 @@
 import { getCurrentUser } from "@/lib/auth";
 import { progressService } from "@/services/progress.service";
 
-export async function toggleProgress(courseId: string, chapter: number){
+export async function toggleProgress(goalId: string, skillId : string){
   const user = await getCurrentUser();
 
   if(!user) throw new Error("UnAuthorized");
 
-  await progressService.toggleChapter(user.id, courseId, chapter)
+  await progressService.toggleSkill(user.id, goalId, skillId)
 }

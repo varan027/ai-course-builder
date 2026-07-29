@@ -2,72 +2,102 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Check } from "lucide-react";
+import { Check, Circle, ArrowRight } from "lucide-react";
+import type { Skill } from "@/lib/ai/schema";
 
 interface SidebarNavProps {
   courseId: string;
-  chapters: any[];
-  completedSet: Set<number>;
+  skills: Skill[];
+  completedSet: Set<string>;
 }
 
 export default function SidebarNav({
   courseId,
-  chapters,
+  skills,
   completedSet,
 }: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
-    <ul className="space-y-2">
-      {chapters.map((chapter, index) => {
-        const isDone = completedSet.has(index);
+    <ul className="space-y-3">
+      {skills.map((skill, index) => {
         const href = `/courses/${courseId}/${index}`;
+
+        const isDone = completedSet.has(skill.id);
+
         const isActive = pathname === href;
 
         return (
-          <li key={index}>
+          <li key={skill.id}>
             <Link
               href={href}
-              className={`group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 border hover:translate-x-1 ${
-                isActive
-                  ? "bg-primary/10 text-primary border-primary/30 font-medium"
-                  : isDone
-                    ? "bg-primary/5 text-white border-transparent hover:bg-primary/10"
-                    : "text-muted-foreground hover:bg-white/5 border-transparent hover:text-white"
-              }`}
+              className={`
+                group
+                block
+                rounded-2xl
+                border
+                transition-all
+                duration-300
+                ${
+                  isActive
+                    ? "border-primary/30 bg-primary/10"
+                    : "border-white/5 hover:border-white/10 hover:bg-white/[0.02]"
+                }
+              `}
             >
-              <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm truncate">
-                  {index + 1}. {chapter.title}
-                </span>
-                <span
-                  className={`text-[10px] font-medium ${
-                    isActive ? "text-primary/70" : "text-muted-foreground"
-                  }`}
-                >
-                  {chapter.durationMinutes} mins
-                </span>
-              </div>
+              <div className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5">
+                    {isDone ? (
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-black">
+                        <Check className="w-3.5 h-3.5" />
+                      </div>
+                    ) : (
+                      <Circle className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
 
-              {isDone && (
-                <div
-                  className={`flex items-center justify-center w-5 h-5 shrink-0 rounded-full ${
-                    isActive
-                      ? "bg-primary text-black"
-                      : "bg-primary/20 text-primary"
-                  }`}
-                >
-                  <Check className="w-3 h-3" />
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`text-xs uppercase tracking-widest mb-2 ${
+                        isActive
+                          ? "text-primary"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      Skill {index + 1}
+                    </p>
+
+                    <h4
+                      className={`font-medium leading-snug ${
+                        isActive
+                          ? "text-white"
+                          : "text-white/90"
+                      }`}
+                    >
+                      {skill.title}
+                    </h4>
+
+                    {skill.dependsOn.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-2 truncate">
+                        Depends on {skill.dependsOn.join(", ")}
+                      </p>
+                    )}
+                  </div>
+
+                  <ArrowRight
+                    className={`w-4 h-4 transition-all ${
+                      isActive
+                        ? "text-primary translate-x-1"
+                        : "text-muted-foreground group-hover:translate-x-1"
+                    }`}
+                  />
                 </div>
-              )}
+              </div>
             </Link>
           </li>
         );
       })}
-
-      <div className="p-4 border-t border-white/5 text-xs text-muted-foreground">
-        {completedSet.size} of {chapters.length} completed
-      </div>
     </ul>
   );
 }

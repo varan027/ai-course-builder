@@ -1,41 +1,46 @@
-export const COURSE_OUTLINE_PROMPT = ({
-  topic,
-  level,
-  chapters,
-  duration,
-}: {
-  topic: string;
-  level: string;
-  chapters: string;
-  duration: string;
-}) => `
-Create a structured learning course.
+export const ROADMAP_PROMPT = ( goal : string ) => `
+You are an expert learning architect.
 
-Topic: ${topic}
-Level: ${level}
+Your task is to design the fastest practical roadmap for achieving a goal.
+
+Goal:
+${goal}
 
 Rules:
-- Output ONLY valid JSON
-- EXACTLY ${chapters} chapters
-- Total course duration is ${duration} minutes
-- Divide the total duration reasonably across chapters
-- Each chapter MUST include durationMinutes
-- No markdown
-- No explanations
-- No extra fields
+
+- Output ONLY valid JSON.
+- Focus on real-world mastery.
+- Order skills logically.
+- Include dependencies.
+- Include a milestone.
+- Include one project challenge per skill.
+- Keep descriptions concise.
+- Prioritize practical learning.
 
 JSON format:
+
 {
-  "title": string,
-  "chapters": [
+  "goal": "",
+  "estimatedWeeks": 0,
+
+  "skills": [
     {
-      "title": string,
-      "about": string,
-      "durationMinutes": number,
-      "youtubeQuery": string
+      "id": "",
+
+      "title": "",
+
+      "description": "",
+
+      "whyImportant": "",
+
+      "dependsOn": [],
+
+      "milestone": "",
+
+      "projectChallenge": "",
+
+      "youtubeQuery": ""
     }
   ]
 }
-
-
 `;
