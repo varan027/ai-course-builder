@@ -1,7 +1,7 @@
 import { goalService } from "@/services/goal.service";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { toggleProgress } from "@/actions/toggleProgress";
+import { advanceSkill } from "@/actions/advancceSkill";
 import { progressService } from "@/services/progress.service";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +27,7 @@ export default async function SkillPage({
     redirect("/login");
   }
 
-  const goal = await goalService.getById(courseId, user);
+  const goal = await goalService.getById(courseId, user.id);
 
   const index = Number(chapterId);
 
@@ -157,7 +157,7 @@ export default async function SkillPage({
             action={async () => {
               "use server";
 
-              await toggleProgress(courseId, skill.id);
+              await advanceSkill(courseId, skill.id);
 
               redirect(`/courses/${courseId}/${index}`);
             }}

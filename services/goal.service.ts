@@ -1,5 +1,5 @@
 import { aiService } from "./ai.service";
-import { goalRepository } from "@/lib/repositories/course.repo";
+import { goalRepository } from "@/lib/repositories/goal.repo";
 import { Roadmap, RoadmapSchema } from "@/lib/ai/schema";
 import type { User } from "@prisma/client";
 import { youtubeService } from "./youtube.service";
@@ -44,8 +44,8 @@ export const goalService = {
     });
   },
 
-  async getAllForUser(user: User) {
-    const goals = await goalRepository.findAllByOwner(user.id);
+  async getAllForUser(userId : string) {
+    const goals = await goalRepository.findAllByOwner(userId);
 
     return goals.map((goal) => ({
       ...goal,
@@ -53,8 +53,8 @@ export const goalService = {
     }));
   },
 
-  async getById(goalId: string, user: User) {
-    const goal = await goalRepository.findOwned(goalId, user.id);
+  async getById(goalId: string, userId: string) {
+    const goal = await goalRepository.findOwned(goalId, userId);
 
     if (!goal) {
       throw new Error("Goal not found");

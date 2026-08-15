@@ -6,7 +6,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import CourseGrid from "./GoalGrid";
+import GoalGrid from "./GoalGrid";
 
 export type GoalWithMeta = {
   id: string;
@@ -23,7 +23,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const goals = await goalService.getAllForUser(user);
+  const goals = await goalService.getAllForUser(user.id);
 
   const goalsWithMeta: GoalWithMeta[] = await Promise.all(
     goals.map(async (goal) => {
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-[#050505]">
       <header className="border-b border-white/10 bg-[#0b0b0b]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/">
+          <Link href="/dashboard">
             <div>
               <div className="text-white font-semibold tracking-tight">
                 Syllarc
@@ -98,14 +98,15 @@ export default async function DashboardPage() {
             <Link href="/create-goal">
               <Button
                 variant="ghost"
-                className="text-muted-foreground"
+                className="text-black bg-primary hover:bg-primary/90 cursor-pointer"
               >
                 New Goal
               </Button>
             </Link>
 
             <form action={logout}>
-              <Button variant="ghost">
+              <Button variant="ghost"
+              className="hover:text-red-800 cursor-pointer">
                 Logout
               </Button>
             </form>
@@ -223,8 +224,7 @@ export default async function DashboardPage() {
                 Your Roadmaps
               </p>
             </div>
-
-            <CourseGrid courses={goalsWithMeta} />
+            <GoalGrid courses={goalsWithMeta} />
           </section>
         )}
       </main>

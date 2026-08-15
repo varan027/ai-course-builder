@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -36,19 +36,21 @@ model Goal {
 }
 
 model SkillProgress {
-  id        String   @id @default(uuid())
+  id          String        @id @default(uuid())
 
-  userId    String
+  userId      String
 
-  goalId    String
+  goalId      String
 
-  skillId   String
+  skillId     String
 
-  status    SkillStatus @default(NOT_STARTED)
+  status      SkillStatus   @default(NOT_STARTED)
 
-  goal       Goal @relation(fields: [goalId], references: [id])
+  completedAt DateTime?
 
-  updatedAt DateTime @updatedAt
+  goal         Goal         @relation(fields: [goalId], references: [id])
+
+  updatedAt    DateTime     @updatedAt
 
   @@unique([userId, goalId, skillId])
 }
