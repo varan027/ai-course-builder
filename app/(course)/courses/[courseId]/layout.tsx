@@ -23,7 +23,7 @@ export default async function GoalLayout({
     redirect("/login");
   }
 
-  const goal = await goalService.getById(courseId, user);
+  const goal = await goalService.getById(courseId, user.id);
 
   const progress = await progressService.getProgress(
     user.id,

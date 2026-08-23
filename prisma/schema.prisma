@@ -13,6 +13,7 @@ model User {
   password  String
 
   goals     Goal[]
+  skillProgress SkillProgress[]
 
   createdAt DateTime @default(now())
 }
@@ -71,14 +72,10 @@ model GoalSkill {
 model GoalSkillDependency {
   id String @id @default(uuid())
 
-  goalSkill GoalSkill
-    @relation("DependentSkill", fields: [goalSkillId], references: [id])
-
+  goalSkill GoalSkill @relation("DependentSkill", fields: [goalSkillId], references: [id])
   goalSkillId String
 
-  prerequisiteGoalSkill GoalSkill
-    @relation("PrerequisiteSkill", fields: [prerequisiteGoalSkillId], references: [id])
-
+  prerequisiteGoalSkill GoalSkill @relation("PrerequisiteSkill", fields: [prerequisiteGoalSkillId], references: [id])
   prerequisiteGoalSkillId String
 
   @@unique([goalSkillId, prerequisiteGoalSkillId])

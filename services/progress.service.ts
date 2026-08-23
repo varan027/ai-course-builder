@@ -25,39 +25,36 @@ function getNextSkillStatus(current: SkillStatus): SkillStatus {
 
 export const progressService = {
   async advanceSkill(userId: string, goalId: string, skillId: string) {
-    const prisma = await getPrisma();
+  const prisma = await getPrisma();
 
-    const existing = await prisma.skillProgress.findUnique({
-      where: {
-        userId_goalId_skillId: {
-          userId,
-          goalId,
-          skillId,
-        },
+  const existing = await prisma.skillProgress.findUnique({
+    where: {
+      userId_goalId_skillId: {
+        userId,
+        goalId,
+        skillId,
+      },
+    },
+  });
+
+  if (!existing) {
+    return prisma.skillProgress.create({
+      data: {
+        userId,
+        goalId,
+        skillId,
+        status: SkillStatus.EXPLORING,
       },
     });
+  }
 
-    if (!existing) {
-      return prisma.skillProgress.create({
-        data: {
-          userId,
-          goalId,
-          skillId,
-          status: SkillStatus.EXPLORING,
-        },
-      });
-    }
+  const nextStatus = getNextSkillStatus(existing.status);
 
-    if (existing.status === SkillStatus.MASTERED) {
-      return existing;
-    }
-
-    const nextStatus = getNextSkillStatus(existing.status);
-    return prisma.skillProgress.update({
-      where: { id: existing.id },
-      data: { status: nextStatus },
-    });
-  },
+  return prisma.skillProgress.update({
+    where: { id: existing.id },
+    data: { status: nextStatus },
+  });
+},
 
   async getProgress(userId: string, goalId: string) {
     const prisma = await getPrisma();

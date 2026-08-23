@@ -1,3 +1,4 @@
+import { validateRoadmap } from "../domain/roadmap-validation";
 import { AIOutputInvalidError } from "../errors/domain";
 import { RoadmapSchema } from "./schema";
 
@@ -12,15 +13,14 @@ export function parseRoadmap(rawText: string) {
 
   const result = RoadmapSchema.safeParse(parsed);
 
-  if (!result.success) {
-    console.error(
-      "AI SCHEMA ERROR:",
-      JSON.stringify(result.error.format(), null, 2),
-    );
+  if(!result.success) {
+    throw new AIOutputInvalidError("AI output does not match RoadmapSchema");
+  }
 
-    throw new AIOutputInvalidError(
-      "AI output does not match CourseOutlineSchema",
-    );
+  const validation = validateRoadmap(result.data.skills);
+
+  if (!validation.valid) {
+    throw new AIOutputInvalidError(`Invalid roadmap: ${validation.errors.join(", ")}`);
   }
 
   return result.data;

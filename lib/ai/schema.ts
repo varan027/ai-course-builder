@@ -1,29 +1,36 @@
 import { z } from "zod";
 
 export const SkillSchema = z.object({
-  id: z.string(),
+  skillKey: z
+    .string()
+    .min(2)
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "skillKey must use lowercase kebab-case",
+    ),
 
-  title: z.string().min(3),
+  skill: z.object({
+    title: z.string().min(3),
+    description: z.string().min(10),
+  }),
 
-  description: z.string().min(10),
+  context: z.object({
+    description: z.string().min(10),
+    whyImportant: z.string().min(10),
+    milestone: z.string().min(5),
+    projectChallenge: z.string().min(5),
+  }),
 
-  whyImportant: z.string().min(10),
-
-  dependsOn: z.array(z.string()).default([]),
-
-  milestone: z.string().min(5),
-
-  projectChallenge: z.string().min(5),
+  prerequisites: z.array(z.string()).default([]),
 
   youtubeQuery: z.string().min(5),
-
-  youtubeVideoId: z.string().optional(),
 });
 
 export const RoadmapSchema = z.object({
-  goal: z.string().min(3),
-
-  estimatedWeeks: z.number().int().positive(),
+  goal: z.object({
+    title: z.string().min(3),
+    estimatedWeeks: z.number().int().positive(),
+  }),
 
   skills: z.array(SkillSchema).min(1),
 });

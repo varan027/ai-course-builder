@@ -5,7 +5,11 @@ import { SkillStatus } from "@prisma/client";
  * Keeping these rules outside the persistence layer makes them reusable
  * from actions, assessments, projects, and future automation.
  */
-export const SKILL_PROGRESS_TRANSITIONS: Record<SkillStatus, SkillStatus | null> = {
+
+export const SKILL_PROGRESS_TRANSITIONS: Record<
+  SkillStatus,
+  SkillStatus | null
+> = {
   [SkillStatus.NOT_STARTED]: SkillStatus.EXPLORING,
   [SkillStatus.EXPLORING]: SkillStatus.PRACTICING,
   [SkillStatus.PRACTICING]: SkillStatus.APPLYING,
