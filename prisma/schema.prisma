@@ -18,41 +18,87 @@ model User {
 }
 
 model Goal {
-  id        String   @id @default(uuid())
+  id            String @id @default(uuid())
+  title         String
+  estimatedWeeks Int
+  status        GoalStatus @default(CREATING)
 
-  title     String
+  ownerId String
+  owner   User @relation(fields: [ownerId], references: [id])
 
-  roadmap   Json
-
-  ownerId   String
-
-  owner     User     @relation(fields: [ownerId], references: [id])
-
-  status    GoalStatus @default(CREATING)
+  goalSkills GoalSkill[]
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
-  progress  SkillProgress[]
+model Skill {
+  id          String @id @default(uuid())
+  skillKey    String @unique
+  title       String
+  description String
+
+  goalSkills GoalSkill[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GoalSkill {
+  id String @id @default(uuid())
+
+  goalId String
+  goal Goal @relation(fields: [goalId], references: [id])
+
+  skillId String
+  skill Skill @relation(fields: [skillId], references: [id])
+
+  position Int
+  description String
+  whyImportant String
+  milestone String
+  projectChallenge String
+
+  dependencies GoalSkillDependency[] @relation("DependentSkill")
+  dependents   GoalSkillDependency[] @relation("PrerequisiteSkill")
+
+  progress SkillProgress[]
+
+  @@unique([goalId, skillId])
+  @@unique([goalId, position])
+}
+
+model GoalSkillDependency {
+  id String @id @default(uuid())
+
+  goalSkill GoalSkill
+    @relation("DependentSkill", fields: [goalSkillId], references: [id])
+
+  goalSkillId String
+
+  prerequisiteGoalSkill GoalSkill
+    @relation("PrerequisiteSkill", fields: [prerequisiteGoalSkillId], references: [id])
+
+  prerequisiteGoalSkillId String
+
+  @@unique([goalSkillId, prerequisiteGoalSkillId])
 }
 
 model SkillProgress {
-  id          String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId      String
+  user User @relation(fields: [userId], references: [id])
+  userId String
 
-  goalId      String
+  goalSkill GoalSkill @relation(fields: [goalSkillId], references: [id])
+  goalSkillId String
 
-  skillId     String
-
-  status      SkillStatus   @default(NOT_STARTED)
+  status SkillStatus @default(NOT_STARTED)
 
   completedAt DateTime?
+  updatedAt DateTime @updatedAt
 
-  goal         Goal         @relation(fields: [goalId], references: [id])
-
-  updatedAt    DateTime     @updatedAt
-
-  @@unique([userId, goalId, skillId])
+  @@unique([userId, goalSkillId])
 }
 
 enum GoalStatus {
