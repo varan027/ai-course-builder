@@ -94,4 +94,69 @@ export const goalRepository = {
       return goal;
     });
   },
+
+  async findAllByOwner(ownerId: string) {
+    const prisma = await getPrisma();
+
+    return prisma.goal.findMany({
+      where: {
+        ownerId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        goalSkills: {
+          orderBy: {
+            position: "asc",
+          },
+          include: {
+            skill:true,
+            progress: {
+              where: {
+                userId: ownerId,
+              }
+            }
+          }
+        }
+      }
+    })
+  },
+
+  async findOwned(goalId: string, ownerId: string) {
+    const prisma = await getPrisma();
+
+    return prisma.goal.findFirst({
+      where: {
+        id: goalId,
+        ownerId,
+      },
+      include: {
+        goalSkills: {
+          orderBy: {
+            position: "asc",
+          },
+          include: {
+            skill: true,
+
+            dependencies: {
+              include: {
+                prerequisiteGoalSkill: {
+                  include: {
+                    skill: true,
+                  }
+                }
+              }
+            },
+
+            progress: {
+              where: {
+                userId: ownerId,
+              }
+            }
+          }
+        }
+      }
+    })
+  }
 };

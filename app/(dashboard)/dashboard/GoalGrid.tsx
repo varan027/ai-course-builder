@@ -28,8 +28,7 @@ export default function GoalGrid({
       className="grid grid-cols-1 lg:grid-cols-2 gap-6"
     >
       {courses.map((goal) => {
-        const nextSkill =
-          goal.roadmap.skills?.[0];
+        const nextGoalSkill = goal.goalSkills.find((goalSkill) => !goalSkill.mastered);
 
         return (
           <motion.div
@@ -105,14 +104,14 @@ export default function GoalGrid({
                     </div>
                   </div>
 
-                  {nextSkill && (
+                  {nextGoalSkill && (
                     <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
                       <p className="text-[10px] uppercase tracking-widest text-primary mb-2">
                         Next Skill
                       </p>
 
                       <p className="font-medium">
-                        {nextSkill.title}
+                        {nextGoalSkill.skill.title}
                       </p>
                     </div>
                   )}

@@ -31,16 +31,16 @@ export default async function SkillPage({
 
   const index = Number(chapterId);
 
-  const skill = goal.roadmap.skills[index];
+  const goalSkill = goal.goalSkills[index];
 
-  if (!skill) {
+  if (!goalSkill) {
     redirect(`/courses/${courseId}/0`);
   }
 
   const progress = await progressService.getProgress(user.id, courseId);
 
   const isCompleted = progress.some(
-    (p) => p.skillId === skill.id && p.status === "MASTERED",
+    (p) => p.goalSkillId === goalSkill.id && p.status === "MASTERED",
   );
 
   return (
@@ -59,11 +59,11 @@ export default async function SkillPage({
         </div>
 
         <h1 className="text-5xl md:text-6xl font-semibold tracking-tight mb-6">
-          {skill.title}
+          {goalSkill.skill.title}
         </h1>
 
         <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl">
-          {skill.whyImportant}
+          {goalSkill.whyImportant}
         </p>
       </div>
 
@@ -75,7 +75,9 @@ export default async function SkillPage({
             Understanding
           </p>
 
-          <p className="leading-relaxed text-white/90">{skill.description}</p>
+          <p className="leading-relaxed text-white/90">
+            {goalSkill.description}
+          </p>
         </div>
 
         <div className="rounded-3xl border border-primary/10 bg-primary/5 p-8">
@@ -86,7 +88,7 @@ export default async function SkillPage({
           </p>
 
           <p className="text-lg font-medium leading-relaxed">
-            {skill.milestone}
+            {goalSkill.milestone}
           </p>
         </div>
       </div>
@@ -101,23 +103,23 @@ export default async function SkillPage({
         </div>
 
         <p className="text-lg leading-relaxed text-white/90">
-          {skill.projectChallenge}
+          {goalSkill.projectChallenge}
         </p>
       </div>
 
-      {skill.dependsOn.length > 0 && (
+      {goalSkill.dependencies.length > 0 && (
         <div className="rounded-3xl border border-white/10 bg-[#0f0f0f] p-8 mb-10">
           <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4">
             Prerequisites
           </p>
 
           <div className="flex flex-wrap gap-3">
-            {skill.dependsOn.map((dependency) => (
+            {goalSkill.dependencies.map((dependency) => (
               <span
-                key={dependency}
+                key={dependency.id}
                 className="px-4 py-2 rounded-full bg-white/5 border border-white/5 text-sm"
               >
-                {dependency}
+                {dependency.prerequisiteGoalSkill.skill.title}
               </span>
             ))}
           </div>
@@ -130,7 +132,7 @@ export default async function SkillPage({
         </p>
       </div>
 
-      <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-white/10 bg-black mb-14">
+      {/* <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-white/10 bg-black mb-14">
         {skill.youtubeVideoId ? (
           <iframe
             className="w-full h-full"
@@ -143,7 +145,7 @@ export default async function SkillPage({
             Resource unavailable
           </div>
         )}
-      </div>
+      </div> */}
 
       <div className="border-t border-white/10 pt-10">
         <div className="flex flex-col items-center gap-6">
@@ -157,7 +159,7 @@ export default async function SkillPage({
             action={async () => {
               "use server";
 
-              await advanceSkill(courseId, skill.id);
+              await advanceSkill(courseId, goalSkill.id);
 
               redirect(`/courses/${courseId}/${index}`);
             }}
@@ -181,7 +183,7 @@ export default async function SkillPage({
               <div />
             )}
 
-            {index < goal.roadmap.skills.length - 1 && (
+            {index < goal.goalSkills.length - 1 && (
               <Link href={`/courses/${courseId}/${index + 1}`}>
                 <Button variant="ghost">
                   Continue Journey

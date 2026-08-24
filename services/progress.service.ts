@@ -24,37 +24,39 @@ function getNextSkillStatus(current: SkillStatus): SkillStatus {
 }
 
 export const progressService = {
-  async advanceSkill(userId: string, goalId: string, skillId: string) {
-  const prisma = await getPrisma();
+  async advanceSkill(userId: string, goalSkillId: string) {
+    const prisma = await getPrisma();
 
-  const existing = await prisma.skillProgress.findUnique({
-    where: {
-      userId_goalId_skillId: {
-        userId,
-        goalId,
-        skillId,
-      },
-    },
-  });
-
-  if (!existing) {
-    return prisma.skillProgress.create({
-      data: {
-        userId,
-        goalId,
-        skillId,
-        status: SkillStatus.EXPLORING,
+    const existing = await prisma.skillProgress.findUnique({
+      where: {
+        userId_goalSkillId: {
+          userId,
+          goalSkillId,
+        },
       },
     });
-  }
 
-  const nextStatus = getNextSkillStatus(existing.status);
+    if (!existing) {
+      return prisma.skillProgress.create({
+        data: {
+          userId,
+          goalSkillId,
+          status: SkillStatus.EXPLORING,
+        },
+      });
+    }
 
-  return prisma.skillProgress.update({
-    where: { id: existing.id },
-    data: { status: nextStatus },
-  });
-},
+    const nextStatus = getNextSkillStatus(existing.status);
+
+    return prisma.skillProgress.update({
+      where: {
+        id: existing.id,
+      },
+      data: {
+        status: nextStatus,
+      },
+    });
+  },
 
   async getProgress(userId: string, goalId: string) {
     const prisma = await getPrisma();
@@ -62,7 +64,9 @@ export const progressService = {
     return prisma.skillProgress.findMany({
       where: {
         userId,
-        goalId,
+        goalSkill: {
+          goalId,
+        },
       },
     });
   },

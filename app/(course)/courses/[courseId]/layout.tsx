@@ -33,13 +33,13 @@ export default async function GoalLayout({
   const completedSet = new Set(
     progress
       .filter((p) => p.status === "MASTERED")
-      .map((p) => p.skillId)
+      .map((p) => p.goalSkillId)
   );
 
-  const totalSkills = goal.roadmap.skills.length;
+  const totalSkills = goal.goalSkills.length;
 
-  const completedCount = goal.roadmap.skills.filter(
-    (skill) => completedSet.has(skill.id)
+  const completedCount = goal.goalSkills.filter(
+    (goalSkill) => completedSet.has(goalSkill.id)
   ).length;
 
   const progressPercentage =
@@ -49,8 +49,8 @@ export default async function GoalLayout({
           (completedCount / totalSkills) * 100
         );
 
-  const nextSkill = goal.roadmap.skills.find(
-    (skill) => !completedSet.has(skill.id)
+  const nextGoalSkill = goal.goalSkills.find(
+    (goalSkill) => !completedSet.has(goalSkill.id)
   );
 
   return (
@@ -122,14 +122,14 @@ export default async function GoalLayout({
                 </div>
               </div>
 
-              {nextSkill && (
+              {nextGoalSkill && (
                 <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4">
                   <p className="text-[10px] uppercase tracking-widest text-primary mb-2">
                     Next Skill
                   </p>
 
                   <p className="font-medium">
-                    {nextSkill.title}
+                    {nextGoalSkill.skill.title}
                   </p>
                 </div>
               )}
@@ -143,7 +143,7 @@ export default async function GoalLayout({
 
             <SidebarNav
               courseId={courseId}
-              skills={goal.roadmap.skills}
+              goalSkills={goal.goalSkills}
               completedSet={completedSet}
             />
           </div>

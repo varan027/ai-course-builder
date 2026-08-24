@@ -3,32 +3,45 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Check, Circle, ArrowRight } from "lucide-react";
-import type { Skill } from "@/lib/ai/schema";
 
-interface SidebarNavProps {
+type SidebarNavProps = {
   courseId: string;
-  skills: Skill[];
+  goalSkills: {
+    id: string;
+    position: number;
+    skill: {
+      title: string;
+    };
+    dependencies: {
+      id: string;
+      prerequisiteGoalSkill: {
+        skill: {
+          title: string;
+        };
+      };
+    }[];
+  }[];
   completedSet: Set<string>;
-}
+};
 
 export default function SidebarNav({
   courseId,
-  skills,
+  goalSkills,
   completedSet,
 }: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
     <ul className="space-y-3">
-      {skills.map((skill, index) => {
+      {goalSkills.map((goalSkill, index) => {
         const href = `/courses/${courseId}/${index}`;
 
-        const isDone = completedSet.has(skill.id);
+        const isDone = completedSet.has(goalSkill.id);
 
         const isActive = pathname === href;
 
         return (
-          <li key={skill.id}>
+          <li key={goalSkill.id}>
             <Link
               href={href}
               className={`
@@ -75,12 +88,13 @@ export default function SidebarNav({
                           : "text-white/90"
                       }`}
                     >
-                      {skill.title}
+                      {goalSkill.skill.title}
                     </h4>
 
-                    {skill.dependsOn.length > 0 && (
+                    {goalSkill.dependencies.length > 0 && (
                       <p className="text-xs text-muted-foreground mt-2 truncate">
-                        Depends on {skill.dependsOn.join(", ")}
+                        Depends on {" "}
+                        {goalSkill.dependencies.map((dependency) => dependency.prerequisiteGoalSkill.skill.title).join(", ")}
                       </p>
                     )}
                   </div>

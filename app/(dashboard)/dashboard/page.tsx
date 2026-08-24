@@ -11,9 +11,17 @@ import GoalGrid from "./GoalGrid";
 export type GoalWithMeta = {
   id: string;
   title: string;
-  roadmap: any;
   totalSkills: number;
   progressPercent: number;
+  goalSkills: {
+    id: string;
+    position: number;
+    projectChallenge: string;
+    mastered: boolean;
+    skill: {
+      title: string;
+    };
+  }[];
 };
 
 export default async function DashboardPage() {
@@ -27,55 +35,54 @@ export default async function DashboardPage() {
 
   const goalsWithMeta: GoalWithMeta[] = await Promise.all(
     goals.map(async (goal) => {
-      const progress = await progressService.getProgress(
-        user.id,
-        goal.id
-      );
+      const progress = await progressService.getProgress(user.id, goal.id);
 
       const masteredCount = progress.filter(
-        (p) => p.status === "MASTERED"
+        (p) => p.status === "MASTERED",
       ).length;
 
-      const totalSkills = goal.roadmap.skills.length;
+      const totalSkills = goal.goalSkills.length;
+
+      const masteredIds = new Set(
+        progress
+          .filter((p) => p.status === "MASTERED")
+          .map((p) => p.goalSkillId),
+      );
 
       return {
         id: goal.id,
         title: goal.title,
-        roadmap: goal.roadmap,
+        goalSkills: goal.goalSkills.map((goalSkill) => ({
+          id: goalSkill.id,
+          position: goalSkill.position,
+          projectChallenge: goalSkill.projectChallenge,
+          mastered: masteredIds.has(goalSkill.id),
+          skill: {
+            title: goalSkill.skill.title,
+          },
+        })),
         totalSkills,
         progressPercent:
-          totalSkills > 0
-            ? Math.round(
-                (masteredCount / totalSkills) * 100
-              )
-            : 0,
+          totalSkills > 0 ? Math.round((masteredCount / totalSkills) * 100) : 0,
       };
-    })
+    }),
   );
 
   const currentGoal = goalsWithMeta[0];
 
-  const nextSkill =
-    currentGoal?.roadmap?.skills?.find(
-      (skill: any) =>
-        !(
-          currentGoal.progressPercent === 100
-        )
-    ) ?? currentGoal?.roadmap?.skills?.[0];
-
   const totalSkills = goalsWithMeta.reduce(
     (sum, goal) => sum + goal.totalSkills,
-    0
+    0,
+  );
+
+  const nextSkill = currentGoal?.goalSkills.find(
+    (goalSkill) => !goalSkill.mastered,
   );
 
   const masteredSkills = goalsWithMeta.reduce(
     (sum, goal) =>
-      sum +
-      Math.round(
-        (goal.progressPercent / 100) *
-          goal.totalSkills
-      ),
-    0
+      sum + Math.round((goal.progressPercent / 100) * goal.totalSkills),
+    0,
   );
 
   return (
@@ -105,8 +112,10 @@ export default async function DashboardPage() {
             </Link>
 
             <form action={logout}>
-              <Button variant="ghost"
-              className="hover:text-red-800 cursor-pointer">
+              <Button
+                variant="ghost"
+                className="hover:text-red-800 cursor-pointer"
+              >
                 Logout
               </Button>
             </form>
@@ -131,14 +140,10 @@ export default async function DashboardPage() {
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Progress</span>
 
-                <span>
-                  {currentGoal?.progressPercent ?? 0}%
-                </span>
+                <span>{currentGoal?.progressPercent ?? 0}%</span>
               </div>
 
-              <Progress
-                value={currentGoal?.progressPercent ?? 0}
-              />
+              <Progress value={currentGoal?.progressPercent ?? 0} />
             </div>
 
             {currentGoal && (
@@ -149,7 +154,7 @@ export default async function DashboardPage() {
                   </p>
 
                   <p className="text-2xl font-medium mt-3">
-                    {nextSkill?.title}
+                    {nextSkill?.skill.title}
                   </p>
                 </div>
 
@@ -159,8 +164,7 @@ export default async function DashboardPage() {
                   </p>
 
                   <p className="text-2xl font-medium mt-3">
-                    {nextSkill?.projectChallenge ??
-                      "No challenge yet"}
+                    {nextSkill?.projectChallenge ?? "No challenge yet"}
                   </p>
                 </div>
               </div>
@@ -174,9 +178,7 @@ export default async function DashboardPage() {
               Goals
             </p>
 
-            <p className="text-3xl font-semibold mt-3">
-              {goals.length}
-            </p>
+            <p className="text-3xl font-semibold mt-3">{goals.length}</p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6">
@@ -184,9 +186,7 @@ export default async function DashboardPage() {
               Skills
             </p>
 
-            <p className="text-3xl font-semibold mt-3">
-              {totalSkills}
-            </p>
+            <p className="text-3xl font-semibold mt-3">{totalSkills}</p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6">
@@ -194,9 +194,7 @@ export default async function DashboardPage() {
               Mastered
             </p>
 
-            <p className="text-3xl font-semibold mt-3">
-              {masteredSkills}
-            </p>
+            <p className="text-3xl font-semibold mt-3">{masteredSkills}</p>
           </div>
         </section>
 
@@ -207,14 +205,11 @@ export default async function DashboardPage() {
             </h2>
 
             <p className="text-muted-foreground mb-8">
-              Tell Syllarc what you want to become.
-              We'll generate the roadmap.
+              Tell Syllarc what you want to become. We'll generate the roadmap.
             </p>
 
             <Link href="/create-goal">
-              <Button>
-                Create Goal
-              </Button>
+              <Button>Create Goal</Button>
             </Link>
           </section>
         ) : (
