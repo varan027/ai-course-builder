@@ -1,13 +1,12 @@
 import { aiService } from "./ai.service";
 import { goalRepository } from "@/lib/repositories/goal.repo";
-import type { User } from "@prisma/client";
 
 export const goalService = {
-  async create(goal: string, user: User) {
+  async create(goal: string, userId: string) {
     const roadmap = await aiService.generateRoadmap(goal);
 
     return goalRepository.createGoalAggregate({
-      ownerId: user.id,
+      ownerId: userId,
 
       title: roadmap.goal.title,
       estimatedWeeks: roadmap.goal.estimatedWeeks,

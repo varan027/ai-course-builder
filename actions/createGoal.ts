@@ -32,7 +32,7 @@ export async function createGoal(
   }
 
   try {
-    await goalService.create(parsedGoal.data, user);
+    await goalService.create(parsedGoal.data, user.id);
 
     redirect("/dashboard");
   } catch (err) {

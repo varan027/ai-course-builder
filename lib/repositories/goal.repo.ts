@@ -42,7 +42,7 @@ export const goalRepository = {
       });
 
       const skillMap = new Map<string, string>();
-      for(const skill of data.skills){
+      for (const skill of data.skills) {
         const dbSkill = await tx.skill.upsert({
           where: {
             skillKey: skill.skillKey,
@@ -59,9 +59,9 @@ export const goalRepository = {
       }
 
       const goalSkillMap = new Map<string, string>();
-      for(const [index, skill] of data.skills.entries()){
+      for (const [index, skill] of data.skills.entries()) {
         const goalSkill = await tx.goalSkill.create({
-          data:{
+          data: {
             goalId: goal.id,
             skillId: skillMap.get(skill.skillKey)!,
             position: index + 1,
@@ -76,18 +76,26 @@ export const goalRepository = {
         goalSkillMap.set(skill.skillKey, goalSkill.id);
       }
 
-      for(const skill of data.skills){
-        const goalSkillId = goalSkillMap.get(skill.skillKey)!;
+      for (const skill of data.skills) {
+        const goalSkillId = goalSkillMap.get(skill.skillKey);
 
-        for(const prerequisite of skill.prerequisites){
-          const prerequisiteGoalSkillId = goalSkillMap.get(prerequisite)!;
+        if (!goalSkillId) {
+          throw new Error(`GoalSkill not found for skill: ${skill.skillKey}`);
+        }
+
+        for (const prerequisite of skill.prerequisites) {
+          const prerequisiteGoalSkillId = goalSkillMap.get(prerequisite);
+
+          if (!prerequisiteGoalSkillId) {
+            throw new Error(`Unknown prerequisite skill: ${prerequisite}`);
+          }
 
           await tx.goalSkillDependency.create({
             data: {
               goalSkillId,
               prerequisiteGoalSkillId,
-            }
-          })
+            },
+          });
         }
       }
 
@@ -111,16 +119,16 @@ export const goalRepository = {
             position: "asc",
           },
           include: {
-            skill:true,
+            skill: true,
             progress: {
               where: {
                 userId: ownerId,
-              }
-            }
-          }
-        }
-      }
-    })
+              },
+            },
+          },
+        },
+      },
+    });
   },
 
   async findOwned(goalId: string, ownerId: string) {
@@ -144,19 +152,19 @@ export const goalRepository = {
                 prerequisiteGoalSkill: {
                   include: {
                     skill: true,
-                  }
-                }
-              }
+                  },
+                },
+              },
             },
 
             progress: {
               where: {
                 userId: ownerId,
-              }
-            }
-          }
-        }
-      }
-    })
-  }
+              },
+            },
+          },
+        },
+      },
+    });
+  },
 };
