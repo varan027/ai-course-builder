@@ -38,6 +38,7 @@ export const goalRepository = {
           title: data.title,
           estimatedWeeks: data.estimatedWeeks,
           ownerId: data.ownerId,
+          status: "READY",
         },
       });
 

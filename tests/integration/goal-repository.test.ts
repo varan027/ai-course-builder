@@ -57,6 +57,7 @@ describe("goalRepository.createGoalAggregate", () => {
     });
 
     expect(goal.title).toBe("Frontend Developer");
+    expect(goal.status).toBe("READY");
 
     const goalSkills = await prisma.goalSkill.findMany({
       where: {
