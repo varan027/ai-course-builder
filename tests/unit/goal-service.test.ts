@@ -103,4 +103,28 @@ describe("goalService.create", () => {
       status: "READY",
     });
   });
+
+  it("does not create a goal when roadmap generation fails", async () => {
+    vi.mocked(aiService.generateRoadmap).mockRejectedValue(
+      new Error("AI failed"),
+    );
+
+    await expect(
+      goalService.create("Become a frontend developer", "user-1"),
+    ).rejects.toThrow("AI failed");
+
+    expect(goalRepository.createGoalAggregate).not.toHaveBeenCalled();
+  });
+
+  it("propagates repository errors", async () => {
+    vi.mocked(aiService.generateRoadmap).mockResolvedValue(roadmap);
+
+    vi.mocked(goalRepository.createGoalAggregate).mockRejectedValue(
+      new Error("Repository failed"),
+    );
+
+    await expect(
+      goalService.create("Become a frontend developer", "user-1"),
+    ).rejects.toThrow("Repository failed");
+  });
 });

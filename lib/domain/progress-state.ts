@@ -1,11 +1,5 @@
 import { SkillStatus } from "@prisma/client";
 
-/**
- * The allowed forward progression through a skill.
- * Keeping these rules outside the persistence layer makes them reusable
- * from actions, assessments, projects, and future automation.
- */
-
 export const SKILL_PROGRESS_TRANSITIONS: Record<
   SkillStatus,
   SkillStatus | null
@@ -29,4 +23,10 @@ export function getNextSkillStatus(status: SkillStatus): SkillStatus {
   }
 
   return nextStatus;
+}
+
+export function arePrerequisitesSatisfied(
+  prerequisiteStatuses: SkillStatus[],
+): boolean {
+  return prerequisiteStatuses.every((status) => status === SkillStatus.MASTERED);
 }

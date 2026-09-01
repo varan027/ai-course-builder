@@ -1,19 +1,28 @@
-/**
- * Base class for all domain-level errors
- * Domain errors represent known failure cases in the system
- */
+
+//  Base class for all domain-level errors
+//  Domain errors represent known failure cases in the system
+
 export abstract class DomainError extends Error {
   abstract code: string;
 }
 
-/**
- * Thrown when AI returns invalid or untrusted output
- */
+
+// Thrown when AI returns invalid or untrusted output
+
 export class AIOutputInvalidError extends DomainError {
   code = "AI_OUTPUT_INVALID";
 
   constructor(message: string) {
     super(message);
     this.name = "AIOutputInvalidError";
+  }
+}
+
+export class PrerequisitesNotSatisfiedError extends DomainError {
+  code = "PREREQUISITES_NOT_SATISFIED";
+
+  constructor(message = "Prerequisites are not satisfied") {
+    super(message);
+    this.name = "PrerequisitesNotSatisfiedError";
   }
 }

@@ -1,73 +1,53 @@
-import { getPrisma } from "@/lib/db";
+import {
+  arePrerequisitesSatisfied,
+  getNextSkillStatus,
+} from "@/lib/domain/progress-state";
+import { progressRepository } from "@/lib/repositories/progress.repo";
+import { PrerequisitesNotSatisfiedError } from "@/lib/errors/domain";
 import { SkillStatus } from "@prisma/client";
-
-const SKILL_PROGRESS_FLOW: SkillStatus[] = [
-  SkillStatus.NOT_STARTED,
-  SkillStatus.EXPLORING,
-  SkillStatus.PRACTICING,
-  SkillStatus.APPLYING,
-  SkillStatus.MASTERED,
-];
-
-function getNextSkillStatus(current: SkillStatus): SkillStatus {
-  const currentIndex = SKILL_PROGRESS_FLOW.indexOf(current);
-
-  if (currentIndex === -1) {
-    throw new Error("Invalid skill status");
-  }
-
-  if (currentIndex === SKILL_PROGRESS_FLOW.length - 1) {
-    return current;
-  }
-
-  return SKILL_PROGRESS_FLOW[currentIndex + 1];
-}
 
 export const progressService = {
   async advanceSkill(userId: string, goalSkillId: string) {
-    const prisma = await getPrisma();
+    const existing = await progressRepository.getSkillProgress(
+      userId,
+      goalSkillId,
+    );
 
-    const existing = await prisma.skillProgress.findUnique({
-      where: {
-        userId_goalSkillId: {
-          userId,
-          goalSkillId,
-        },
-      },
-    });
+    if (existing?.status == SkillStatus.MASTERED) {
+      return existing;
+    }
+
+    const prerequisitesProgress =
+      await progressRepository.getPrerequisiteProgress(userId, goalSkillId);
+
+    const allPrerequisitesStatuses =
+      prerequisitesProgress?.dependencies.map((dep) => {
+        const progress = dep.prerequisiteGoalSkill.progress;
+
+        if (progress.length === 0) {
+          return SkillStatus.NOT_STARTED;
+        }
+
+        return progress[0].status;
+      }) ?? [];
+
+    const isSkillAllowed = arePrerequisitesSatisfied(allPrerequisitesStatuses);
+
+    if (!isSkillAllowed) throw new PrerequisitesNotSatisfiedError();
 
     if (!existing) {
-      return prisma.skillProgress.create({
-        data: {
-          userId,
-          goalSkillId,
-          status: SkillStatus.EXPLORING,
-        },
-      });
+      return await progressRepository.createSkillProgress(userId, goalSkillId);
     }
 
     const nextStatus = getNextSkillStatus(existing.status);
 
-    return prisma.skillProgress.update({
-      where: {
-        id: existing.id,
-      },
-      data: {
-        status: nextStatus,
-      },
-    });
+    return await progressRepository.updateSkillProgress(
+      existing.id,
+      nextStatus,
+    );
   },
 
   async getProgress(userId: string, goalId: string) {
-    const prisma = await getPrisma();
-
-    return prisma.skillProgress.findMany({
-      where: {
-        userId,
-        goalSkill: {
-          goalId,
-        },
-      },
-    });
+    return await progressRepository.getProgressForGoal(userId, goalId);
   },
 };

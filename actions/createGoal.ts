@@ -4,6 +4,7 @@ import { goalService } from "@/services/goal.service";
 import { redirect } from "next/navigation";
 import { goalSchema } from "./createGoal.schema";
 import { getCurrentUser } from "@/lib/auth";
+import { AIOutputInvalidError } from "@/lib/errors/domain";
 
 export type FormState = {
   error?: string;
@@ -40,10 +41,14 @@ export async function createGoal(
       throw err;
     }
 
-    console.error("CREATE GOAL FAILED:", err);
+    if (err instanceof AIOutputInvalidError) {
+      return {
+        error: "We couldn't generate a valid roadmap. Please try again.",
+      };
+    }
 
     return {
-      error: "Failed to generate roadmap. Please try again.",
+      error: "We couldn't create your goal. Please try again.",
     };
   }
 }
