@@ -10,9 +10,12 @@ export type FormState = {
 };
 
 export async function advanceSkill(
-  goalId: string,
-  goalSkillId: string,
+  previousState: FormState,
+  formData: FormData,
 ): Promise<FormState> {
+  const goalId = formData.get("goalId") as string;
+  const goalSkillId = formData.get("goalSkillId") as string;
+
   const user = await getCurrentUser();
 
   if (!user) {
@@ -27,7 +30,9 @@ export async function advanceSkill(
     return {};
   } catch (err) {
     if (err instanceof PrerequisitesNotSatisfiedError) {
-      return { error: "You need to complete the prerequisite skills first." };
+      return {
+        error: "You need to complete the prerequisite skills first.",
+      };
     }
 
     throw err;

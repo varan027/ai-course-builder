@@ -6,6 +6,15 @@ import { getCurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { SkillStatus } from "@prisma/client";
 
+function createFormData() {
+  const formData = new FormData();
+
+  formData.set("goalId", "goal-abc");
+  formData.set("goalSkillId", "gskill-101");
+
+  return formData;
+}
+
 vi.mock("@/lib/auth", () => ({
   getCurrentUser: vi.fn(),
 }));
@@ -32,7 +41,7 @@ it("should throw an error if prerequisites are not satisfied", async () => {
     new PrerequisitesNotSatisfiedError(),
   );
 
-  const result = await advanceSkill("goal-abc", "gskill-101");
+  const result = await advanceSkill({}, createFormData());
 
   expect(result).toEqual({
     error: "You need to complete the prerequisite skills first.",
@@ -56,7 +65,7 @@ it("should revalidate the path after successfully advancing a skill", async () =
     completedAt: new Date(),
   });
 
-  await advanceSkill("goal-abc", "gskill-101");
+  await advanceSkill({}, createFormData());
 
   expect(progressService.advanceSkill).toHaveBeenCalledWith(
   "user-01",

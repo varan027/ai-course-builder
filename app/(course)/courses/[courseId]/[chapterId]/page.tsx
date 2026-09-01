@@ -13,6 +13,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import Link from "next/link";
+import SkillProgressForm from "./SkillProgressForm";
 
 export default async function SkillPage({
   params,
@@ -155,21 +156,11 @@ export default async function SkillPage({
             </div>
           )}
 
-          <form
-            action={async () => {
-              "use server";
-
-              await advanceSkill(courseId, goalSkill.id);
-
-              redirect(`/courses/${courseId}/${index}`);
-            }}
-          >
-            <Button size="lg" className="h-14 px-10 rounded-2xl font-medium">
-              <CheckCircle2 className="w-5 h-5 mr-2" />
-
-              {isCompleted ? "Reset Mastery" : "Mark as Mastered"}
-            </Button>
-          </form>
+          <SkillProgressForm
+            goalId={courseId}
+            goalSkillId={goalSkill.id}
+            isCompleted={isCompleted}
+          />
 
           <div className="flex justify-between w-full">
             {index > 0 ? (
