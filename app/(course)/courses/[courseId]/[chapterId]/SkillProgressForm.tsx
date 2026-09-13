@@ -3,19 +3,13 @@
 import { useActionState } from "react";
 import { advanceSkill } from "@/actions/advancceSkill";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2 } from "lucide-react";
-
-type SkillStatus =
-  | "NOT_STARTED"
-  | "EXPLORING"
-  | "PRACTICING"
-  | "APPLYING"
-  | "MASTERED";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { getSkillActionLabel, type ProgressStage } from "@/lib/course-learning";
 
 type SkillProgressFormProps = {
   goalId: string;
   goalSkillId: string;
-  currentStatus: SkillStatus;
+  currentStatus: ProgressStage;
 };
 
 export default function SkillProgressForm({
@@ -24,36 +18,27 @@ export default function SkillProgressForm({
   currentStatus,
 }: SkillProgressFormProps) {
   const [state, formAction, isPending] = useActionState(advanceSkill, {});
+  const label = getSkillActionLabel(currentStatus);
+  const isMastered = currentStatus === "MASTERED";
 
-  const buttonLabels: Record<SkillStatus, string> = {
-    NOT_STARTED: "Start Exploring",
-    EXPLORING: "Start Practicing",
-    PRACTICING: "Start Applying",
-    APPLYING: "Master Skill",
-    MASTERED: "Skill Mastered",
-  };
+  if (isMastered) return null;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-start">
       <form action={formAction}>
         <input type="hidden" name="goalId" value={goalId} />
         <input type="hidden" name="goalSkillId" value={goalSkillId} />
-
         <Button
           type="submit"
           size="lg"
-          disabled={isPending || currentStatus === "MASTERED"}
-          className="h-14 px-10 rounded-2xl font-medium"
+          disabled={isPending}
+          className="h-12 rounded-full px-6 font-medium shadow-none"
         >
-          <CheckCircle2 className="w-5 h-5 mr-2" />
-
-          {isPending ? "Advancing..." : buttonLabels[currentStatus]}
+          {isPending ? "Saving..." : label}
+          {!isPending && <ArrowRight className="size-4" />}
         </Button>
       </form>
-
-      {state?.error && (
-        <p className="mt-4 text-sm text-red-400 text-center">{state.error}</p>
-      )}
+      {state?.error && <p className="mt-3 text-sm text-red-400">{state.error}</p>}
     </div>
   );
 }
