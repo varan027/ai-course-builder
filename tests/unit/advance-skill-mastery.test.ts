@@ -43,10 +43,12 @@ describe("advanceSkill mastery proof", () => {
     vi.mocked(evaluateMasteryProof).mockReturnValue(false);
     vi.mocked(canAdvanceToMastery).mockReturnValue(false);
 
-    const result = await advanceSkill(
-      {},
-      new FormData(),
-    );
+    const formData = new FormData();
+    formData.set("goalId", "goal-01");
+    formData.set("goalSkillId", "gskill-101");
+    formData.set("proofAnswer", "This answer does not demonstrate the skill.");
+
+    const result = await advanceSkill({}, formData);
 
     expect(result.error).toBe("Prove your understanding before marking this skill mastered.");
     expect(progressService.advanceSkill).not.toHaveBeenCalled();
