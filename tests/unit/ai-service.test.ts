@@ -20,6 +20,12 @@ const validRoadmap = {
         milestone: "Can build a semantic HTML page.",
         projectChallenge: "Build a semantic portfolio page.",
       },
+      lesson: {
+        overview: "Build a mental model of semantic HTML before styling interfaces.",
+        keyIdeas: ["Elements describe meaning", "Semantic structure improves accessibility"],
+        content: "## Semantic HTML\nUse elements according to the meaning of their content.",
+        practice: "Create a semantic profile page using headings, lists, and navigation.",
+      },
       prerequisites: [],
       youtubeQuery: "HTML fundamentals tutorial",
     },
@@ -60,6 +66,8 @@ describe("aiService.generateRoadmap", () => {
     expect(roadmap.goal.estimatedWeeks).toBe(20);
     expect(roadmap.skills).toHaveLength(1);
     expect(roadmap.skills[0].skillKey).toBe("html-fundamentals");
+    expect(roadmap.skills[0].lesson.overview).toContain("mental model");
+    expect(roadmap.skills[0].lesson.keyIdeas).toHaveLength(2);
   });
 
   it("throws AIOutputInvalidError when Gemini returns invalid JSON", async () => {
