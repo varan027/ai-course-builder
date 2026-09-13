@@ -21,6 +21,10 @@ export function evaluateMasteryProof(
   return matchedEvidence.length >= Math.min(2, requiredEvidence.length);
 }
 
+export function canAdvanceToMastery(proofPassed: boolean): boolean {
+  return proofPassed;
+}
+
 export function getMasteryProofPrompt(
   skillTitle: string,
   practice: string,
