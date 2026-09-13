@@ -7,10 +7,7 @@ const validRoadmap = {
   skills: [
     {
       skillKey: "html-fundamentals",
-      skill: {
-        title: "HTML Fundamentals",
-        description: "Learn the structure and semantics of web pages.",
-      },
+      skill: { title: "HTML Fundamentals", description: "Learn the structure and semantics of web pages." },
       context: {
         description: "Learn semantic HTML and document structure.",
         whyImportant: "HTML provides the foundation of every web page.",
@@ -59,9 +56,7 @@ vi.mock("@google/generative-ai", () => {
     getGenerativeModel({ model }: { model: string }) {
       requestedModels.push(model);
       return {
-        generateContent: async () => ({
-          response: { text: () => geminiResponses.shift() ?? "{}" },
-        }),
+        generateContent: async () => ({ response: { text: () => geminiResponses.shift() ?? "{}" } }),
       };
     }
   }
@@ -83,6 +78,8 @@ describe("aiService mastery evidence", () => {
   });
 
   it("evaluates learner evidence into a structured result", async () => {
+    geminiResponses = [JSON.stringify(passingEvaluation)];
+
     const evaluation = await aiService.evaluateMasteryProof({
       skillTitle: "HTML Fundamentals",
       skillDescription: "Learn semantic HTML.",
@@ -90,14 +87,8 @@ describe("aiService mastery evidence", () => {
       keyIdeas: ["Use elements by meaning"],
       proofTask: "Design a semantic page structure.",
       proofType: "CONCEPTUAL",
-      capabilities: [
-        "Choose semantic elements",
-        "Explain accessibility implications",
-      ],
-      evaluationCriteria: [
-        "Element choices are justified by meaning.",
-        "Accessibility reasoning is technically sound.",
-      ],
+      capabilities: ["Choose semantic elements", "Explain accessibility implications"],
+      evaluationCriteria: ["Element choices are justified by meaning.", "Accessibility reasoning is technically sound."],
       learnerEvidence: "I would use a main element for the primary content and navigation for site navigation because their roles differ.",
     });
 
