@@ -22,7 +22,7 @@ type CreateGoalInput = {
       projectChallenge: string;
     };
 
-    lesson: {
+    lesson?: {
       overview: string;
       keyIdeas: string[];
       content: string;
@@ -79,10 +79,12 @@ export const goalRepository = {
             milestone: skill.context.milestone,
             projectChallenge: skill.context.projectChallenge,
 
-            lessonOverview: skill.lesson.overview,
-            lessonKeyIdeas: JSON.stringify(skill.lesson.keyIdeas),
-            lessonContent: skill.lesson.content,
-            lessonPractice: skill.lesson.practice,
+            lessonOverview: skill.lesson?.overview ?? null,
+            lessonKeyIdeas: skill.lesson
+              ? JSON.stringify(skill.lesson.keyIdeas)
+              : null,
+            lessonContent: skill.lesson?.content ?? null,
+            lessonPractice: skill.lesson?.practice ?? null,
           },
         });
 
