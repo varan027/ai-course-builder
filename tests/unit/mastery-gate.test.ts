@@ -5,8 +5,8 @@ describe("mastery gate", () => {
   const passing = {
     passed: true,
     capabilities: [
-      { capability: "Explain the concept", demonstrated: true },
-      { capability: "Apply the concept", demonstrated: true },
+      { capabilityIndex: 0, demonstrated: true },
+      { capabilityIndex: 1, demonstrated: true },
     ],
     feedback: "You demonstrated the required capabilities.",
     retryGuidance: "No retry is needed.",
@@ -20,7 +20,7 @@ describe("mastery gate", () => {
     expect(
       canAdvanceToMastery({
         ...passing,
-        capabilities: [{ capability: "Explain the concept", demonstrated: true }],
+        capabilities: [{ capabilityIndex: 0, demonstrated: true }],
       }, 2),
     ).toBe(false);
   });
@@ -30,8 +30,32 @@ describe("mastery gate", () => {
       canAdvanceToMastery({
         ...passing,
         capabilities: [
-          { capability: "Explain the concept", demonstrated: true },
-          { capability: "Apply the concept", demonstrated: false },
+          { capabilityIndex: 0, demonstrated: true },
+          { capabilityIndex: 1, demonstrated: false },
+        ],
+      }, 2),
+    ).toBe(false);
+  });
+
+  it("blocks duplicate capability indexes", () => {
+    expect(
+      canAdvanceToMastery({
+        ...passing,
+        capabilities: [
+          { capabilityIndex: 0, demonstrated: true },
+          { capabilityIndex: 0, demonstrated: true },
+        ],
+      }, 2),
+    ).toBe(false);
+  });
+
+  it("blocks out-of-range capability indexes", () => {
+    expect(
+      canAdvanceToMastery({
+        ...passing,
+        capabilities: [
+          { capabilityIndex: 0, demonstrated: true },
+          { capabilityIndex: 2, demonstrated: true },
         ],
       }, 2),
     ).toBe(false);
