@@ -36,8 +36,8 @@ Rules:
 24. 'practice' should be one concrete exercise the learner can complete after reading the lesson.
 25. Generate exactly one 'masteryProof' for every skill. The proof must require demonstration or application, not recall of a definition.
 26. Choose proofType from CONCEPTUAL, TECHNICAL, ANALYTICAL, PRACTICAL, or CREATIVE based on what competence means for the skill.
-27. 'capabilities' must describe observable abilities the learner should demonstrate after the lesson.
-28. 'evaluationCriteria' must describe observable evidence and must allow multiple valid approaches where appropriate. Never require exact wording.
+27. 'capabilities' must describe observable abilities the learner should demonstrate after the lesson. Generate 2-5 capabilities.
+28. 'evaluationCriteria' must describe observable evidence and must allow multiple valid approaches where appropriate. Never require exact wording. Generate 2-5 criteria.
 29. The mastery proof must be small enough to complete without becoming the skill's full project challenge.
 
 JSON format:
@@ -117,12 +117,14 @@ Rules:
 8. A learner passes only when every required capability is sufficiently demonstrated.
 9. Feedback must identify what was demonstrated and what is missing without exposing the hidden evaluation criteria verbatim.
 10. Retry guidance should give the learner a concrete direction without simply supplying the complete answer.
+11. For each required capability, return its zero-based index from the Required capabilities list as capabilityIndex. Never return capability names instead of indexes.
+12. Return exactly one evaluation entry for every required capability, with no duplicates and no out-of-range indexes.
 
 JSON format:
 {
   "passed": false,
   "capabilities": [
-    { "capability": "", "demonstrated": false }
+    { "capabilityIndex": 0, "demonstrated": false }
   ],
   "feedback": "",
   "retryGuidance": ""
