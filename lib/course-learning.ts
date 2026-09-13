@@ -16,6 +16,18 @@ export function getProgressStageIndex(stage: ProgressStage): number {
   return PROGRESS_STAGES.indexOf(stage);
 }
 
+export function getSkillActionLabel(stage: ProgressStage): string {
+  const labels: Record<ProgressStage, string> = {
+    NOT_STARTED: "Start learning",
+    EXPLORING: "Continue learning",
+    PRACTICING: "Continue practicing",
+    APPLYING: "Continue applying",
+    MASTERED: "Next skill",
+  };
+
+  return labels[stage];
+}
+
 export function getNextSkillIndex(
   skills: LearningSkill[],
   currentIndex: number,
