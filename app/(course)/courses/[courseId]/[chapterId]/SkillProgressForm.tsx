@@ -11,7 +11,6 @@ type SkillProgressFormProps = {
   goalSkillId: string;
   currentStatus: ProgressStage;
   skillTitle?: string;
-  practice?: string;
   masteryProof?: {
     task: string;
     proofType: string;
@@ -23,7 +22,6 @@ export default function SkillProgressForm({
   goalSkillId,
   currentStatus,
   skillTitle = "this skill",
-  practice = "",
   masteryProof = null,
 }: SkillProgressFormProps) {
   const [state, formAction, isPending] = useActionState(advanceSkill, {});
@@ -50,16 +48,10 @@ export default function SkillProgressForm({
         <div className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-5 sm:p-6">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="size-4 text-primary" />
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Prove your understanding
-            </p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Prove your understanding</p>
           </div>
-          <p className="mt-4 text-base font-medium leading-7 text-foreground">
-            {masteryProof.task}
-          </p>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Show what you can do with the skill. Different valid approaches are welcome.
-          </p>
+          <p className="mt-4 text-base font-medium leading-7 text-foreground">{masteryProof.task}</p>
+          <p className="mt-3 text-xs text-muted-foreground">Show what you can do with the skill. Different valid approaches are welcome.</p>
         </div>
       ) : null}
 
@@ -75,12 +67,7 @@ export default function SkillProgressForm({
             className="w-full resize-y rounded-2xl border border-white/[0.08] bg-white/[0.018] px-4 py-3 text-sm leading-6 text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
           />
         )}
-        <Button
-          type="submit"
-          size="lg"
-          disabled={isPending}
-          className="h-12 rounded-full px-6 font-medium shadow-none"
-        >
+        <Button type="submit" size="lg" disabled={isPending} className="h-12 rounded-full px-6 font-medium shadow-none">
           {isPending ? "Evaluating evidence..." : requiresProof ? "Submit evidence" : label}
           {!isPending && <ArrowRight className="size-4" />}
         </Button>
@@ -89,9 +76,7 @@ export default function SkillProgressForm({
       {state?.feedback && (
         <div className="mt-5 rounded-2xl border border-white/[0.07] bg-white/[0.018] p-5">
           <p className="text-sm leading-6 text-foreground/90">{state.feedback}</p>
-          {state.retryGuidance && (
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">{state.retryGuidance}</p>
-          )}
+          {state.retryGuidance && <p className="mt-3 text-sm leading-6 text-muted-foreground">{state.retryGuidance}</p>}
         </div>
       )}
       {state?.error && <p className="mt-3 text-sm text-red-400">{state.error}</p>}
