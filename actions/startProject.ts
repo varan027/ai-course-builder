@@ -27,7 +27,7 @@ export async function startProject(
   const goalSkill = goal.goalSkills.find((skill) => skill.id === goalSkillId);
   const currentStatus = goalSkill?.progress?.[0]?.status;
 
-  if (currentStatus !== SkillStatus.MASTERED) {
+  if (!goalSkill || currentStatus !== SkillStatus.MASTERED) {
     return { error: "Master the skill before starting this project." };
   }
 
