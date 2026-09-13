@@ -97,6 +97,7 @@ model SkillProgress {
 
   status SkillStatus @default(NOT_STARTED)
 
+  projectStartedAt DateTime?
   completedAt DateTime?
   updatedAt DateTime @updatedAt
 
