@@ -65,6 +65,11 @@ model GoalSkill {
   lessonContent String?
   lessonPractice String?
 
+  masteryProofTask String?
+  masteryProofType String?
+  masteryProofCapabilities String?
+  masteryProofCriteria String?
+
   dependencies GoalSkillDependency[] @relation("DependentSkill")
   dependents   GoalSkillDependency[] @relation("PrerequisiteSkill")
 
