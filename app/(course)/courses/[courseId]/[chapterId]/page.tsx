@@ -30,7 +30,11 @@ export default async function SkillPage({
   const isCompleted = currentStatus === "MASTERED";
   const currentStageIndex = getProgressStageIndex(currentStatus);
   const nextIndex = getNextSkillIndex(
-    goal.goalSkills.map((skill) => ({ mastered: progress.some((p) => p.goalSkillId === skill.id && p.status === "MASTERED") })),
+    goal.goalSkills.map((skill) => ({
+      mastered: progress.some(
+        (p) => p.goalSkillId === skill.id && p.status === "MASTERED",
+      ),
+    })),
     index,
   );
   const statusLabel = currentStatus.replace("_", " ");
@@ -114,7 +118,14 @@ export default async function SkillPage({
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Your progress</p>
             <p className="mt-1 text-sm text-muted-foreground">{statusLabel}</p>
           </div>
-          <SkillProgressForm goalId={courseId} goalSkillId={goalSkill.id} currentStatus={currentStatus} />
+
+          {!isCompleted && (
+            <SkillProgressForm
+              goalId={courseId}
+              goalSkillId={goalSkill.id}
+              currentStatus={currentStatus}
+            />
+          )}
         </div>
 
         <div className="mt-7 flex items-center justify-between gap-4">
@@ -123,15 +134,12 @@ export default async function SkillPage({
               <Link href={`/courses/${courseId}/${index - 1}`}><ArrowLeft className="size-4" />Previous</Link>
             </Button>
           ) : <div />}
-          {nextIndex !== undefined ? (
+
+          {isCompleted && nextIndex !== undefined && (
             <Button asChild className="rounded-full px-5">
-              <Link href={`/courses/${courseId}/${nextIndex}`}>Continue <ArrowRight className="size-4" /></Link>
+              <Link href={`/courses/${courseId}/${nextIndex}`}>Next skill <ArrowRight className="size-4" /></Link>
             </Button>
-          ) : index < goal.goalSkills.length - 1 ? (
-            <Button asChild className="rounded-full px-5">
-              <Link href={`/courses/${courseId}/${index + 1}`}>Next skill <ArrowRight className="size-4" /></Link>
-            </Button>
-          ) : null}
+          )}
         </div>
       </footer>
     </article>
