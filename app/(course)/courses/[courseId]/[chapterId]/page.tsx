@@ -85,7 +85,7 @@ export default async function SkillPage({ params }: { params: Promise<{ courseId
   const keyIdeas = parseKeyIdeas(goalSkill.lessonKeyIdeas);
   const lessonOverview = goalSkill.lessonOverview ?? goalSkill.description;
   const lessonPractice = goalSkill.lessonPractice ?? goalSkill.projectChallenge;
-  const projectState = getProjectProofState(goalSkill.projectChallenge, isCompleted);
+  const projectState = getProjectProofState(currentStatus, false);
 
   return (
     <article className="animate-in fade-in duration-500">
@@ -117,11 +117,11 @@ export default async function SkillPage({ params }: { params: Promise<{ courseId
 
         <section className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7"><div className="flex items-center gap-2"><Trophy className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Practice</p></div><p className="mt-4 max-w-3xl text-sm leading-6 text-foreground/90">{lessonPractice}</p></section>
 
-        {projectState !== "completed" && <section className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 sm:p-8">
+        {projectState !== "LOCKED" && <section className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 sm:p-8">
           <div className="flex items-center gap-2"><Hammer className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Build to prove it</p></div>
-          <h2 className="mt-4 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">{isCompleted ? "Put this skill to work" : "Your project challenge"}</h2>
+          <h2 className="mt-4 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">Put this skill to work</h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-foreground/90 sm:text-base">{goalSkill.projectChallenge}</p>
-          <div className="mt-6 flex items-center justify-between gap-4 border-t border-white/[0.07] pt-5"><p className="text-xs text-muted-foreground">{isCompleted ? "Ready to build from what you just mastered." : "This challenge becomes your next proof of application."}</p><Button asChild size="sm" className="rounded-full px-4 shadow-none"><Link href={`/courses/${courseId}/projects/${goalSkill.id}`}>Start project <ArrowRight className="size-3.5" /></Link></Button></div>
+          <div className="mt-6 flex items-center justify-between gap-4 border-t border-white/[0.07] pt-5"><p className="text-xs text-muted-foreground">Ready to build from what you just mastered.</p><Button asChild size="sm" className="rounded-full px-4 shadow-none"><Link href={`/courses/${courseId}/projects/${goalSkill.id}`}>Start project <ArrowRight className="size-3.5" /></Link></Button></div>
         </section>}
 
         {goalSkill.dependencies.length > 0 && <section className="border-t border-white/[0.07] pt-7"><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Prerequisites</p><div className="mt-4 flex flex-wrap gap-2">{goalSkill.dependencies.map((dependency) => { const mastered = dependency.prerequisiteGoalSkill.progress.some((p) => p.status === "MASTERED"); return <span key={dependency.id} className="inline-flex items-center gap-2 rounded-full border border-white/[0.07] px-3 py-2 text-xs text-muted-foreground">{mastered ? <CheckCircle2 className="size-3.5 text-primary" /> : <span className="size-3.5 rounded-full border border-white/20" />}{dependency.prerequisiteGoalSkill.skill.title}</span>; })}</div></section>}
