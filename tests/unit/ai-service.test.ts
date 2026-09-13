@@ -26,8 +26,14 @@ const validRoadmap = {
       masteryProof: {
         task: "Design a semantic page structure for a profile and explain your choices.",
         proofType: "CONCEPTUAL",
-        capabilities: ["Choose semantic elements based on the meaning of content."],
-        evaluationCriteria: ["The explanation connects element choices to content meaning and accessibility."],
+        capabilities: [
+          "Choose semantic elements based on the meaning of content.",
+          "Explain how the chosen structure supports accessibility.",
+        ],
+        evaluationCriteria: [
+          "The explanation connects element choices to content meaning.",
+          "The structure and accessibility reasoning are technically sound.",
+        ],
       },
       prerequisites: [],
       youtubeQuery: "HTML fundamentals tutorial",
@@ -37,8 +43,11 @@ const validRoadmap = {
 
 const passingEvaluation = {
   passed: true,
-  capabilities: [{ capability: "Choose semantic elements", demonstrated: true }],
-  feedback: "You demonstrated the required capability.",
+  capabilities: [
+    { capabilityIndex: 0, demonstrated: true },
+    { capabilityIndex: 1, demonstrated: true },
+  ],
+  feedback: "You demonstrated the required capabilities.",
   retryGuidance: "Continue applying the same reasoning in another page structure.",
 };
 
@@ -70,7 +79,7 @@ describe("aiService mastery evidence", () => {
   it("requires a mastery proof in newly generated roadmaps", async () => {
     const roadmap = await aiService.generateRoadmap("Frontend Developer");
     expect(roadmap.skills[0].masteryProof?.task).toContain("semantic page");
-    expect(roadmap.skills[0].masteryProof?.capabilities).toHaveLength(1);
+    expect(roadmap.skills[0].masteryProof?.capabilities).toHaveLength(2);
   });
 
   it("evaluates learner evidence into a structured result", async () => {
@@ -81,13 +90,19 @@ describe("aiService mastery evidence", () => {
       keyIdeas: ["Use elements by meaning"],
       proofTask: "Design a semantic page structure.",
       proofType: "CONCEPTUAL",
-      capabilities: ["Choose semantic elements"],
-      evaluationCriteria: ["Element choices are justified by meaning."],
+      capabilities: [
+        "Choose semantic elements",
+        "Explain accessibility implications",
+      ],
+      evaluationCriteria: [
+        "Element choices are justified by meaning.",
+        "Accessibility reasoning is technically sound.",
+      ],
       learnerEvidence: "I would use a main element for the primary content and navigation for site navigation because their roles differ.",
     });
 
     expect(evaluation.passed).toBe(true);
-    expect(evaluation.capabilities[0].demonstrated).toBe(true);
+    expect(evaluation.capabilities[0].capabilityIndex).toBe(0);
     expect(requestedModels).toEqual(["gemini-3.5-flash-lite"]);
   });
 
@@ -101,8 +116,8 @@ describe("aiService mastery evidence", () => {
         keyIdeas: ["Use elements by meaning"],
         proofTask: "Design a semantic page structure.",
         proofType: "CONCEPTUAL",
-        capabilities: ["Choose semantic elements"],
-        evaluationCriteria: ["Element choices are justified by meaning."],
+        capabilities: ["Choose semantic elements", "Explain accessibility implications"],
+        evaluationCriteria: ["Element choices are justified by meaning.", "Accessibility reasoning is technically sound."],
         learnerEvidence: "I would use semantic elements based on the role of each piece of content.",
       }),
     ).rejects.toThrow("AI mastery evaluation returned invalid JSON");
