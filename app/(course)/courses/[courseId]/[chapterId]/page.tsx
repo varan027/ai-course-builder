@@ -84,9 +84,6 @@ export default async function SkillPage({
   );
   const statusLabel = currentStatus.replace("_", " ");
   const keyIdeas = parseKeyIdeas(goalSkill.lessonKeyIdeas);
-  const hasLesson = Boolean(
-    goalSkill.lessonOverview && goalSkill.lessonContent && goalSkill.lessonPractice,
-  );
   const lessonOverview = goalSkill.lessonOverview ?? goalSkill.description;
   const lessonPractice = goalSkill.lessonPractice ?? goalSkill.projectChallenge;
 
