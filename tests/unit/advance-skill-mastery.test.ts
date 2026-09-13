@@ -4,6 +4,7 @@ import { advanceSkill } from "@/actions/advancceSkill";
 import { goalService } from "@/services/goal.service";
 import { progressService } from "@/services/progress.service";
 import { aiService } from "@/services/ai.service";
+import { AIOutputInvalidError } from "@/lib/errors/domain";
 
 vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn().mockResolvedValue({ id: "user-01" }) }));
 vi.mock("@/services/goal.service", () => ({ goalService: { getById: vi.fn() } }));
@@ -14,55 +15,71 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 describe("advanceSkill mastery evidence", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  const masteredProof = {
+  const storedProof = {
     masteryProofTask: "Design a useful HTTP request and explain how the response should be handled.",
     masteryProofType: "TECHNICAL",
-    masteryProofCapabilities: JSON.stringify(["Apply HTTP methods correctly to a realistic request."]),
-    masteryProofCriteria: JSON.stringify(["The request uses an appropriate method and the reasoning is technically sound."]),
+    masteryProofCapabilities: JSON.stringify([
+      "Apply HTTP methods correctly to a realistic request.",
+      "Explain the expected response behavior.",
+    ]),
+    masteryProofCriteria: JSON.stringify([
+      "The request uses an appropriate method and the reasoning is technically sound.",
+      "The response behavior is explained accurately.",
+    ]),
   };
 
-  it("keeps APPLYING when evidence does not demonstrate every capability", async () => {
-    vi.mocked(goalService.getById).mockResolvedValue({
-      goalSkills: [{ id: "gskill-101", skill: { title: "HTTP", description: "HTTP fundamentals" }, progress: [{ status: SkillStatus.APPLYING }], lessonOverview: "Understand HTTP requests.", lessonKeyIdeas: JSON.stringify(["Methods describe intent"]), ...masteredProof }],
-    } as never);
-    vi.mocked(aiService.evaluateMasteryProof).mockResolvedValue({
-      passed: false,
-      capabilities: [{ capability: "Apply HTTP methods", demonstrated: false }],
-      feedback: "Your response needs a clearer application of the method.",
-      retryGuidance: "Try the request again and explain why you chose the method.",
-    });
-
-    const formData = new FormData();
-    formData.set("goalId", "goal-01");
-    formData.set("goalSkillId", "gskill-101");
-    formData.set("proofAnswer", "I would use an HTTP request here.");
-
-    const result = await advanceSkill({}, formData);
-
-    expect(result).toEqual({
-      feedback: "Your response needs a clearer application of the method.",
-      retryGuidance: "Try the request again and explain why you chose the method.",
-    });
-    expect(progressService.advanceSkill).not.toHaveBeenCalled();
-  });
-
-  it("advances to mastery only after the evaluator passes all capabilities", async () => {
-    vi.mocked(goalService.getById).mockResolvedValue({
-      goalSkills: [{ id: "gskill-101", skill: { title: "HTTP", description: "HTTP fundamentals" }, progress: [{ status: SkillStatus.APPLYING }], lessonOverview: "Understand HTTP requests.", lessonKeyIdeas: JSON.stringify(["Methods describe intent"]), ...masteredProof }],
-    } as never);
-    vi.mocked(aiService.evaluateMasteryProof).mockResolvedValue({
-      passed: true,
-      capabilities: [{ capability: "Apply HTTP methods", demonstrated: true }],
-      feedback: "You demonstrated the required capability.",
-      retryGuidance: "No retry is needed.",
-    });
-
+  function form() {
     const formData = new FormData();
     formData.set("goalId", "goal-01");
     formData.set("goalSkillId", "gskill-101");
     formData.set("proofAnswer", "I would use GET when retrieving a resource because the operation reads existing data without creating a new resource.");
+    return formData;
+  }
 
-    const result = await advanceSkill({}, formData);
+  function goalWithApplyingSkill() {
+    return {
+      goalSkills: [{
+        id: "gskill-101",
+        skill: { title: "HTTP", description: "HTTP fundamentals" },
+        progress: [{ status: SkillStatus.APPLYING }],
+        lessonOverview: "Understand HTTP requests.",
+        lessonKeyIdeas: JSON.stringify(["Methods describe intent"]),
+        ...storedProof,
+      }],
+    };
+  }
+
+  it("keeps APPLYING when evidence does not demonstrate every capability", async () => {
+    vi.mocked(goalService.getById).mockResolvedValue(goalWithApplyingSkill() as never);
+    vi.mocked(aiService.evaluateMasteryProof).mockResolvedValue({
+      passed: false,
+      capabilities: [
+        { capability: "Apply HTTP methods", demonstrated: true },
+        { capability: "Explain response behavior", demonstrated: false },
+      ],
+      feedback: "Your response needs a clearer explanation of the response behavior.",
+      retryGuidance: "Explain what the client should expect after the request completes.",
+    });
+
+    const result = await advanceSkill({}, form());
+
+    expect(result.feedback).toContain("clearer explanation");
+    expect(progressService.advanceSkill).not.toHaveBeenCalled();
+  });
+
+  it("advances to mastery only after the evaluator passes all capabilities", async () => {
+    vi.mocked(goalService.getById).mockResolvedValue(goalWithApplyingSkill() as never);
+    vi.mocked(aiService.evaluateMasteryProof).mockResolvedValue({
+      passed: true,
+      capabilities: [
+        { capability: "Apply HTTP methods", demonstrated: true },
+        { capability: "Explain response behavior", demonstrated: true },
+      ],
+      feedback: "You demonstrated the required capabilities.",
+      retryGuidance: "No retry is needed.",
+    });
+
+    const result = await advanceSkill({}, form());
 
     expect(result).toEqual({});
     expect(aiService.evaluateMasteryProof).toHaveBeenCalledOnce();
@@ -74,14 +91,21 @@ describe("advanceSkill mastery evidence", () => {
       goalSkills: [{ id: "gskill-101", skill: { title: "Legacy skill", description: "Legacy" }, progress: [{ status: SkillStatus.APPLYING }] }],
     } as never);
 
-    const formData = new FormData();
-    formData.set("goalId", "goal-01");
-    formData.set("goalSkillId", "gskill-101");
-    formData.set("proofAnswer", "I can explain this skill in my own words.");
-
-    const result = await advanceSkill({}, formData);
+    const result = await advanceSkill({}, form());
 
     expect(result.error).toContain("does not have a mastery proof");
+    expect(progressService.advanceSkill).not.toHaveBeenCalled();
+  });
+
+  it("fails safely when the evaluator cannot produce a valid result", async () => {
+    vi.mocked(goalService.getById).mockResolvedValue(goalWithApplyingSkill() as never);
+    vi.mocked(aiService.evaluateMasteryProof).mockRejectedValue(
+      new AIOutputInvalidError("AI mastery evaluation returned invalid JSON"),
+    );
+
+    const result = await advanceSkill({}, form());
+
+    expect(result.error).toContain("couldn't evaluate your evidence");
     expect(progressService.advanceSkill).not.toHaveBeenCalled();
   });
 });
