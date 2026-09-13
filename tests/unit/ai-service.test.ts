@@ -66,7 +66,7 @@ describe("aiService.generateRoadmap", () => {
   it("uses the low-latency Gemini model for roadmap generation", async () => {
     await aiService.generateRoadmap("Frontend Developer");
 
-    expect(requestedModel).toBe("gemini-2.5-flash-lite");
+    expect(requestedModel).toBe("gemini-3.5-flash-lite");
   });
 
   it("generates a valid roadmap from Gemini output", async () => {
