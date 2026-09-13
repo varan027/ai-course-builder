@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import type { GoalWithMeta } from "./page";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowUpRight, Check } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface GoalGridProps {
@@ -21,9 +21,9 @@ export default function GoalGrid({ courses }: GoalGridProps) {
         hidden: {},
         visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.05 } },
       }}
-      className="grid grid-cols-1 gap-3 lg:grid-cols-2"
+      className="divide-y divide-white/[0.07] border-y border-white/[0.07]"
     >
-      {courses.map((goal) => {
+      {courses.map((goal, index) => {
         const nextGoalSkill = goal.goalSkills.find((goalSkill) => !goalSkill.mastered);
         const completed = goal.progressPercent === 100;
 
@@ -37,56 +37,35 @@ export default function GoalGrid({ courses }: GoalGridProps) {
           >
             <Link
               href={`/courses/${goal.id}`}
-              className="group block h-full rounded-[22px] outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="group grid gap-5 px-1 py-7 outline-none focus-visible:ring-2 focus-visible:ring-primary sm:grid-cols-[2.5rem_minmax(0,1fr)_minmax(13rem,20rem)_auto] sm:items-center sm:px-2"
             >
-              <article className="flex h-full flex-col rounded-[22px] border border-white/[0.07] bg-white/[0.018] transition-[border-color,background-color] duration-200 group-hover:border-white/[0.13] group-hover:bg-white/[0.028]">
-                <div className="flex-1 p-6">
-                  <div className="flex items-start justify-between gap-5">
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                        Learning journey
-                      </p>
-                      <h3 className="mt-2.5 text-xl font-semibold leading-tight tracking-[-0.02em]">
-                        {goal.title}
-                      </h3>
-                    </div>
-                    {completed && (
-                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <Check className="size-3.5" />
-                      </span>
-                    )}
-                  </div>
+              <span className="text-xs tabular-nums text-muted-foreground/50">
+                {String(index + 1).padStart(2, "0")}
+              </span>
 
-                  <div className="mt-8">
-                    <div className="mb-2 flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Mastery</span>
-                      <span className="font-medium">{goal.progressPercent}%</span>
-                    </div>
-                    <Progress value={goal.progressPercent} className="h-1" />
-                  </div>
-
-                  <div className="mt-6 flex items-center gap-5 text-xs">
-                    <span className="text-muted-foreground">{goal.totalSkills} skills</span>
-                    <span className="text-muted-foreground">{completed ? "Completed" : "In progress"}</span>
-                  </div>
-
-                  {nextGoalSkill && (
-                    <div className="mt-6 border-l border-primary/30 pl-4">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                        Next up
-                      </p>
-                      <p className="mt-1.5 text-sm font-medium">{nextGoalSkill.skill.title}</p>
-                    </div>
-                  )}
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  {completed && <Check className="size-3.5 text-primary" />}
+                  <h3 className="truncate text-lg font-medium tracking-tight transition-colors group-hover:text-primary">
+                    {goal.title}
+                  </h3>
                 </div>
-
-                <div className="flex items-center justify-between border-t border-white/[0.06] px-6 py-4">
-                  <span className="text-xs font-medium text-muted-foreground transition-colors group-hover:text-foreground">
-                    {completed ? "Review journey" : "Continue journey"}
-                  </span>
-                  <ArrowRight className="size-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-foreground" />
+                <div className="mt-3 flex items-center gap-3">
+                  <Progress value={goal.progressPercent} className="h-1 max-w-44" />
+                  <span className="text-xs text-muted-foreground">{goal.progressPercent}% mastery</span>
                 </div>
-              </article>
+              </div>
+
+              <div className="min-w-0 border-l border-white/[0.07] pl-5">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  {completed ? "Completed" : "Next up"}
+                </p>
+                <p className="mt-1.5 truncate text-sm font-medium">
+                  {nextGoalSkill?.skill.title ?? "Review your journey"}
+                </p>
+              </div>
+
+              <ArrowUpRight className="size-4 text-muted-foreground transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
             </Link>
           </motion.div>
         );
