@@ -16,8 +16,8 @@ export const MasteryProofSchema = z.object({
     "PRACTICAL",
     "CREATIVE",
   ]),
-  capabilities: z.array(z.string().min(10)).min(1).max(6),
-  evaluationCriteria: z.array(z.string().min(10)).min(1).max(8),
+  capabilities: z.array(z.string().min(10)).min(2).max(5),
+  evaluationCriteria: z.array(z.string().min(10)).min(2).max(5),
 });
 
 export const MasteryEvaluationSchema = z.object({
@@ -25,7 +25,7 @@ export const MasteryEvaluationSchema = z.object({
   capabilities: z
     .array(
       z.object({
-        capability: z.string().min(3),
+        capabilityIndex: z.number().int().nonnegative(),
         demonstrated: z.boolean(),
       }),
     )
