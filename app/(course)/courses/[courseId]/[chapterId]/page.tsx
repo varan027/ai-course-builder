@@ -3,10 +3,55 @@ import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { progressService } from "@/services/progress.service";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, CheckCircle2, Lightbulb, Target, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Lightbulb, Target, Trophy, BookOpen, ListChecks } from "lucide-react";
 import Link from "next/link";
 import SkillProgressForm from "./SkillProgressForm";
 import { getNextSkillIndex, getProgressStageIndex, PROGRESS_STAGES } from "@/lib/course-learning";
+
+function parseKeyIdeas(value: string | null) {
+  if (!value) return [];
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) && parsed.every((item) => typeof item === "string")
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function LessonContent({ content }: { content: string }) {
+  const blocks = content.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+
+  return (
+    <div className="space-y-5">
+      {blocks.map((block, index) => {
+        if (block.startsWith("### ")) {
+          return (
+            <h3 key={index} className="text-base font-semibold tracking-[-0.01em]">
+              {block.slice(4)}
+            </h3>
+          );
+        }
+
+        if (block.startsWith("## ")) {
+          return (
+            <h2 key={index} className="text-xl font-semibold tracking-[-0.02em] sm:text-2xl">
+              {block.slice(3)}
+            </h2>
+          );
+        }
+
+        return (
+          <p key={index} className="max-w-3xl whitespace-pre-wrap text-[15px] leading-7 text-foreground/90">
+            {block.replace(/^# /, "")}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
 
 export default async function SkillPage({
   params,
@@ -38,6 +83,12 @@ export default async function SkillPage({
     index,
   );
   const statusLabel = currentStatus.replace("_", " ");
+  const keyIdeas = parseKeyIdeas(goalSkill.lessonKeyIdeas);
+  const hasLesson = Boolean(
+    goalSkill.lessonOverview && goalSkill.lessonContent && goalSkill.lessonPractice,
+  );
+  const lessonOverview = goalSkill.lessonOverview ?? goalSkill.description;
+  const lessonPractice = goalSkill.lessonPractice ?? goalSkill.projectChallenge;
 
   return (
     <article className="animate-in fade-in duration-500">
@@ -73,6 +124,53 @@ export default async function SkillPage({
       </header>
 
       <div className="space-y-5 py-9 sm:py-10">
+        <section className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-8">
+          <div className="flex items-center gap-2">
+            <BookOpen className="size-4 text-primary" />
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              Learn
+            </p>
+          </div>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-foreground/90 sm:text-lg">
+            {lessonOverview}
+          </p>
+
+          {keyIdeas.length > 0 && (
+            <div className="mt-8 border-t border-white/[0.07] pt-7">
+              <div className="flex items-center gap-2">
+                <ListChecks className="size-4 text-primary" />
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  Key ideas
+                </p>
+              </div>
+              <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                {keyIdeas.map((idea) => (
+                  <li key={idea} className="rounded-xl border border-white/[0.06] bg-black/10 p-4 text-sm leading-6 text-foreground/90">
+                    {idea}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {goalSkill.lessonContent ? (
+          <section className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-8">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              Lesson
+            </p>
+            <div className="mt-6">
+              <LessonContent content={goalSkill.lessonContent} />
+            </div>
+          </section>
+        ) : (
+          <section className="rounded-2xl border border-dashed border-white/[0.08] p-6 sm:p-8">
+            <p className="text-sm leading-6 text-muted-foreground">
+              This journey was created before structured lessons were introduced. Your existing skill context is still available below. Create a new goal to get AI-generated lessons stored with every skill.
+            </p>
+          </section>
+        )}
+
         <section className="grid gap-5 sm:grid-cols-2">
           <div className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7">
             <Lightbulb className="size-4 text-primary" />
@@ -89,9 +187,9 @@ export default async function SkillPage({
         <section className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7">
           <div className="flex items-center gap-2">
             <Trophy className="size-4 text-primary" />
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Project challenge</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Practice</p>
           </div>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-foreground/90">{goalSkill.projectChallenge}</p>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-foreground/90">{lessonPractice}</p>
         </section>
 
         {goalSkill.dependencies.length > 0 && (
