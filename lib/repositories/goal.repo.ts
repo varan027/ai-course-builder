@@ -22,6 +22,13 @@ type CreateGoalInput = {
       projectChallenge: string;
     };
 
+    lesson: {
+      overview: string;
+      keyIdeas: string[];
+      content: string;
+      practice: string;
+    };
+
     prerequisites: string[];
 
     youtubeQuery: string;
@@ -71,6 +78,11 @@ export const goalRepository = {
             whyImportant: skill.context.whyImportant,
             milestone: skill.context.milestone,
             projectChallenge: skill.context.projectChallenge,
+
+            lessonOverview: skill.lesson.overview,
+            lessonKeyIdeas: JSON.stringify(skill.lesson.keyIdeas),
+            lessonContent: skill.lesson.content,
+            lessonPractice: skill.lesson.practice,
           },
         });
 
