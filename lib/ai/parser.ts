@@ -1,8 +1,8 @@
 import { validateRoadmap } from "../domain/roadmap-validation";
 import { AIOutputInvalidError } from "../errors/domain";
-import { RoadmapSchema } from "./schema";
+import { GeneratedRoadmapSchema, RoadmapSchema } from "./schema";
 
-export function parseRoadmap(rawText: string) {
+function parseWithSchema(rawText: string, schema: typeof RoadmapSchema | typeof GeneratedRoadmapSchema) {
   let parsed: unknown;
 
   try {
@@ -11,9 +11,9 @@ export function parseRoadmap(rawText: string) {
     throw new AIOutputInvalidError("AI returned invalid JSON");
   }
 
-  const result = RoadmapSchema.safeParse(parsed);
+  const result = schema.safeParse(parsed);
 
-  if(!result.success) {
+  if (!result.success) {
     throw new AIOutputInvalidError("AI output does not match RoadmapSchema");
   }
 
@@ -24,4 +24,12 @@ export function parseRoadmap(rawText: string) {
   }
 
   return result.data;
+}
+
+export function parseRoadmap(rawText: string) {
+  return parseWithSchema(rawText, RoadmapSchema);
+}
+
+export function parseGeneratedRoadmap(rawText: string) {
+  return parseWithSchema(rawText, GeneratedRoadmapSchema);
 }
