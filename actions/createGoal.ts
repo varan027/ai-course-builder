@@ -41,8 +41,6 @@ export async function createGoal(
       throw err;
     }
 
-    console.error("[createGoal] failed:", err);
-
     if (err instanceof AIOutputInvalidError) {
       return {
         error: "We couldn't generate a valid roadmap. Please try again.",
