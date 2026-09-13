@@ -1,4 +1,9 @@
-import { MasteryEvaluationSchema, MasteryProofSchema, type MasteryEvaluation, type MasteryProof } from "@/lib/ai/schema";
+import {
+  MasteryEvaluationSchema,
+  MasteryProofSchema,
+  type MasteryEvaluation,
+  type MasteryProof,
+} from "@/lib/ai/schema";
 
 export function parseMasteryProof(input: {
   task: string | null;
@@ -31,7 +36,12 @@ export function canAdvanceToMastery(
   requiredCapabilityCount = 1,
 ): boolean {
   if (!evaluation || !evaluation.passed) return false;
-  if (evaluation.capabilities.length < requiredCapabilityCount) return false;
+  if (evaluation.capabilities.length !== requiredCapabilityCount) return false;
+
+  const indexes = evaluation.capabilities.map((item) => item.capabilityIndex);
+  if (new Set(indexes).size !== requiredCapabilityCount) return false;
+  if (indexes.some((index) => index < 0 || index >= requiredCapabilityCount)) return false;
+
   return evaluation.capabilities.every((item) => item.demonstrated);
 }
 
