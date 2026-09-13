@@ -1,9 +1,9 @@
-import { logout } from "@/actions/logout";
 import { getCurrentUser } from "@/lib/auth";
 import { goalService } from "@/services/goal.service";
 import { progressService } from "@/services/progress.service";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ArrowUpRight, CheckCircle2, CircleDashed, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import GoalGrid from "./GoalGrid";
@@ -36,17 +36,10 @@ export default async function DashboardPage() {
   const goalsWithMeta: GoalWithMeta[] = await Promise.all(
     goals.map(async (goal) => {
       const progress = await progressService.getProgress(user.id, goal.id);
-
-      const masteredCount = progress.filter(
-        (p) => p.status === "MASTERED",
-      ).length;
-
+      const masteredCount = progress.filter((p) => p.status === "MASTERED").length;
       const totalSkills = goal.goalSkills.length;
-
       const masteredIds = new Set(
-        progress
-          .filter((p) => p.status === "MASTERED")
-          .map((p) => p.goalSkillId),
+        progress.filter((p) => p.status === "MASTERED").map((p) => p.goalSkillId),
       );
 
       return {
@@ -57,9 +50,7 @@ export default async function DashboardPage() {
           position: goalSkill.position,
           projectChallenge: goalSkill.projectChallenge,
           mastered: masteredIds.has(goalSkill.id),
-          skill: {
-            title: goalSkill.skill.title,
-          },
+          skill: { title: goalSkill.skill.title },
         })),
         totalSkills,
         progressPercent:
@@ -69,160 +60,131 @@ export default async function DashboardPage() {
   );
 
   const currentGoal = goalsWithMeta[0];
-
-  const totalSkills = goalsWithMeta.reduce(
-    (sum, goal) => sum + goal.totalSkills,
-    0,
-  );
-
-  const nextSkill = currentGoal?.goalSkills.find(
-    (goalSkill) => !goalSkill.mastered,
-  );
-
+  const totalSkills = goalsWithMeta.reduce((sum, goal) => sum + goal.totalSkills, 0);
+  const nextSkill = currentGoal?.goalSkills.find((goalSkill) => !goalSkill.mastered);
   const masteredSkills = goalsWithMeta.reduce(
-    (sum, goal) =>
-      sum + Math.round((goal.progressPercent / 100) * goal.totalSkills),
+    (sum, goal) => sum + Math.round((goal.progressPercent / 100) * goal.totalSkills),
     0,
   );
 
   return (
-    <div className="min-h-screen bg-[#050505]">
-      <header className="border-b border-white/10 bg-[#0b0b0b]">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/dashboard">
-            <div>
-              <div className="text-white font-semibold tracking-tight">
-                Syllarc
-              </div>
-
-              <div className="text-xs text-muted-foreground">
-                Learning Operating System
-              </div>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-4">
-            <Link href="/create-goal">
-              <Button
-                variant="ghost"
-                className="text-black bg-primary hover:bg-primary/90 cursor-pointer"
-              >
-                New Goal
-              </Button>
-            </Link>
-
-            <form action={logout}>
-              <Button
-                variant="ghost"
-                className="hover:text-red-800 cursor-pointer"
-              >
-                Logout
-              </Button>
-            </form>
-          </div>
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+      <div className="mb-10 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            Overview
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Your learning workspace
+          </h1>
         </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-12 space-y-8">
-        <section className="rounded-3xl border border-white/10 bg-linear-to-b from-[#111111] to-[#0c0c0c] p-10">
-          <div className="space-y-8">
-            <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                Current Goal
-              </p>
+        <Button asChild className="shrink-0">
+          <Link href="/create-goal">
+            New Goal
+            <ArrowUpRight className="size-4" />
+          </Link>
+        </Button>
+      </div>
 
-              <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mt-4">
-                {currentGoal?.title ?? "Create your first goal"}
-              </h1>
-            </div>
-
-            <div className="max-w-md space-y-2">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Progress</span>
-
-                <span>{currentGoal?.progressPercent ?? 0}%</span>
+      <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025]">
+        <div className="p-6 sm:p-8 lg:p-10">
+          <div className="flex flex-wrap items-start justify-between gap-6">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-primary">
+                <Target className="size-4" />
+                Current goal
               </div>
-
-              <Progress value={currentGoal?.progressPercent ?? 0} />
+              <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                {currentGoal?.title ?? "Create your first goal"}
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
+                {currentGoal
+                  ? "Keep moving through your journey. Your next step is already waiting."
+                  : "Tell Syllarc what you want to become and generate a personalized learning path."}
+              </p>
             </div>
 
             {currentGoal && (
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                    Next Skill
-                  </p>
-
-                  <p className="text-2xl font-medium mt-3">
-                    {nextSkill?.skill.title}
-                  </p>
+              <div className="text-right">
+                <div className="text-3xl font-semibold tracking-tight">
+                  {currentGoal.progressPercent}%
                 </div>
-
-                <div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                    Project Challenge
-                  </p>
-
-                  <p className="text-2xl font-medium mt-3">
-                    {nextSkill?.projectChallenge ?? "No challenge yet"}
-                  </p>
-                </div>
+                <div className="mt-1 text-xs text-muted-foreground">mastery</div>
               </div>
             )}
           </div>
-        </section>
 
-        <section className="grid md:grid-cols-3 gap-4">
-          <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              Goals
-            </p>
-
-            <p className="text-3xl font-semibold mt-3">{goals.length}</p>
+          <div className="mt-8 max-w-2xl">
+            <div className="mb-2 flex justify-between text-xs text-muted-foreground">
+              <span>Journey progress</span>
+              <span>{currentGoal?.progressPercent ?? 0}%</span>
+            </div>
+            <Progress value={currentGoal?.progressPercent ?? 0} className="h-1.5" />
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              Skills
+          {currentGoal && (
+            <div className="mt-8 grid gap-px overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.07] sm:grid-cols-2">
+              <div className="bg-[#0a0a0a] p-5">
+                <p className="text-xs text-muted-foreground">Next skill</p>
+                <p className="mt-2 text-base font-medium">{nextSkill?.skill.title ?? "Journey complete"}</p>
+              </div>
+              <div className="bg-[#0a0a0a] p-5">
+                <p className="text-xs text-muted-foreground">Project challenge</p>
+                <p className="mt-2 text-base font-medium">
+                  {nextSkill?.projectChallenge ?? "Choose another goal to keep building"}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+          <CircleDashed className="size-4 text-muted-foreground" />
+          <p className="mt-5 text-xs text-muted-foreground">Goals</p>
+          <p className="mt-1 text-2xl font-semibold">{goals.length}</p>
+        </div>
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+          <Target className="size-4 text-muted-foreground" />
+          <p className="mt-5 text-xs text-muted-foreground">Skills</p>
+          <p className="mt-1 text-2xl font-semibold">{totalSkills}</p>
+        </div>
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+          <CheckCircle2 className="size-4 text-muted-foreground" />
+          <p className="mt-5 text-xs text-muted-foreground">Mastered</p>
+          <p className="mt-1 text-2xl font-semibold">{masteredSkills}</p>
+        </div>
+      </section>
+
+      <section id="journeys" className="mt-12">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              Learning journeys
             </p>
-
-            <p className="text-3xl font-semibold mt-3">{totalSkills}</p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight">Your roadmaps</h2>
           </div>
-
-          <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              Mastered
-            </p>
-
-            <p className="text-3xl font-semibold mt-3">{masteredSkills}</p>
-          </div>
-        </section>
+          {goals.length > 0 && (
+            <span className="text-xs text-muted-foreground">{goals.length} active</span>
+          )}
+        </div>
 
         {goals.length === 0 ? (
-          <section className="rounded-3xl border border-white/10 bg-[#0f0f0f] py-20 text-center">
-            <h2 className="text-2xl font-semibold mb-4">
-              Start Your First Learning Journey
-            </h2>
-
-            <p className="text-muted-foreground mb-8">
-              Tell Syllarc what you want to become. We'll generate the roadmap.
+          <div className="rounded-2xl border border-dashed border-white/[0.12] bg-white/[0.015] px-6 py-14 text-center">
+            <h3 className="text-lg font-semibold">Start your first learning journey</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+              Give Syllarc a goal. We&apos;ll turn it into a structured roadmap of skills and projects.
             </p>
-
-            <Link href="/create-goal">
-              <Button>Create Goal</Button>
-            </Link>
-          </section>
+            <Button asChild className="mt-6">
+              <Link href="/create-goal">Create Goal</Link>
+            </Button>
+          </div>
         ) : (
-          <section>
-            <div className="mb-6">
-              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                Your Roadmaps
-              </p>
-            </div>
-            <GoalGrid courses={goalsWithMeta} />
-          </section>
+          <GoalGrid courses={goalsWithMeta} />
         )}
-      </main>
+      </section>
     </div>
   );
 }
