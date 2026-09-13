@@ -1,5 +1,6 @@
 import { advanceSkill } from "@/actions/advancceSkill";
 import { progressService } from "@/services/progress.service";
+import { goalService } from "@/services/goal.service";
 import { expect, it, vi } from "vitest";
 import { PrerequisitesNotSatisfiedError } from "@/lib/errors/domain";
 import { getCurrentUser } from "@/lib/auth";
@@ -17,6 +18,12 @@ function createFormData() {
 
 vi.mock("@/lib/auth", () => ({
   getCurrentUser: vi.fn(),
+}));
+
+vi.mock("@/services/goal.service", () => ({
+  goalService: {
+    getById: vi.fn(),
+  },
 }));
 
 vi.mock("@/services/progress.service", () => ({
@@ -37,6 +44,10 @@ it("should throw an error if prerequisites are not satisfied", async () => {
     createdAt: new Date(),
   });
 
+  vi.mocked(goalService.getById).mockResolvedValue({
+    goalSkills: [],
+  } as never);
+
   vi.mocked(progressService.advanceSkill).mockRejectedValue(
     new PrerequisitesNotSatisfiedError(),
   );
@@ -56,6 +67,10 @@ it("should revalidate the path after successfully advancing a skill", async () =
     createdAt: new Date(),
   });
 
+  vi.mocked(goalService.getById).mockResolvedValue({
+    goalSkills: [],
+  } as never);
+
   vi.mocked(progressService.advanceSkill).mockResolvedValue({
     id: "skillprogress-01",
     status: SkillStatus.EXPLORING,
@@ -68,9 +83,9 @@ it("should revalidate the path after successfully advancing a skill", async () =
   await advanceSkill({}, createFormData());
 
   expect(progressService.advanceSkill).toHaveBeenCalledWith(
-  "user-01",
-  "gskill-101",
-);
+    "user-01",
+    "gskill-101",
+  );
 
   expect(revalidatePath).toHaveBeenCalledWith("/courses/goal-abc");
 });
