@@ -17,7 +17,7 @@ describe("renderLessonContent", () => {
       "```ts",
       "const response = await fetch('/api/health');",
       "```",
-    ].join("\\n");
+    ].join("\n");
 
     expect(renderLessonContent(markdown)).toEqual([
       { type: "heading", level: 2, text: "Request lifecycle" },
@@ -33,7 +33,7 @@ describe("renderLessonContent", () => {
   });
 
   it("supports ordered lists", () => {
-    expect(renderLessonContent("1. First\\n2. Second")).toEqual([
+    expect(renderLessonContent("1. First\n2. Second")).toEqual([
       { type: "list", ordered: true, items: ["First", "Second"] },
     ]);
   });
