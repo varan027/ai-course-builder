@@ -1,32 +1,41 @@
-export type MasteryProofResult = {
-  passed: boolean;
-  reason: string;
-};
+export type MasteryProofResult = boolean;
 
-export function evaluateMasteryProof(answer: string): MasteryProofResult {
-  const normalized = answer.trim();
+export function evaluateMasteryProof(
+  _question: string,
+  requiredEvidence: string[],
+  answer: string,
+): MasteryProofResult {
+  const normalizedAnswer = answer.toLowerCase();
 
-  if (normalized.length < 30) {
-    return {
-      passed: false,
-      reason: "Give a more complete explanation showing how you would apply the skill.",
-    };
-  }
+  if (normalizedAnswer.trim().length < 30) return false;
 
-  return {
-    passed: true,
-    reason: "Your response is detailed enough to count as evidence of application.",
-  };
+  const matchedEvidence = requiredEvidence.filter((evidence) => {
+    const keywords = evidence
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((word) => word.length >= 4);
+
+    return keywords.length === 0 || keywords.some((keyword) => normalizedAnswer.includes(keyword));
+  });
+
+  return matchedEvidence.length >= Math.min(2, requiredEvidence.length);
 }
 
-export function getMasteryProofPrompt(skillTitle: string, practice: string): string {
+export function getMasteryProofPrompt(
+  skillTitle: string,
+  practice: string,
+  question?: string,
+): string {
   return [
     `You have just studied the skill "${skillTitle}".`,
     "",
     "Prove that you can apply it rather than simply recall its definition.",
     `Practice context: ${practice}`,
+    question ? `Checkpoint question: ${question}` : "",
     "",
     "Write a short response explaining what you would do, why you would do it, and what result you would expect.",
-    "Aim for at least 30 characters and focus on concrete application.",
-  ].join("\n");
+    "Focus on concrete application and evidence from the skill.",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
