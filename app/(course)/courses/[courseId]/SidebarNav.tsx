@@ -9,109 +9,60 @@ type SidebarNavProps = {
   goalSkills: {
     id: string;
     position: number;
-    skill: {
-      title: string;
-    };
+    skill: { title: string };
     dependencies: {
       id: string;
-      prerequisiteGoalSkill: {
-        skill: {
-          title: string;
-        };
-      };
+      prerequisiteGoalSkill: { skill: { title: string } };
     }[];
   }[];
   completedSet: Set<string>;
 };
 
-export default function SidebarNav({
-  courseId,
-  goalSkills,
-  completedSet,
-}: SidebarNavProps) {
+export default function SidebarNav({ courseId, goalSkills, completedSet }: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
-    <ul className="space-y-3">
+    <ol className="space-y-1">
       {goalSkills.map((goalSkill, index) => {
         const href = `/courses/${courseId}/${index}`;
-
         const isDone = completedSet.has(goalSkill.id);
-
         const isActive = pathname === href;
 
         return (
           <li key={goalSkill.id}>
             <Link
               href={href}
-              className={`
-                group
-                block
-                rounded-2xl
-                border
-                transition-all
-                duration-300
-                ${
-                  isActive
-                    ? "border-primary/30 bg-primary/10"
-                    : "border-white/5 hover:border-white/10 hover:bg-white/[0.02]"
-                }
-              `}
+              aria-current={isActive ? "step" : undefined}
+              className={`group flex items-center gap-3 rounded-xl px-3 py-3 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary ${
+                isActive
+                  ? "bg-white/[0.06] text-foreground"
+                  : "text-muted-foreground hover:bg-white/[0.035] hover:text-foreground"
+              }`}
             >
-              <div className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">
-                    {isDone ? (
-                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-black">
-                        <Check className="w-3.5 h-3.5" />
-                      </div>
-                    ) : (
-                      <Circle className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-xs uppercase tracking-widest mb-2 ${
-                        isActive
-                          ? "text-primary"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      Skill {index + 1}
-                    </p>
-
-                    <h4
-                      className={`font-medium leading-snug ${
-                        isActive
-                          ? "text-white"
-                          : "text-white/90"
-                      }`}
-                    >
-                      {goalSkill.skill.title}
-                    </h4>
-
-                    {goalSkill.dependencies.length > 0 && (
-                      <p className="text-xs text-muted-foreground mt-2 truncate">
-                        Depends on {" "}
-                        {goalSkill.dependencies.map((dependency) => dependency.prerequisiteGoalSkill.skill.title).join(", ")}
-                      </p>
-                    )}
-                  </div>
-
-                  <ArrowRight
-                    className={`w-4 h-4 transition-all ${
-                      isActive
-                        ? "text-primary translate-x-1"
-                        : "text-muted-foreground group-hover:translate-x-1"
-                    }`}
-                  />
-                </div>
-              </div>
+              <span className="flex size-6 shrink-0 items-center justify-center">
+                {isDone ? (
+                  <span className="flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Check className="size-3" />
+                  </span>
+                ) : isActive ? (
+                  <span className="size-2 rounded-full bg-primary" />
+                ) : (
+                  <Circle className="size-4" />
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className={`mt-0.5 block truncate text-sm ${isActive ? "font-medium" : ""}`}>
+                  {goalSkill.skill.title}
+                </span>
+              </span>
+              {isActive && <ArrowRight className="size-3.5 shrink-0 text-primary" />}
             </Link>
           </li>
         );
       })}
-    </ul>
+    </ol>
   );
 }
