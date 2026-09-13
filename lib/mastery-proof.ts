@@ -1,28 +1,38 @@
-export type MasteryProofResult = boolean;
+import { MasteryEvaluationSchema, MasteryProofSchema, type MasteryEvaluation, type MasteryProof } from "@/lib/ai/schema";
 
-export function evaluateMasteryProof(
-  _question: string,
-  requiredEvidence: string[],
-  answer: string,
-): MasteryProofResult {
-  const normalizedAnswer = answer.toLowerCase();
+export function parseMasteryProof(input: {
+  task: string | null;
+  proofType: string | null;
+  capabilities: string | null;
+  evaluationCriteria: string | null;
+}): MasteryProof | null {
+  if (!input.task || !input.proofType || !input.capabilities || !input.evaluationCriteria) {
+    return null;
+  }
 
-  if (normalizedAnswer.trim().length < 30) return false;
-
-  const matchedEvidence = requiredEvidence.filter((evidence) => {
-    const keywords = evidence
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((word) => word.length >= 4);
-
-    return keywords.length === 0 || keywords.some((keyword) => normalizedAnswer.includes(keyword));
-  });
-
-  return matchedEvidence.length >= Math.min(2, requiredEvidence.length);
+  try {
+    const capabilities = JSON.parse(input.capabilities);
+    const evaluationCriteria = JSON.parse(input.evaluationCriteria);
+    const result = MasteryProofSchema.safeParse({
+      task: input.task,
+      proofType: input.proofType,
+      capabilities,
+      evaluationCriteria,
+    });
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
 }
 
-export function canAdvanceToMastery(proofPassed: boolean): boolean {
-  return proofPassed;
+export function parseMasteryEvaluation(input: unknown): MasteryEvaluation | null {
+  const result = MasteryEvaluationSchema.safeParse(input);
+  return result.success ? result.data : null;
+}
+
+export function canAdvanceToMastery(evaluation: MasteryEvaluation | null): boolean {
+  if (!evaluation || !evaluation.passed) return false;
+  return evaluation.capabilities.length > 0 && evaluation.capabilities.every((item) => item.demonstrated);
 }
 
 export function getMasteryProofPrompt(
@@ -38,8 +48,5 @@ export function getMasteryProofPrompt(
     question ? `Checkpoint question: ${question}` : "",
     "",
     "Write a short response explaining what you would do, why you would do it, and what result you would expect.",
-    "Focus on concrete application and evidence from the skill.",
-  ]
-    .filter(Boolean)
-    .join("\n");
+  ].filter(Boolean).join("\n");
 }
