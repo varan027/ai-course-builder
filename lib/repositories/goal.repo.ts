@@ -153,6 +153,11 @@ export const goalRepository = {
                 prerequisiteGoalSkill: {
                   include: {
                     skill: true,
+                    progress: {
+                      where: {
+                        userId: ownerId,
+                      },
+                    },
                   },
                 },
               },

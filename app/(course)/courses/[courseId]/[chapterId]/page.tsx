@@ -1,16 +1,15 @@
 import { goalService } from "@/services/goal.service";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { advanceSkill } from "@/actions/advancceSkill";
 import { progressService } from "@/services/progress.service";
 import { Button } from "@/components/ui/button";
 import {
-  CheckCircle2,
   ArrowLeft,
   ArrowRight,
   Trophy,
   Target,
   Lightbulb,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import SkillProgressForm from "./SkillProgressForm";
@@ -40,9 +39,23 @@ export default async function SkillPage({
 
   const progress = await progressService.getProgress(user.id, courseId);
 
-  const isCompleted = progress.some(
-    (p) => p.goalSkillId === goalSkill.id && p.status === "MASTERED",
-  );
+  const skillProgress = progress.find((p) => p.goalSkillId === goalSkill.id);
+
+  const currentStatus = skillProgress?.status ?? "NOT_STARTED";
+
+  const isCompleted = currentStatus === "MASTERED";
+
+  const statusLabel = currentStatus.replace("_", " ");
+
+  const progressionStages = [
+    "NOT_STARTED",
+    "EXPLORING",
+    "PRACTICING",
+    "APPLYING",
+    "MASTERED",
+  ] as const;
+
+  const currentStageIndex = progressionStages.indexOf(currentStatus);
 
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
@@ -66,6 +79,40 @@ export default async function SkillPage({
         <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl">
           {goalSkill.whyImportant}
         </p>
+
+        <div className="mt-8 rounded-3xl border border-white/10 bg-[#0f0f0f] p-6">
+          <div className="flex items-center justify-between mb-5">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
+              Progress
+            </p>
+
+            <p className="text-sm text-primary font-medium">{statusLabel}</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {progressionStages.map((stage, stageIndex) => {
+              const isReached = stageIndex <= currentStageIndex;
+
+              return (
+                <div key={stage} className="flex-1">
+                  <div
+                    className={`h-2 rounded-full ${
+                      isReached ? "bg-primary" : "bg-white/10"
+                    }`}
+                  />
+
+                  <p
+                    className={`mt-2 text-[10px] uppercase tracking-wider ${
+                      isReached ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    {stage.replace("_", " ")}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6 mb-10">
@@ -115,14 +162,43 @@ export default async function SkillPage({
           </p>
 
           <div className="flex flex-wrap gap-3">
-            {goalSkill.dependencies.map((dependency) => (
-              <span
-                key={dependency.id}
-                className="px-4 py-2 rounded-full bg-white/5 border border-white/5 text-sm"
-              >
-                {dependency.prerequisiteGoalSkill.skill.title}
-              </span>
-            ))}
+            {goalSkill.dependencies.map((dependency) => {
+              const isPrerequisiteMastered =
+                dependency.prerequisiteGoalSkill.progress.some(
+                  (p) => p.status === "MASTERED",
+                );
+
+              return (
+                <div
+                  key={dependency.id}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
+                    isPrerequisiteMastered
+                      ? "bg-green-500/5 border-green-500/10"
+                      : "bg-white/5 border-white/5"
+                  }`}
+                >
+                  {isPrerequisiteMastered ? (
+                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  ) : (
+                    <span className="w-4 h-4 rounded-full border border-white/20" />
+                  )}
+
+                  <span className="text-sm">
+                    {dependency.prerequisiteGoalSkill.skill.title}
+                  </span>
+                </div>
+              );
+            })}
+            {goalSkill.dependencies.some(
+              (dependency) =>
+                !dependency.prerequisiteGoalSkill.progress.some(
+                  (p) => p.status === "MASTERED",
+                ),
+            ) && (
+              <p className="mt-5 text-sm text-muted-foreground ">
+                Complete all prerequisites before advancing this skill.
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -150,16 +226,14 @@ export default async function SkillPage({
 
       <div className="border-t border-white/10 pt-10">
         <div className="flex flex-col items-center gap-6">
-          {isCompleted && (
-            <div className="rounded-2xl border border-green-500/20 bg-green-500/5 px-5 py-3 text-green-400">
-              ✓ Skill Mastered
-            </div>
-          )}
+          <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs uppercase tracking-[0.2em]">
+            {statusLabel}
+          </span>
 
           <SkillProgressForm
             goalId={courseId}
             goalSkillId={goalSkill.id}
-            isCompleted={isCompleted}
+            currentStatus={currentStatus}
           />
 
           <div className="flex justify-between w-full">
