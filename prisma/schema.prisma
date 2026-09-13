@@ -60,6 +60,11 @@ model GoalSkill {
   milestone String
   projectChallenge String
 
+  lessonOverview String?
+  lessonKeyIdeas String?
+  lessonContent String?
+  lessonPractice String?
+
   dependencies GoalSkillDependency[] @relation("DependentSkill")
   dependents   GoalSkillDependency[] @relation("PrerequisiteSkill")
 
