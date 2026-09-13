@@ -10,121 +10,83 @@ interface GoalGridProps {
   courses: GoalWithMeta[];
 }
 
-export default function GoalGrid({
-  courses,
-}: GoalGridProps) {
+export default function GoalGrid({ courses }: GoalGridProps) {
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={{
         hidden: {},
-        visible: {
-          transition: {
-            staggerChildren: 0.06,
-          },
-        },
+        visible: { transition: { staggerChildren: 0.05 } },
       }}
-      className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+      className="grid grid-cols-1 gap-4 lg:grid-cols-2"
     >
       {courses.map((goal) => {
         const nextGoalSkill = goal.goalSkills.find((goalSkill) => !goalSkill.mastered);
+        const completed = goal.progressPercent === 100;
 
         return (
           <motion.div
             key={goal.id}
             variants={{
-              hidden: {
-                opacity: 0,
-                y: 20,
-              },
-              visible: {
-                opacity: 1,
-                y: 0,
-              },
+              hidden: { opacity: 0, y: 12 },
+              visible: { opacity: 1, y: 0 },
             }}
           >
             <Link
               href={`/courses/${goal.id}`}
-              className="group block h-full"
+              className="group block h-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <div className="h-full rounded-3xl border border-white/10 bg-[#0c0c0c] hover:border-white/20 transition-all duration-300 overflow-hidden">
-                <div className="p-8 space-y-8">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-3">
-                        Goal
+              <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.02] transition-colors duration-200 group-hover:border-white/[0.16] group-hover:bg-white/[0.035]">
+                <div className="flex-1 p-5 sm:p-6">
+                  <div className="flex items-start justify-between gap-5">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                        Learning journey
                       </p>
-
-                      <h3 className="text-2xl font-semibold tracking-tight leading-tight">
+                      <h3 className="mt-3 text-xl font-semibold leading-tight tracking-tight">
                         {goal.title}
                       </h3>
                     </div>
-
-                    <Target className="w-5 h-5 text-muted-foreground" />
+                    <Target className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                   </div>
 
-                  <div>
-                    <div className="flex justify-between text-sm mb-3">
-                      <span className="text-muted-foreground">
-                        Progress
-                      </span>
-
-                      <span className="font-medium">
-                        {goal.progressPercent}%
-                      </span>
+                  <div className="mt-7">
+                    <div className="mb-2 flex justify-between text-xs text-muted-foreground">
+                      <span>Mastery</span>
+                      <span>{goal.progressPercent}%</span>
                     </div>
-
-                    <Progress
-                      value={goal.progressPercent}
-                    />
+                    <Progress value={goal.progressPercent} className="h-1.5" />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-4">
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
-                        Skills
-                      </p>
-
-                      <p className="text-2xl font-semibold">
-                        {goal.totalSkills}
-                      </p>
+                  <div className="mt-6 flex items-center gap-6 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Skills</p>
+                      <p className="mt-1 font-medium">{goal.totalSkills}</p>
                     </div>
-
-                    <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-4">
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
-                        Status
-                      </p>
-
-                      <p className="text-sm font-medium">
-                        {goal.progressPercent === 100
-                          ? "Completed"
-                          : "In Progress"}
-                      </p>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Status</p>
+                      <p className="mt-1 font-medium">{completed ? "Completed" : "In progress"}</p>
                     </div>
                   </div>
 
                   {nextGoalSkill && (
-                    <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
-                      <p className="text-[10px] uppercase tracking-widest text-primary mb-2">
-                        Next Skill
+                    <div className="mt-6 rounded-xl border border-primary/10 bg-primary/[0.04] px-4 py-3">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-primary">
+                        Next skill
                       </p>
-
-                      <p className="font-medium">
-                        {nextGoalSkill.skill.title}
-                      </p>
+                      <p className="mt-1.5 text-sm font-medium">{nextGoalSkill.skill.title}</p>
                     </div>
                   )}
                 </div>
 
-                <div className="border-t border-white/5 px-8 py-5 flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Continue Journey
+                <div className="flex items-center justify-between border-t border-white/[0.07] px-5 py-4 sm:px-6">
+                  <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">
+                    {completed ? "Review journey" : "Continue journey"}
                   </span>
-
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </div>
-              </div>
+              </article>
             </Link>
           </motion.div>
         );
