@@ -7,7 +7,6 @@
   --radius: 0.75rem;
 }
 
-/* Replace your .dark section in app/globals.css */
 .dark {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
@@ -39,40 +38,41 @@
   border-radius: 10px;
 }
 
-/*TAILWIND V4 THEME TOKENS*/
-
 @theme {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
-
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
-
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
-
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
-
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
-
   --color-border: hsl(var(--border));
   --color-ring: hsl(var(--ring));
-
   --radius-lg: var(--radius);
 }
-
-/*BASE STYLES*/
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
 
+  html {
+    background: var(--color-background);
+    color-scheme: dark;
+  }
+
   body {
+    margin: 0;
+    min-width: 320px;
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-feature-settings: "ss01", "ss02";
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.25);
   }
 }
