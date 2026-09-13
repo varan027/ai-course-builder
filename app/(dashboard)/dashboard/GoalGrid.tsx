@@ -3,127 +3,81 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { GoalWithMeta } from "./page";
-import { ArrowRight, Target } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, Target } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface GoalGridProps {
   courses: GoalWithMeta[];
 }
 
-export default function GoalGrid({
-  courses,
-}: GoalGridProps) {
+export default function GoalGrid({ courses }: GoalGridProps) {
   return (
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={{
-        hidden: {},
-        visible: {
-          transition: {
-            staggerChildren: 0.06,
-          },
-        },
-      }}
-      className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+      className="grid grid-cols-1 gap-5 lg:grid-cols-2"
     >
       {courses.map((goal) => {
-        const nextSkill =
-          goal.roadmap.skills?.[0];
+        const nextSkill = goal.roadmap.skills?.[goal.nextSkillIndex];
+        const isComplete = goal.progressPercent === 100;
 
         return (
           <motion.div
             key={goal.id}
-            variants={{
-              hidden: {
-                opacity: 0,
-                y: 20,
-              },
-              visible: {
-                opacity: 1,
-                y: 0,
-              },
-            }}
+            variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
           >
-            <Link
-              href={`/courses/${goal.id}`}
-              className="group block h-full"
-            >
-              <div className="h-full rounded-3xl border border-white/10 bg-[#0c0c0c] hover:border-white/20 transition-all duration-300 overflow-hidden">
-                <div className="p-8 space-y-8">
-                  <div className="flex items-start justify-between">
+            <Link href={`/courses/${goal.id}`} className="group block h-full">
+              <div className="flex h-full flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#0d0d0d] transition duration-300 hover:-translate-y-0.5 hover:border-white/20 hover:bg-[#101010]">
+                <div className="p-7 md:p-8">
+                  <div className="flex items-start justify-between gap-6">
                     <div>
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-3">
-                        Goal
-                      </p>
-
-                      <h3 className="text-2xl font-semibold tracking-tight leading-tight">
-                        {goal.title}
-                      </h3>
+                      <div className="mb-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                        <Target className="h-3.5 w-3.5" />
+                        Learning path
+                      </div>
+                      <h3 className="text-2xl font-semibold tracking-tight">{goal.title}</h3>
                     </div>
-
-                    <Target className="w-5 h-5 text-muted-foreground" />
+                    {isComplete ? (
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Circle className="h-5 w-5 text-white/20" />
+                    )}
                   </div>
 
-                  <div>
-                    <div className="flex justify-between text-sm mb-3">
-                      <span className="text-muted-foreground">
-                        Progress
-                      </span>
-
-                      <span className="font-medium">
-                        {goal.progressPercent}%
-                      </span>
+                  <div className="mt-8">
+                    <div className="mb-3 flex justify-between text-sm">
+                      <span className="text-muted-foreground">Skill journey</span>
+                      <span className="font-medium">{goal.progressPercent}%</span>
                     </div>
-
-                    <Progress
-                      value={goal.progressPercent}
-                    />
+                    <Progress value={goal.progressPercent} className="h-2" />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-4">
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
-                        Skills
-                      </p>
-
-                      <p className="text-2xl font-semibold">
-                        {goal.totalSkills}
-                      </p>
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Skills</div>
+                      <div className="mt-2 text-xl font-semibold">{goal.totalSkills}</div>
                     </div>
-
-                    <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-4">
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
-                        Status
-                      </p>
-
-                      <p className="text-sm font-medium">
-                        {goal.progressPercent === 100
-                          ? "Completed"
-                          : "In Progress"}
-                      </p>
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Mastered</div>
+                      <div className="mt-2 text-xl font-semibold">{goal.masteredSkills}</div>
                     </div>
                   </div>
 
-                  {nextSkill && (
-                    <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
-                      <p className="text-[10px] uppercase tracking-widest text-primary mb-2">
-                        Next Skill
-                      </p>
-
-                      <p className="font-medium">
-                        {nextSkill.title}
-                      </p>
+                  {nextSkill && !isComplete && (
+                    <div className="mt-5 rounded-2xl border border-primary/15 bg-primary/[0.06] p-5">
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-primary">Up next</div>
+                      <div className="mt-2 font-medium">{nextSkill.title}</div>
+                      <div className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                        {nextSkill.milestone ?? nextSkill.description}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                <div className="border-t border-white/5 px-8 py-5 flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Continue Journey
-                  </span>
-
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                <div className="mt-auto flex items-center justify-between border-t border-white/5 px-7 py-4 md:px-8">
+                  <span className="text-sm text-muted-foreground">{isComplete ? "Review path" : "Continue learning"}</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
             </Link>
