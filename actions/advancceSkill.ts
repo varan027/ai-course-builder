@@ -6,7 +6,7 @@ import { goalService } from "@/services/goal.service";
 import { progressService } from "@/services/progress.service";
 import { aiService } from "@/services/ai.service";
 import { canAdvanceToMastery, parseMasteryProof } from "@/lib/mastery-proof";
-import { PrerequisitesNotSatisfiedError } from "@/lib/errors/domain";
+import { AIOutputInvalidError, PrerequisitesNotSatisfiedError } from "@/lib/errors/domain";
 import { SkillStatus } from "@prisma/client";
 
 export type FormState = {
@@ -69,10 +69,7 @@ export async function advanceSkill(previousState: FormState, formData: FormData)
       });
 
       if (!canAdvanceToMastery(evaluation, proof.capabilities.length)) {
-        return {
-          feedback: evaluation.feedback,
-          retryGuidance: evaluation.retryGuidance,
-        };
+        return { feedback: evaluation.feedback, retryGuidance: evaluation.retryGuidance };
       }
     }
 
@@ -84,6 +81,9 @@ export async function advanceSkill(previousState: FormState, formData: FormData)
   } catch (err) {
     if (err instanceof PrerequisitesNotSatisfiedError) {
       return { error: "You need to complete the prerequisite skills first." };
+    }
+    if (err instanceof AIOutputInvalidError) {
+      return { error: "We couldn't evaluate your evidence right now. Please try again." };
     }
     throw err;
   }
