@@ -1,5 +1,5 @@
 import { getPrisma } from "@/lib/db";
-import { SkillProgress, SkillStatus } from "@prisma/client";
+import { SkillStatus } from "@prisma/client";
 
 export const progressRepository = {
   async getPrerequisiteProgress(userId: string, goalSkillId: string) {
