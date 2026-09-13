@@ -1,25 +1,42 @@
 # Syllarc AI Mastery Proof Evaluation Design
 
 ## Goal
-Replace Syllarc's current weak mastery gate with a skill-specific proof system that evaluates whether a learner demonstrated the capability the skill was intended to teach, without requiring a particular wording or guessed answer.
+Replace Syllarc's current weak mastery gate with a skill-specific evidence system that evaluates whether a learner demonstrated the capability the skill was intended to teach, without requiring a particular wording or guessed answer.
 
-## Product principle
-Mastery means demonstrated capability, not completion and not keyword matching.
+## Product principles
 
-The learning loop becomes:
+### Mastery is earned through evidence
+Mastery is not a button, completion flag, or self-declared state.
 
-`Learn → Practice → Prove → Master → Build → Evidence`
+The learning loop is:
 
-A learner should never have to guess the exact answer Syllarc expects. Equivalent correct reasoning and different valid approaches must be accepted when they demonstrate the required capabilities.
+`Learn → Practice → Apply → Evidence → Master`
+
+A learner first produces evidence that demonstrates the required capability. Only after the evidence passes does Syllarc grant `MASTERED`.
+
+### Every primary action must do real work
+There must be no primary button whose only meaningful effect is changing its own label, changing visual state, or pretending to advance progress.
+
+Every primary action must correspond to a real product transition or operation, such as:
+- opening the next learning section;
+- submitting evidence for evaluation;
+- retrying evidence after feedback;
+- starting a real project after mastery.
+
+There is no `Mark as mastered` button. The learner cannot directly change a skill to `MASTERED`.
+
+### The learner should not guess the answer
+The evaluator judges demonstrated capability, not whether the learner reproduced an expected sentence. Equivalent correct reasoning and different valid approaches must be accepted when they demonstrate the required capabilities.
 
 ## Scope
 - Generate one structured mastery proof for each generated skill.
 - Store the mastery proof with the existing `GoalSkill` record.
 - Support proof modes appropriate to different skill types.
-- Present the learner only with the proof task and relevant context, not hidden evaluation criteria.
+- Present the learner only with the evidence task and relevant context, not hidden evaluation criteria.
 - Evaluate submitted evidence through a constrained AI evaluator.
 - Return structured evaluation results rather than allowing the model to mutate progress directly.
-- Advance `APPLYING` skills to `MASTERED` only when the application accepts a passing evaluation.
+- Keep `APPLYING` as the final learning/practice state before the evidence checkpoint.
+- Grant `MASTERED` only after evidence passes evaluation.
 - Give actionable retry feedback when the learner has not demonstrated one or more required capabilities.
 - Keep the first version lightweight: one active proof per skill, no attempt-history model, no AI tutor subsystem, no GitHub integration, and no project completion model in this milestone.
 
@@ -32,6 +49,31 @@ A learner should never have to guess the exact answer Syllarc expects. Equivalen
 - Building code execution/sandbox infrastructure in this milestone.
 - Reworking the dashboard.
 - Closing the separate project-evidence loop; that is the next product milestone.
+
+## Learning and mastery state
+
+Existing progress statuses remain:
+
+`NOT_STARTED → EXPLORING → PRACTICING → APPLYING → MASTERED`
+
+The evidence checkpoint is intentionally **not** a separate persisted `SkillStatus` in this milestone. It is the interaction between `APPLYING` and `MASTERED`.
+
+Conceptually:
+
+```text
+APPLYING
+   ↓
+Evidence checkpoint
+   ↓
+Evaluate evidence
+   ├── insufficient → feedback → retry evidence
+   │
+   └── sufficient → MASTERED
+```
+
+This avoids creating a database state that merely represents a screen while still making the ordering explicit: **evidence always comes before mastery**.
+
+A skill in `APPLYING` has not yet earned mastery. The UI should communicate that the next required action is to demonstrate the skill, not to manually mark it complete.
 
 ## Proof model
 
@@ -127,9 +169,11 @@ The AI evaluator is an isolated service. Application code owns the state transit
 
 Preferred flow:
 
-`Skill page → mastery action → mastery evaluator → structured result → application decision → progress service`
+`Evidence UI → mastery action → mastery evaluator → structured result → application decision → progress service`
 
-The application accepts `passed: true` only when the evaluator result is structurally valid and the required capabilities are demonstrated. A failed evaluation keeps the skill at `APPLYING`.
+The application accepts `passed: true` only when the evaluator result is structurally valid and the required capabilities are demonstrated. A failed evaluation keeps the skill at `APPLYING`. A passing evaluation is the only path from `APPLYING` to `MASTERED`.
+
+The evaluator must never return an instruction such as `setStatus: MASTERED` that the application blindly executes. The application interprets the evaluation contract and decides the transition.
 
 This preserves the existing architecture:
 
@@ -139,33 +183,47 @@ with AI isolated behind the AI service boundary.
 
 ## Learner experience
 
-When a learner reaches `APPLYING`, the page presents a clear checkpoint:
+When a learner reaches `APPLYING`, the page should transition naturally into the evidence checkpoint. There is no `Mark as mastered` control.
 
 ```text
-Prove your understanding
+You've practiced the skill.
 
-[learner-facing task]
+Prove you can use it.
+
+[learner-facing evidence task]
 
 Your response
-[textarea / appropriate evidence input]
+[appropriate evidence input]
 
-Submit proof
+Submit evidence
 ```
 
-The learner should not see the internal rubric.
+The primary CTA is an actual submission action. It does not merely change its label or local state.
 
-### Passing
+### Before submission
+The learner can read the task, provide evidence, and submit it. The task must be understandable on its own; the learner should never need to guess an exact expected answer.
 
-Show concise confirmation that the learner demonstrated the intended capabilities, then offer the transition toward the project/build stage.
+### While evaluating
+The submission action enters a real pending/evaluation state and prevents duplicate submissions. The UI should communicate that Syllarc is evaluating the evidence, not pretend that mastery has already happened.
 
-### Failing
+### Passing evidence
+Only after a valid passing evaluation does the server advance the skill to `MASTERED`.
 
-Do not say merely "wrong answer". Show:
-- what part of the capability was demonstrated;
+The UI then confirms the demonstrated capability and offers the next meaningful action, such as moving to the next skill or starting the associated project.
+
+There is no extra `Complete`, `Mark mastered`, or equivalent button between passing evidence and mastery. Passing the evidence **is** the mastery transition.
+
+### Failing evidence
+The skill remains `APPLYING`.
+
+Show:
+- what capability was demonstrated;
 - what remains unclear or missing;
 - a concrete direction for retrying.
 
-The feedback should help the learner improve without simply revealing the complete answer.
+The retry control must initiate a real retry/evidence submission flow. It must not simply toggle text such as `Try again` without changing the learner's available action.
+
+Feedback should help the learner improve without simply revealing the complete answer.
 
 ## Persistence
 
@@ -184,6 +242,8 @@ No attempt-history table is required yet.
 - Existing project-start behavior remains intact.
 - Existing lesson rendering remains intact.
 
+For legacy skills without a mastery proof, the implementation must not silently grant mastery through a fake completion button. The product should provide a safe compatibility path defined during implementation, such as a clearly scoped legacy fallback, without weakening the new evidence gate for newly generated skills.
+
 ## Testing strategy
 
 Follow TDD for each behavior:
@@ -201,13 +261,18 @@ Required coverage includes:
 - equivalent valid answers not being rejected because wording differs;
 - missing capability producing a retry result;
 - malformed evaluator output failing safely;
-- failed proof keeping `APPLYING` status;
-- passed proof allowing `MASTERED` transition;
+- failed evidence keeping `APPLYING` status;
+- passed evidence allowing `MASTERED` transition;
+- no direct user action can transition `APPLYING` to `MASTERED` without evaluation;
+- no primary mastery button merely changes its own label/state;
 - legacy skills without proof remaining readable.
 
 Before completion run `npm test`, `npm run lint`, and `npm run build`, and distinguish any pre-existing lint failures from regressions.
 
 ## Success criteria
+- Evidence always comes before mastery.
+- A learner cannot manually declare a skill mastered.
+- There is no fake `Mark as mastered`/text-changing button.
 - A learner cannot pass mastery by merely typing enough characters or matching keywords.
 - A learner does not need to guess an exact expected answer.
 - Proof tasks differ according to the nature of the skill.
