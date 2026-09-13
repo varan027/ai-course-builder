@@ -54,8 +54,8 @@ describe("advanceSkill mastery evidence", () => {
     vi.mocked(aiService.evaluateMasteryProof).mockResolvedValue({
       passed: false,
       capabilities: [
-        { capability: "Apply HTTP methods", demonstrated: true },
-        { capability: "Explain response behavior", demonstrated: false },
+        { capabilityIndex: 0, demonstrated: true },
+        { capabilityIndex: 1, demonstrated: false },
       ],
       feedback: "Your response needs a clearer explanation of the response behavior.",
       retryGuidance: "Explain what the client should expect after the request completes.",
@@ -72,8 +72,8 @@ describe("advanceSkill mastery evidence", () => {
     vi.mocked(aiService.evaluateMasteryProof).mockResolvedValue({
       passed: true,
       capabilities: [
-        { capability: "Apply HTTP methods", demonstrated: true },
-        { capability: "Explain response behavior", demonstrated: true },
+        { capabilityIndex: 0, demonstrated: true },
+        { capabilityIndex: 1, demonstrated: true },
       ],
       feedback: "You demonstrated the required capabilities.",
       retryGuidance: "No retry is needed.",
