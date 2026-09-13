@@ -49,7 +49,6 @@ export async function advanceSkill(
 
     if (currentStatus === SkillStatus.APPLYING) {
       const evidence = parseKeyIdeas(goalSkill?.lessonKeyIdeas ?? null);
-      const practice = goalSkill?.lessonPractice ?? goalSkill?.projectChallenge ?? "";
       const proofPassed = evaluateMasteryProof(
         goalSkill?.skill?.title ?? "this skill",
         evidence,
@@ -61,8 +60,6 @@ export async function advanceSkill(
           error: "Prove your understanding before marking this skill mastered.",
         };
       }
-
-      void practice;
     }
 
     await progressService.advanceSkill(user.id, goalSkillId);
