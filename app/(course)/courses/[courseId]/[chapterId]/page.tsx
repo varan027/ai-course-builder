@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Lightbulb, Target, Trophy, BookOpe
 import Link from "next/link";
 import SkillProgressForm from "./SkillProgressForm";
 import { getNextSkillIndex, getProgressStageIndex, PROGRESS_STAGES } from "@/lib/course-learning";
+import { renderLessonContent } from "@/lib/lesson-content";
 
 function parseKeyIdeas(value: string | null) {
   if (!value) return [];
@@ -21,31 +22,87 @@ function parseKeyIdeas(value: string | null) {
   }
 }
 
+function renderInlineMarkdown(text: string) {
+  return text.split(/(`[^`]+`)/g).map((part, index) =>
+    part.startsWith("`") && part.endsWith("`") ? (
+      <code
+        key={index}
+        className="rounded-md border border-white/[0.08] bg-black/20 px-1.5 py-0.5 font-mono text-[0.9em] text-foreground"
+      >
+        {part.slice(1, -1)}
+      </code>
+    ) : (
+      <span key={index}>{part}</span>
+    ),
+  );
+}
+
 function LessonContent({ content }: { content: string }) {
-  const blocks = content.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+  const blocks = renderLessonContent(content);
 
   return (
-    <div className="space-y-5">
+    <div className="max-w-3xl space-y-6">
       {blocks.map((block, index) => {
-        if (block.startsWith("### ")) {
+        if (block.type === "heading") {
+          if (block.level === 1) {
+            return (
+              <h2 key={index} className="pt-2 text-2xl font-semibold tracking-[-0.025em] sm:text-3xl">
+                {renderInlineMarkdown(block.text)}
+              </h2>
+            );
+          }
+
+          if (block.level === 2) {
+            return (
+              <h2 key={index} className="pt-2 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">
+                {renderInlineMarkdown(block.text)}
+              </h2>
+            );
+          }
+
           return (
-            <h3 key={index} className="text-base font-semibold tracking-[-0.01em]">
-              {block.slice(4)}
+            <h3 key={index} className="pt-1 text-base font-semibold tracking-[-0.01em] sm:text-lg">
+              {renderInlineMarkdown(block.text)}
             </h3>
           );
         }
 
-        if (block.startsWith("## ")) {
+        if (block.type === "list") {
+          const List = block.ordered ? "ol" : "ul";
           return (
-            <h2 key={index} className="text-xl font-semibold tracking-[-0.02em] sm:text-2xl">
-              {block.slice(3)}
-            </h2>
+            <List
+              key={index}
+              className={`space-y-2.5 pl-6 text-[15px] leading-7 text-foreground/90 ${
+                block.ordered ? "list-decimal" : "list-disc"
+              }`}
+            >
+              {block.items.map((item) => (
+                <li key={item} className="pl-1">
+                  {renderInlineMarkdown(item)}
+                </li>
+              ))}
+            </List>
+          );
+        }
+
+        if (block.type === "code") {
+          return (
+            <div key={index} className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/25">
+              {block.language && (
+                <div className="border-b border-white/[0.06] px-4 py-2 text-[9px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  {block.language}
+                </div>
+              )}
+              <pre className="overflow-x-auto p-4 text-[13px] leading-6 text-foreground/90 sm:p-5">
+                <code>{block.code}</code>
+              </pre>
+            </div>
           );
         }
 
         return (
-          <p key={index} className="max-w-3xl whitespace-pre-wrap text-[15px] leading-7 text-foreground/90">
-            {block.replace(/^# /, "")}
+          <p key={index} className="text-[15px] leading-7 text-foreground/90 sm:text-base sm:leading-8">
+            {renderInlineMarkdown(block.text)}
           </p>
         );
       })}
