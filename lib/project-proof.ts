@@ -5,5 +5,5 @@ export function getProjectProofState(
   mastered: boolean,
 ): ProjectProofState {
   if (!projectChallenge.trim() || !mastered) return "LOCKED";
-  return "IN_PROGRESS";
+  return "READY";
 }
