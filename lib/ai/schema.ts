@@ -28,7 +28,9 @@ export const SkillSchema = z.object({
     projectChallenge: z.string().min(5),
   }),
 
-  lesson: LessonSchema,
+  // Optional for backwards compatibility with roadmaps created before
+  // structured lessons were introduced. New AI-generated roadmaps include it.
+  lesson: LessonSchema.optional(),
 
   prerequisites: z.array(z.string()).default([]),
 
