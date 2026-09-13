@@ -3,16 +3,10 @@ import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { progressService } from "@/services/progress.service";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Trophy,
-  Target,
-  Lightbulb,
-  CheckCircle2,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Lightbulb, Target, Trophy } from "lucide-react";
 import Link from "next/link";
 import SkillProgressForm from "./SkillProgressForm";
+import { getNextSkillIndex, getProgressStageIndex, PROGRESS_STAGES } from "@/lib/course-learning";
 
 export default async function SkillPage({
   params,
@@ -20,245 +14,126 @@ export default async function SkillPage({
   params: Promise<{ courseId: string; chapterId: string }>;
 }) {
   const { courseId, chapterId } = await params;
-
   const user = await getCurrentUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
   const goal = await goalService.getById(courseId, user.id);
-
   const index = Number(chapterId);
-
   const goalSkill = goal.goalSkills[index];
 
-  if (!goalSkill) {
-    redirect(`/courses/${courseId}/0`);
-  }
+  if (!goalSkill) redirect(`/courses/${courseId}/0`);
 
   const progress = await progressService.getProgress(user.id, courseId);
-
   const skillProgress = progress.find((p) => p.goalSkillId === goalSkill.id);
-
   const currentStatus = skillProgress?.status ?? "NOT_STARTED";
-
   const isCompleted = currentStatus === "MASTERED";
-
+  const currentStageIndex = getProgressStageIndex(currentStatus);
+  const nextIndex = getNextSkillIndex(
+    goal.goalSkills.map((skill) => ({ mastered: progress.some((p) => p.goalSkillId === skill.id && p.status === "MASTERED") })),
+    index,
+  );
   const statusLabel = currentStatus.replace("_", " ");
 
-  const progressionStages = [
-    "NOT_STARTED",
-    "EXPLORING",
-    "PRACTICING",
-    "APPLYING",
-    "MASTERED",
-  ] as const;
-
-  const currentStageIndex = progressionStages.indexOf(currentStatus);
-
   return (
-    <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
-      <div className="mb-12">
-        <div className="flex items-center gap-3 mb-5">
-          <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs uppercase tracking-[0.2em]">
-            Skill {index + 1}
-          </span>
-
+    <article className="animate-in fade-in duration-500">
+      <header className="border-b border-white/[0.07] pb-10 sm:pb-12">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            {String(index + 1).padStart(2, "0")} / {String(goal.goalSkills.length).padStart(2, "0")}
+          </p>
           {isCompleted && (
-            <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs uppercase tracking-[0.2em]">
-              Mastered
+            <span className="flex items-center gap-1.5 text-xs text-primary">
+              <CheckCircle2 className="size-4" /> Mastered
             </span>
           )}
         </div>
 
-        <h1 className="text-5xl md:text-6xl font-semibold tracking-tight mb-6">
+        <h1 className="mt-7 max-w-3xl text-4xl font-semibold tracking-[-0.04em] sm:text-5xl lg:text-6xl">
           {goalSkill.skill.title}
         </h1>
-
-        <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl">
+        <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
           {goalSkill.whyImportant}
         </p>
 
-        <div className="mt-8 rounded-3xl border border-white/10 bg-[#0f0f0f] p-6">
-          <div className="flex items-center justify-between mb-5">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              Progress
-            </p>
+        <div className="mt-9 flex items-center gap-3">
+          {PROGRESS_STAGES.map((stage, stageIndex) => (
+            <div key={stage} className="flex-1">
+              <div className={`h-1 rounded-full ${stageIndex <= currentStageIndex ? "bg-primary" : "bg-white/[0.08]"}`} />
+              <p className={`mt-2 hidden text-[9px] uppercase tracking-[0.14em] sm:block ${stageIndex <= currentStageIndex ? "text-primary" : "text-muted-foreground"}`}>
+                {stage.replace("_", " ")}
+              </p>
+            </div>
+          ))}
+        </div>
+      </header>
 
-            <p className="text-sm text-primary font-medium">{statusLabel}</p>
+      <div className="space-y-5 py-9 sm:py-10">
+        <section className="grid gap-5 sm:grid-cols-2">
+          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7">
+            <Lightbulb className="size-4 text-primary" />
+            <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Understanding</p>
+            <p className="mt-3 text-sm leading-6 text-foreground/90">{goalSkill.description}</p>
           </div>
+          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7">
+            <Target className="size-4 text-primary" />
+            <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Milestone</p>
+            <p className="mt-3 text-sm font-medium leading-6">{goalSkill.milestone}</p>
+          </div>
+        </section>
 
+        <section className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7">
           <div className="flex items-center gap-2">
-            {progressionStages.map((stage, stageIndex) => {
-              const isReached = stageIndex <= currentStageIndex;
-
-              return (
-                <div key={stage} className="flex-1">
-                  <div
-                    className={`h-2 rounded-full ${
-                      isReached ? "bg-primary" : "bg-white/10"
-                    }`}
-                  />
-
-                  <p
-                    className={`mt-2 text-[10px] uppercase tracking-wider ${
-                      isReached ? "text-primary" : "text-muted-foreground"
-                    }`}
-                  >
-                    {stage.replace("_", " ")}
-                  </p>
-                </div>
-              );
-            })}
+            <Trophy className="size-4 text-primary" />
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Project challenge</p>
           </div>
-        </div>
-      </div>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-foreground/90">{goalSkill.projectChallenge}</p>
+        </section>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-10">
-        <div className="rounded-3xl border border-white/10 bg-[#0f0f0f] p-8">
-          <Lightbulb className="w-5 h-5 mb-4 text-primary" />
-
-          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4">
-            Understanding
-          </p>
-
-          <p className="leading-relaxed text-white/90">
-            {goalSkill.description}
-          </p>
-        </div>
-
-        <div className="rounded-3xl border border-primary/10 bg-primary/5 p-8">
-          <Target className="w-5 h-5 mb-4 text-primary" />
-
-          <p className="text-xs uppercase tracking-widest text-primary mb-4">
-            Milestone
-          </p>
-
-          <p className="text-lg font-medium leading-relaxed">
-            {goalSkill.milestone}
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-3xl border border-white/10 bg-[#111111] p-8 mb-10">
-        <div className="flex items-center gap-3 mb-5">
-          <Trophy className="w-5 h-5 text-primary" />
-
-          <p className="text-xs uppercase tracking-widest text-primary">
-            Project Challenge
-          </p>
-        </div>
-
-        <p className="text-lg leading-relaxed text-white/90">
-          {goalSkill.projectChallenge}
-        </p>
-      </div>
-
-      {goalSkill.dependencies.length > 0 && (
-        <div className="rounded-3xl border border-white/10 bg-[#0f0f0f] p-8 mb-10">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4">
-            Prerequisites
-          </p>
-
-          <div className="flex flex-wrap gap-3">
-            {goalSkill.dependencies.map((dependency) => {
-              const isPrerequisiteMastered =
-                dependency.prerequisiteGoalSkill.progress.some(
-                  (p) => p.status === "MASTERED",
-                );
-
-              return (
-                <div
-                  key={dependency.id}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
-                    isPrerequisiteMastered
-                      ? "bg-green-500/5 border-green-500/10"
-                      : "bg-white/5 border-white/5"
-                  }`}
-                >
-                  {isPrerequisiteMastered ? (
-                    <CheckCircle2 className="w-4 h-4 text-green-400" />
-                  ) : (
-                    <span className="w-4 h-4 rounded-full border border-white/20" />
-                  )}
-
-                  <span className="text-sm">
+        {goalSkill.dependencies.length > 0 && (
+          <section className="border-t border-white/[0.07] pt-7">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Prerequisites</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {goalSkill.dependencies.map((dependency) => {
+                const mastered = dependency.prerequisiteGoalSkill.progress.some((p) => p.status === "MASTERED");
+                return (
+                  <span key={dependency.id} className="inline-flex items-center gap-2 rounded-full border border-white/[0.07] px-3 py-2 text-xs text-muted-foreground">
+                    {mastered ? <CheckCircle2 className="size-3.5 text-primary" /> : <span className="size-3.5 rounded-full border border-white/20" />}
                     {dependency.prerequisiteGoalSkill.skill.title}
                   </span>
-                </div>
-              );
-            })}
-            {goalSkill.dependencies.some(
-              (dependency) =>
-                !dependency.prerequisiteGoalSkill.progress.some(
-                  (p) => p.status === "MASTERED",
-                ),
-            ) && (
-              <p className="mt-5 text-sm text-muted-foreground ">
-                Complete all prerequisites before advancing this skill.
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className="mb-6">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Learning Resource
-        </p>
-      </div>
-
-      {/* <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-white/10 bg-black mb-14">
-        {skill.youtubeVideoId ? (
-          <iframe
-            className="w-full h-full"
-            src={`https://www.youtube.com/embed/${skill.youtubeVideoId}?rel=0`}
-            title={skill.title}
-            allowFullScreen
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            Resource unavailable
-          </div>
+                );
+              })}
+            </div>
+          </section>
         )}
-      </div> */}
-
-      <div className="border-t border-white/10 pt-10">
-        <div className="flex flex-col items-center gap-6">
-          <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs uppercase tracking-[0.2em]">
-            {statusLabel}
-          </span>
-
-          <SkillProgressForm
-            goalId={courseId}
-            goalSkillId={goalSkill.id}
-            currentStatus={currentStatus}
-          />
-
-          <div className="flex justify-between w-full">
-            {index > 0 ? (
-              <Link href={`/courses/${courseId}/${index - 1}`}>
-                <Button variant="ghost">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-              </Link>
-            ) : (
-              <div />
-            )}
-
-            {index < goal.goalSkills.length - 1 && (
-              <Link href={`/courses/${courseId}/${index + 1}`}>
-                <Button variant="ghost">
-                  Continue Journey
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            )}
-          </div>
-        </div>
       </div>
-    </div>
+
+      <footer className="border-t border-white/[0.07] pt-7 pb-10">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Your progress</p>
+            <p className="mt-1 text-sm text-muted-foreground">{statusLabel}</p>
+          </div>
+          <SkillProgressForm goalId={courseId} goalSkillId={goalSkill.id} currentStatus={currentStatus} />
+        </div>
+
+        <div className="mt-7 flex items-center justify-between gap-4">
+          {index > 0 ? (
+            <Button asChild variant="ghost" className="rounded-full text-muted-foreground">
+              <Link href={`/courses/${courseId}/${index - 1}`}><ArrowLeft className="size-4" />Previous</Link>
+            </Button>
+          ) : <div />}
+          {nextIndex !== undefined ? (
+            <Button asChild className="rounded-full px-5">
+              <Link href={`/courses/${courseId}/${nextIndex}`}>Continue <ArrowRight className="size-4" /></Link>
+            </Button>
+          ) : index < goal.goalSkills.length - 1 ? (
+            <Button asChild className="rounded-full px-5">
+              <Link href={`/courses/${courseId}/${index + 1}`}>Next skill <ArrowRight className="size-4" /></Link>
+            </Button>
+          ) : null}
+        </div>
+      </footer>
+    </article>
   );
 }
