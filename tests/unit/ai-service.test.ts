@@ -33,10 +33,13 @@ const validRoadmap = {
 };
 
 let geminiResponse = JSON.stringify(validRoadmap);
+let requestedModel = "";
 
 vi.mock("@google/generative-ai", () => {
   class FakeGoogleGenerativeAI {
-    getGenerativeModel() {
+    getGenerativeModel({ model }: { model: string }) {
+      requestedModel = model;
+
       return {
         generateContent: async () => ({
           response: {
@@ -57,6 +60,13 @@ import { aiService } from "@/services/ai.service";
 describe("aiService.generateRoadmap", () => {
   beforeEach(() => {
     geminiResponse = JSON.stringify(validRoadmap);
+    requestedModel = "";
+  });
+
+  it("uses the low-latency Gemini model for roadmap generation", async () => {
+    await aiService.generateRoadmap("Frontend Developer");
+
+    expect(requestedModel).toBe("gemini-2.5-flash-lite");
   });
 
   it("generates a valid roadmap from Gemini output", async () => {
