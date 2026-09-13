@@ -68,6 +68,28 @@ export const progressRepository = {
     });
   },
 
+  async startProject(userId: string, goalSkillId: string) {
+    const prisma = await getPrisma();
+
+    return prisma.skillProgress.upsert({
+      where: {
+        userId_goalSkillId: {
+          userId,
+          goalSkillId,
+        },
+      },
+      create: {
+        userId,
+        goalSkillId,
+        status: SkillStatus.MASTERED,
+        projectStartedAt: new Date(),
+      },
+      update: {
+        projectStartedAt: new Date(),
+      },
+    });
+  },
+
   async getProgressForGoal(userId: string, goalId: string) {
     const prisma = await getPrisma();
 
