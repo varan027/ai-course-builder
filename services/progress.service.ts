@@ -47,6 +47,10 @@ export const progressService = {
     );
   },
 
+  async startProject(userId: string, goalSkillId: string) {
+    return await progressRepository.startProject(userId, goalSkillId);
+  },
+
   async getProgress(userId: string, goalId: string) {
     return await progressRepository.getProgressForGoal(userId, goalId);
   },
