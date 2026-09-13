@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export const LessonSchema = z.object({
+  overview: z.string().min(20),
+  keyIdeas: z.array(z.string().min(3)).min(2).max(6),
+  content: z.string().min(50),
+  practice: z.string().min(10),
+});
+
 export const SkillSchema = z.object({
   skillKey: z
     .string()
@@ -21,6 +28,8 @@ export const SkillSchema = z.object({
     projectChallenge: z.string().min(5),
   }),
 
+  lesson: LessonSchema,
+
   prerequisites: z.array(z.string()).default([]),
 
   youtubeQuery: z.string().min(5),
@@ -35,6 +44,6 @@ export const RoadmapSchema = z.object({
   skills: z.array(SkillSchema).min(1),
 });
 
+export type Lesson = z.infer<typeof LessonSchema>;
 export type Skill = z.infer<typeof SkillSchema>;
-
 export type Roadmap = z.infer<typeof RoadmapSchema>;
