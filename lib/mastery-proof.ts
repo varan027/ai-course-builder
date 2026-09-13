@@ -6,18 +6,14 @@ export function parseMasteryProof(input: {
   capabilities: string | null;
   evaluationCriteria: string | null;
 }): MasteryProof | null {
-  if (!input.task || !input.proofType || !input.capabilities || !input.evaluationCriteria) {
-    return null;
-  }
+  if (!input.task || !input.proofType || !input.capabilities || !input.evaluationCriteria) return null;
 
   try {
-    const capabilities = JSON.parse(input.capabilities);
-    const evaluationCriteria = JSON.parse(input.evaluationCriteria);
     const result = MasteryProofSchema.safeParse({
       task: input.task,
       proofType: input.proofType,
-      capabilities,
-      evaluationCriteria,
+      capabilities: JSON.parse(input.capabilities),
+      evaluationCriteria: JSON.parse(input.evaluationCriteria),
     });
     return result.success ? result.data : null;
   } catch {
@@ -30,16 +26,16 @@ export function parseMasteryEvaluation(input: unknown): MasteryEvaluation | null
   return result.success ? result.data : null;
 }
 
-export function canAdvanceToMastery(evaluation: MasteryEvaluation | null): boolean {
+export function canAdvanceToMastery(
+  evaluation: MasteryEvaluation | null,
+  requiredCapabilityCount = 1,
+): boolean {
   if (!evaluation || !evaluation.passed) return false;
-  return evaluation.capabilities.length > 0 && evaluation.capabilities.every((item) => item.demonstrated);
+  if (evaluation.capabilities.length < requiredCapabilityCount) return false;
+  return evaluation.capabilities.every((item) => item.demonstrated);
 }
 
-export function getMasteryProofPrompt(
-  skillTitle: string,
-  practice: string,
-  question?: string,
-): string {
+export function getMasteryProofPrompt(skillTitle: string, practice: string, question?: string): string {
   return [
     `You have just studied the skill "${skillTitle}".`,
     "",
