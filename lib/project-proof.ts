@@ -1,9 +1,9 @@
 export type ProjectProofState = "LOCKED" | "READY" | "IN_PROGRESS";
 
 export function getProjectProofState(
-  projectChallenge: string,
-  mastered: boolean,
+  skillStatus: string,
+  started: boolean,
 ): ProjectProofState {
-  if (!projectChallenge.trim() || !mastered) return "LOCKED";
-  return "READY";
+  if (skillStatus !== "MASTERED") return "LOCKED";
+  return started ? "IN_PROGRESS" : "READY";
 }
