@@ -1,4 +1,4 @@
-export const ROADMAP_PROMPT = ( goal : string ) => `
+export const ROADMAP_PROMPT = (goal: string) => `
 You are an expert learning architect.
 
 Design a practical, ordered learning roadmap for:
@@ -28,6 +28,12 @@ Rules:
 16. Include one milestone and one practical project challenge per skill.
 17. Provide a useful YouTube search query for each skill.
 18. Do not generate youtubeVideoId.
+19. Generate a concise, self-contained lesson for every skill. The lesson must teach the skill directly rather than merely describing it.
+20. Keep lesson content practical and appropriate for someone working toward the stated goal.
+21. 'overview' should explain the mental model and purpose of the skill in 1-3 sentences.
+22. 'keyIdeas' should contain 2-6 memorable principles or takeaways.
+23. 'content' should be useful learning material with short headings, explanations, and examples where appropriate. Markdown is allowed inside this string.
+24. 'practice' should be one concrete exercise the learner can complete after reading the lesson.
 
 JSON format:
 
@@ -48,6 +54,12 @@ JSON format:
         "whyImportant": "",
         "milestone": "",
         "projectChallenge": ""
+      },
+      "lesson": {
+        "overview": "",
+        "keyIdeas": [],
+        "content": "",
+        "practice": ""
       },
       "prerequisites": [],
       "youtubeQuery": ""
