@@ -25,10 +25,7 @@ function parseKeyIdeas(value: string | null) {
   }
 }
 
-export async function advanceSkill(
-  previousState: FormState,
-  formData: FormData,
-): Promise<FormState> {
+export async function advanceSkill(previousState: FormState, formData: FormData): Promise<FormState> {
   void previousState;
   const goalId = String(formData.get("goalId") ?? "");
   const goalSkillId = String(formData.get("goalSkillId") ?? "");
@@ -55,7 +52,6 @@ export async function advanceSkill(
       if (!proof) {
         return { error: "This skill does not have a mastery proof yet. Create a new goal to get an evidence checkpoint." };
       }
-
       if (!learnerEvidence) {
         return { error: "Submit your evidence before completing this skill." };
       }
@@ -72,7 +68,7 @@ export async function advanceSkill(
         learnerEvidence,
       });
 
-      if (!canAdvanceToMastery(evaluation)) {
+      if (!canAdvanceToMastery(evaluation, proof.capabilities.length)) {
         return {
           feedback: evaluation.feedback,
           retryGuidance: evaluation.retryGuidance,
@@ -81,8 +77,9 @@ export async function advanceSkill(
     }
 
     await progressService.advanceSkill(user.id, goalSkillId);
+    const skillIndex = goal.goalSkills.findIndex((skill) => skill.id === goalSkillId);
     revalidatePath(`/courses/${goalId}`);
-    revalidatePath(`/courses/${goalId}/${goal.goalSkills.findIndex((skill) => skill.id === goalSkillId)}`);
+    revalidatePath(`/courses/${goalId}/${skillIndex}`);
     return {};
   } catch (err) {
     if (err instanceof PrerequisitesNotSatisfiedError) {
