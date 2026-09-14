@@ -16,6 +16,26 @@ function createFormData() {
   return formData;
 }
 
+function createGoalSkill() {
+  return {
+    id: "gskill-101",
+    skill: { title: "Test skill" },
+    description: "Learn the test skill.",
+    whyImportant: "It matters for the test.",
+    milestone: "Can demonstrate the test skill.",
+    projectChallenge: "Build a small test project.",
+    lessonOverview: null,
+    lessonKeyIdeas: null,
+    lessonContent: null,
+    lessonPractice: null,
+    masteryProofTask: null,
+    masteryProofType: null,
+    masteryProofCapabilities: null,
+    masteryProofCriteria: null,
+    progress: [],
+  };
+}
+
 vi.mock("@/lib/auth", () => ({
   getCurrentUser: vi.fn(),
 }));
@@ -45,7 +65,7 @@ it("should throw an error if prerequisites are not satisfied", async () => {
   });
 
   vi.mocked(goalService.getById).mockResolvedValue({
-    goalSkills: [],
+    goalSkills: [createGoalSkill()],
   } as never);
 
   vi.mocked(progressService.advanceSkill).mockRejectedValue(
@@ -68,7 +88,7 @@ it("should revalidate the path after successfully advancing a skill", async () =
   });
 
   vi.mocked(goalService.getById).mockResolvedValue({
-    goalSkills: [],
+    goalSkills: [createGoalSkill()],
   } as never);
 
   vi.mocked(progressService.advanceSkill).mockResolvedValue({

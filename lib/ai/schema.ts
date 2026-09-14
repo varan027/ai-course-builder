@@ -7,7 +7,34 @@ export const LessonSchema = z.object({
   practice: z.string().min(10),
 });
 
-export const SkillSchema = z.object({
+export const MasteryProofSchema = z.object({
+  task: z.string().min(20),
+  proofType: z.enum([
+    "CONCEPTUAL",
+    "TECHNICAL",
+    "ANALYTICAL",
+    "PRACTICAL",
+    "CREATIVE",
+  ]),
+  capabilities: z.array(z.string().min(10)).min(2).max(5),
+  evaluationCriteria: z.array(z.string().min(10)).min(2).max(5),
+});
+
+export const MasteryEvaluationSchema = z.object({
+  passed: z.boolean(),
+  capabilities: z
+    .array(
+      z.object({
+        capabilityIndex: z.number().int().nonnegative(),
+        demonstrated: z.boolean(),
+      }),
+    )
+    .min(1),
+  feedback: z.string().min(10),
+  retryGuidance: z.string().min(10),
+});
+
+const SkillBaseSchema = z.object({
   skillKey: z
     .string()
     .min(2)
@@ -28,13 +55,18 @@ export const SkillSchema = z.object({
     projectChallenge: z.string().min(5),
   }),
 
-  // Optional for backwards compatibility with roadmaps created before
-  // structured lessons were introduced. New AI-generated roadmaps include it.
+  // Optional for persisted legacy roadmaps. New AI generation uses GeneratedSkillSchema.
   lesson: LessonSchema.optional(),
-
+  masteryProof: MasteryProofSchema.optional(),
   prerequisites: z.array(z.string()).default([]),
-
   youtubeQuery: z.string().min(5),
+});
+
+export const SkillSchema = SkillBaseSchema;
+
+export const GeneratedSkillSchema = SkillBaseSchema.extend({
+  lesson: LessonSchema,
+  masteryProof: MasteryProofSchema,
 });
 
 export const RoadmapSchema = z.object({
@@ -42,10 +74,19 @@ export const RoadmapSchema = z.object({
     title: z.string().min(3),
     estimatedWeeks: z.number().int().positive(),
   }),
-
   skills: z.array(SkillSchema).min(1),
 });
 
+export const GeneratedRoadmapSchema = z.object({
+  goal: z.object({
+    title: z.string().min(3),
+    estimatedWeeks: z.number().int().positive(),
+  }),
+  skills: z.array(GeneratedSkillSchema).min(1),
+});
+
 export type Lesson = z.infer<typeof LessonSchema>;
+export type MasteryProof = z.infer<typeof MasteryProofSchema>;
+export type MasteryEvaluation = z.infer<typeof MasteryEvaluationSchema>;
 export type Skill = z.infer<typeof SkillSchema>;
 export type Roadmap = z.infer<typeof RoadmapSchema>;
