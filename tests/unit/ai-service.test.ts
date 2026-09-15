@@ -3,10 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.stubEnv("GEMINI_API_KEY", "test-gemini-key");
 
 const validRoadmap = {
-  goal: {
-    title: "Frontend Developer",
-    estimatedWeeks: 20,
-  },
+  goal: { title: "Frontend Developer", estimatedWeeks: 20 },
   skills: [
     {
       skillKey: "html-fundamentals",
@@ -25,6 +22,10 @@ const validRoadmap = {
         keyIdeas: ["Elements describe meaning", "Semantic structure improves accessibility"],
         content: "## Semantic HTML\nUse elements according to the meaning of their content.",
         practice: "Create a semantic profile page using headings, lists, and navigation.",
+        masteryCriteria: [
+          "Explain when semantic elements should be preferred over generic containers.",
+          "Apply semantic structure correctly to a concrete page scenario.",
+        ],
       },
       prerequisites: [],
       youtubeQuery: "HTML fundamentals tutorial",
@@ -39,20 +40,15 @@ vi.mock("@google/generative-ai", () => {
   class FakeGoogleGenerativeAI {
     getGenerativeModel({ model }: { model: string }) {
       requestedModel = model;
-
       return {
         generateContent: async () => ({
-          response: {
-            text: () => geminiResponse,
-          },
+          response: { text: () => geminiResponse },
         }),
       };
     }
   }
 
-  return {
-    GoogleGenerativeAI: FakeGoogleGenerativeAI,
-  };
+  return { GoogleGenerativeAI: FakeGoogleGenerativeAI };
 });
 
 import { aiService } from "@/services/ai.service";
@@ -65,7 +61,6 @@ describe("aiService.generateRoadmap", () => {
 
   it("uses the low-latency Gemini model for roadmap generation", async () => {
     await aiService.generateRoadmap("Frontend Developer");
-
     expect(requestedModel).toBe("gemini-3.5-flash-lite");
   });
 
@@ -77,28 +72,25 @@ describe("aiService.generateRoadmap", () => {
     expect(roadmap.skills).toHaveLength(1);
     expect(roadmap.skills[0].skillKey).toBe("html-fundamentals");
     expect(roadmap.skills[0].lesson.overview).toContain("mental model");
-    expect(roadmap.skills[0].lesson.keyIdeas).toHaveLength(2);
+    expect(roadmap.skills[0].lesson.masteryCriteria).toHaveLength(2);
   });
 
   it("throws AIOutputInvalidError when Gemini returns invalid JSON", async () => {
     geminiResponse = "this is not valid JSON";
 
-    await expect(
-      aiService.generateRoadmap("Frontend Developer"),
-    ).rejects.toThrow("AI returned invalid JSON");
+    await expect(aiService.generateRoadmap("Frontend Developer")).rejects.toThrow(
+      "AI returned invalid JSON",
+    );
   });
 
   it("rejects valid JSON that does not match the roadmap schema", async () => {
     geminiResponse = JSON.stringify({
-      goal: {
-        title: "Frontend Developer",
-        estimatedWeeks: 20,
-      },
+      goal: { title: "Frontend Developer", estimatedWeeks: 20 },
       skills: [],
     });
 
-    await expect(
-      aiService.generateRoadmap("Frontend Developer"),
-    ).rejects.toThrow("AI output does not match RoadmapSchema");
+    await expect(aiService.generateRoadmap("Frontend Developer")).rejects.toThrow(
+      "AI output does not match RoadmapSchema",
+    );
   });
 });
