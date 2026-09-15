@@ -66,13 +66,14 @@ describe("aiService.generateRoadmap", () => {
 
   it("generates a valid roadmap from Gemini output", async () => {
     const roadmap = await aiService.generateRoadmap("Frontend Developer");
+    const skill = roadmap.skills[0];
 
     expect(roadmap.goal.title).toBe("Frontend Developer");
     expect(roadmap.goal.estimatedWeeks).toBe(20);
     expect(roadmap.skills).toHaveLength(1);
-    expect(roadmap.skills[0].skillKey).toBe("html-fundamentals");
-    expect(roadmap.skills[0].lesson.overview).toContain("mental model");
-    expect(roadmap.skills[0].lesson.masteryCriteria).toHaveLength(2);
+    expect(skill?.skillKey).toBe("html-fundamentals");
+    expect(skill?.lesson?.overview).toContain("mental model");
+    expect(skill?.lesson?.masteryCriteria).toHaveLength(2);
   });
 
   it("throws AIOutputInvalidError when Gemini returns invalid JSON", async () => {
