@@ -50,6 +50,7 @@ CREATE TABLE "GoalSkill" (
     "lessonKeyIdeas" TEXT,
     "lessonContent" TEXT,
     "lessonPractice" TEXT,
+    "masteryCriteria" TEXT,
     CONSTRAINT "GoalSkill_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "GoalSkill_goalId_fkey" FOREIGN KEY ("goalId") REFERENCES "Goal"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "GoalSkill_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
