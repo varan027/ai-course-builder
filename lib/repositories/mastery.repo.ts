@@ -36,6 +36,15 @@ export const masteryRepository = {
     const prisma = await getPrisma();
 
     return prisma.$transaction(async (tx) => {
+      const progress = await tx.skillProgress.findUnique({
+        where: { id: input.skillProgressId },
+        select: { status: true },
+      });
+
+      if (!progress || progress.status !== SkillStatus.APPLYING) {
+        throw new Error("Skill is no longer ready for mastery evaluation");
+      }
+
       const evidence = await tx.evidence.create({
         data: {
           skillProgressId: input.skillProgressId,
@@ -51,7 +60,7 @@ export const masteryRepository = {
         return { evidence, status: SkillStatus.APPLYING };
       }
 
-      const progress = await tx.skillProgress.update({
+      const masteredProgress = await tx.skillProgress.update({
         where: { id: input.skillProgressId },
         data: {
           status: SkillStatus.MASTERED,
@@ -59,7 +68,7 @@ export const masteryRepository = {
         },
       });
 
-      return { evidence, status: progress.status };
+      return { evidence, status: masteredProgress.status };
     });
   },
 };
