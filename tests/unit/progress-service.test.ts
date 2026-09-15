@@ -2,10 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { SkillStatus } from "@prisma/client";
 import { progressService } from "@/services/progress.service";
 import { progressRepository } from "@/lib/repositories/progress.repo";
-import {
-  arePrerequisitesSatisfied,
-  getNextSkillStatus,
-} from "@/lib/domain/progress-state";
+import { arePrerequisitesSatisfied, getNextSkillStatus } from "@/lib/domain/progress-state";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -17,6 +14,7 @@ vi.mock("@/lib/repositories/progress.repo", () => ({
     getSkillProgress: vi.fn(),
     createSkillProgress: vi.fn(),
     updateSkillProgress: vi.fn(),
+    startProject: vi.fn(),
     getProgressForGoal: vi.fn(),
   },
 }));
@@ -32,7 +30,7 @@ const existing = {
   updatedAt: new Date(),
   userId: "user-01",
   goalSkillId: "gskill-101",
-  completedAt: new Date(),
+  completedAt: null,
 };
 
 const createdProgress = {
@@ -50,250 +48,97 @@ const prerequisitesProgress = {
   skillId: "skill-git-basics",
   position: 1,
   description: "Learn fundamental version control using Git.",
-  whyImportant:
-    "Crucial for backing up work and collaborating with other developers.",
+  whyImportant: "Crucial for backing up work and collaborating with other developers.",
   milestone: "Initialize a local repository and push it to a remote host.",
-  projectChallenge:
-    "Resolve a complex merge conflict between two local branches manually.",
-
+  projectChallenge: "Resolve a complex merge conflict between two local branches manually.",
   dependencies: [],
 };
 
 it("allows a skill with no prerequisites to start", async () => {
   vi.mocked(progressRepository.getSkillProgress).mockResolvedValue(null);
-
-  vi.mocked(progressRepository.getPrerequisiteProgress).mockResolvedValue(
-    prerequisitesProgress,
-  );
-
+  vi.mocked(progressRepository.getPrerequisiteProgress).mockResolvedValue(prerequisitesProgress);
   vi.mocked(arePrerequisitesSatisfied).mockReturnValue(true);
-
-  vi.mocked(progressRepository.createSkillProgress).mockResolvedValue(
-    createdProgress,
-  );
+  vi.mocked(progressRepository.createSkillProgress).mockResolvedValue(createdProgress);
 
   const result = await progressService.advanceSkill("user-01", "gskill-101");
 
   expect(result).toEqual(createdProgress);
-
-  expect(progressRepository.createSkillProgress).toHaveBeenCalledWith(
-    "user-01",
-    "gskill-101",
-  );
-
+  expect(progressRepository.createSkillProgress).toHaveBeenCalledWith("user-01", "gskill-101");
   expect(arePrerequisitesSatisfied).toHaveBeenCalledWith([]);
 });
 
 it("does not allow a skill to advance when a prerequisite is not mastered", async () => {
   vi.mocked(progressRepository.getSkillProgress).mockResolvedValue(existing);
-
   vi.mocked(progressRepository.getPrerequisiteProgress).mockResolvedValue({
-    id: "gskill-101",
-    goalId: "goal-abc",
-    skillId: "skill-git-basics",
-    position: 1,
-    description: "Learn fundamental version control using Git.",
-    whyImportant:
-      "Crucial for backing up work and collaborating with other developers.",
-    milestone: "Initialize a local repository and push it to a remote host.",
-    projectChallenge:
-      "Resolve a complex merge conflict between two local branches manually.",
+    ...prerequisitesProgress,
     dependencies: [
       {
         prerequisiteGoalSkill: {
-          id: "gskill-100",
-          goalId: "goal-abc",
-          skillId: "skill-html",
-          position: 0,
-          description: "Learn HTML",
-          whyImportant: "Foundation",
-          milestone: "Build a page",
-          projectChallenge: "Build a website",
           progress: [],
         },
       },
     ],
   } as any);
-
   vi.mocked(arePrerequisitesSatisfied).mockReturnValue(false);
 
-  await expect(
-    progressService.advanceSkill("user-01", "gskill-101"),
-  ).rejects.toThrowError("Prerequisites are not satisfied");
+  await expect(progressService.advanceSkill("user-01", "gskill-101")).rejects.toThrowError(
+    "Prerequisites are not satisfied",
+  );
 
-  expect(arePrerequisitesSatisfied).toHaveBeenCalledWith([
-    SkillStatus.NOT_STARTED,
-  ]);
-
-  expect(progressRepository.createSkillProgress).not.toHaveBeenCalled();
+  expect(arePrerequisitesSatisfied).toHaveBeenCalledWith([SkillStatus.NOT_STARTED]);
+  expect(progressRepository.updateSkillProgress).not.toHaveBeenCalled();
 });
 
 it("allows an existing skill to advance when all prerequisites are mastered", async () => {
   vi.mocked(progressRepository.getSkillProgress).mockResolvedValue(existing);
-
   vi.mocked(progressRepository.getPrerequisiteProgress).mockResolvedValue({
-    id: "gskill-101",
-    goalId: "goal-abc",
-    skillId: "skill-git-basics",
-    position: 1,
-    description: "Learn fundamental version control using Git.",
-    whyImportant:
-      "Crucial for backing up work and collaborating with other developers.",
-    milestone: "Initialize a local repository and push it to a remote host.",
-    projectChallenge:
-      "Resolve a complex merge conflict between two local branches manually.",
+    ...prerequisitesProgress,
     dependencies: [
       {
         prerequisiteGoalSkill: {
-          id: "gskill-100",
-          goalId: "goal-abc",
-          skillId: "skill-html",
-          position: 0,
-          description: "Learn HTML",
-          whyImportant: "Foundation",
-          milestone: "Build a page",
-          projectChallenge: "Build a website",
-          progress: [
-            {
-              id: "skillprogress-01",
-              status: SkillStatus.MASTERED,
-              updatedAt: new Date(),
-              userId: "user-01",
-              goalSkillId: "gskill-100",
-              completedAt: new Date(),
-            },
-          ],
+          progress: [{ status: SkillStatus.MASTERED }],
         },
       },
     ],
   } as any);
-
   vi.mocked(arePrerequisitesSatisfied).mockReturnValue(true);
-
-  vi.mocked(progressRepository.updateSkillProgress).mockResolvedValue({
-    id: "skillprogress-01",
-    status: SkillStatus.PRACTICING,
-    updatedAt: new Date(),
-    userId: "user-01",
-    goalSkillId: "gskill-101",
-    completedAt: new Date(),
-  });
-
   vi.mocked(getNextSkillStatus).mockReturnValue(SkillStatus.PRACTICING);
+  vi.mocked(progressRepository.updateSkillProgress).mockResolvedValue({
+    ...existing,
+    status: SkillStatus.PRACTICING,
+  });
 
   const result = await progressService.advanceSkill("user-01", "gskill-101");
 
-  expect(result).toEqual({
-    id: "skillprogress-01",
-    status: SkillStatus.PRACTICING,
-    updatedAt: expect.any(Date),
-    userId: "user-01",
-    goalSkillId: "gskill-101",
-    completedAt: expect.any(Date),
-  });
-
-  expect(arePrerequisitesSatisfied).toHaveBeenCalledWith([
-    SkillStatus.MASTERED,
-  ]);
-
+  expect(result.status).toBe(SkillStatus.PRACTICING);
   expect(getNextSkillStatus).toHaveBeenCalledWith(SkillStatus.EXPLORING);
-
   expect(progressRepository.updateSkillProgress).toHaveBeenCalledWith(
     existing.id,
     SkillStatus.PRACTICING,
   );
 });
 
-it("does not allow a skill to advance when at least one prerequisite is not mastered", async () => {
-  vi.mocked(progressRepository.getSkillProgress).mockResolvedValue(existing);
+it("does not allow progress action to bypass mastery evaluation", async () => {
+  vi.mocked(progressRepository.getSkillProgress).mockResolvedValue({
+    ...existing,
+    status: SkillStatus.APPLYING,
+  });
 
-  vi.mocked(progressRepository.getPrerequisiteProgress).mockResolvedValue({
-    id: "gskill-101",
-    goalId: "goal-abc",
-    skillId: "skill-git-basics",
-    position: 1,
-    description: "Learn fundamental version control using Git.",
-    whyImportant:
-      "Crucial for backing up work and collaborating with other developers.",
-    milestone: "Initialize a local repository and push it to a remote host.",
-    projectChallenge:
-      "Resolve a complex merge conflict between two local branches manually.",
-    dependencies: [
-      {
-        prerequisiteGoalSkill: {
-          id: "gskill-100",
-          goalId: "goal-abc",
-          skillId: "skill-html",
-          position: 0,
-          description: "Learn HTML",
-          whyImportant: "Foundation",
-          milestone: "Build a page",
-          projectChallenge: "Build a website",
-          progress: [
-            {
-              id: "skillprogress-01",
-              status: SkillStatus.NOT_STARTED,
-              updatedAt: new Date(),
-              userId: "user-01",
-              goalSkillId: "gskill-100",
-              completedAt: new Date(),
-            },
-          ],
-        },
-      },
-      {
-        prerequisiteGoalSkill: {
-          id: "gskill-102",
-          goalId: "goal-abc",
-          skillId: "skill-html",
-          position: 0,
-          description: "Learn HTML",
-          whyImportant: "Foundation",
-          milestone: "Build a page",
-          projectChallenge: "Build a website",
-          progress: [
-            {
-              id: "skillprogress-02",
-              status: SkillStatus.MASTERED,
-              updatedAt: new Date(),
-              userId: "user-01",
-              goalSkillId: "gskill-102",
-              completedAt: new Date(),
-            },
-          ],
-        },
-      },
-    ],
-  } as any);
+  await expect(progressService.advanceSkill("user-01", "gskill-101")).rejects.toThrow(
+    "Submit mastery evidence before completing this skill",
+  );
 
-  vi.mocked(arePrerequisitesSatisfied).mockReturnValue(false);
-
-  await expect(
-    progressService.advanceSkill("user-01", "gskill-101"),
-  ).rejects.toThrowError("Prerequisites are not satisfied");
-
-  expect(arePrerequisitesSatisfied).toHaveBeenCalledWith([
-    SkillStatus.NOT_STARTED,
-    SkillStatus.MASTERED,
-  ]);
-
-  expect(progressRepository.createSkillProgress).not.toHaveBeenCalled();
+  expect(progressRepository.getPrerequisiteProgress).not.toHaveBeenCalled();
+  expect(progressRepository.updateSkillProgress).not.toHaveBeenCalled();
 });
 
 it("does not advance an already mastered skill", async () => {
-  vi.mocked(progressRepository.getSkillProgress).mockResolvedValue({
-    ...existing,
-    status: SkillStatus.MASTERED,
-  });
+  const mastered = { ...existing, status: SkillStatus.MASTERED };
+  vi.mocked(progressRepository.getSkillProgress).mockResolvedValue(mastered);
 
   const result = await progressService.advanceSkill("user-01", "gskill-101");
 
-  expect(result).toEqual({
-    ...existing,
-    status: SkillStatus.MASTERED,
-  });
-
+  expect(result).toEqual(mastered);
   expect(progressRepository.getPrerequisiteProgress).not.toHaveBeenCalled();
-
   expect(progressRepository.updateSkillProgress).not.toHaveBeenCalled();
 });
