@@ -1,4 +1,3 @@
-import { advanceSkill } from "@/actions/advancceSkill";
 import { progressService } from "@/services/progress.service";
 import { goalService } from "@/services/goal.service";
 import { expect, it, vi } from "vitest";
@@ -6,6 +5,7 @@ import { PrerequisitesNotSatisfiedError } from "@/lib/errors/domain";
 import { getCurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { SkillStatus } from "@prisma/client";
+import { advanceSkill } from "@/actions/advancceSkill";
 
 function createFormData() {
   const formData = new FormData();
@@ -36,7 +36,7 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-it("should throw an error if prerequisites are not satisfied", async () => {
+it("should return an error if prerequisites are not satisfied", async () => {
   vi.mocked(getCurrentUser).mockResolvedValue({
     id: "user-01",
     email: "test@example.com",
@@ -77,7 +77,8 @@ it("should revalidate the path after successfully advancing a skill", async () =
     updatedAt: new Date(),
     userId: "user-01",
     goalSkillId: "gskill-101",
-    completedAt: new Date(),
+    projectStartedAt: null,
+    completedAt: null,
   });
 
   await advanceSkill({}, createFormData());
