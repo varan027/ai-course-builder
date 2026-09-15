@@ -1,56 +1,69 @@
-'use server'
+'use server';
 
-import { SESSION_KEY } from "@/lib/session";
-import { authService } from "@/services/auth.service";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { authService } from "@/services/auth.service";
+import { SESSION_KEY, SESSION_TTL_MS } from "@/lib/session";
 
 export type AuthState = {
   error: string | null;
 };
 
-export async function Signup(prevState: AuthState, formData: FormData){
-  const email = formData.get("email")?.toString();
-  const password = formData.get("password")?.toString();
+async function setSessionCookie(userId: string) {
+  const token = await authService.createSession(userId);
+  const cookieStore = await cookies();
 
-  if(!email || !password){
-    return { error: "Missing Fields!"}
-  }
-
-  try{
-    const user = await authService.signup(email, password);
-
-    const cookie = await cookies()
-    cookie.set(SESSION_KEY, user.id, {
+  cookieStore.set(SESSION_KEY, token, {
     httpOnly: true,
-    path: "/"
-  })
-    
-  }catch(err: any){
-    return { error: err.message }
-  }
-  redirect("/dashboard")
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: Math.floor(SESSION_TTL_MS / 1000),
+  });
 }
 
-export async function login(prevState: AuthState, formData: FormData){
-  const email = formData.get("email")?.toString();
-  const password = formData.get("password")?.toString();
+export async function Signup(
+  _prevState: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = formData.get("email")?.toString() ?? "";
+  const password = formData.get("password")?.toString() ?? "";
 
-  if(!email || !password){
-    return { error: "Missing Fields!"}
+  if (!email || !password) {
+    return { error: "Email and password are required" };
   }
 
-  try{
+  try {
+    const user = await authService.signup(email, password);
+    await setSessionCookie(user.id);
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Unable to create account",
+    };
+  }
+
+  redirect("/dashboard");
+}
+
+export async function login(
+  _prevState: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = formData.get("email")?.toString() ?? "";
+  const password = formData.get("password")?.toString() ?? "";
+
+  if (!email || !password) {
+    return { error: "Email and password are required" };
+  }
+
+  try {
     const user = await authService.login(email, password);
-    
-    const cookie = await cookies()
-    cookie.set(SESSION_KEY, user.id, {
-    httpOnly: true,
-    path: "/"
-  })
-    
-  }catch(err: any){
-    return { error: err.message }
+    await setSessionCookie(user.id);
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Unable to sign in",
+    };
   }
-  redirect("/dashboard")
-} 
+
+  redirect("/dashboard");
+}
