@@ -64,6 +64,8 @@ export const progressRepository = {
       },
       data: {
         status: nextStatus,
+        completedAt:
+          nextStatus === SkillStatus.MASTERED ? new Date() : undefined,
       },
     });
   },
@@ -71,21 +73,25 @@ export const progressRepository = {
   async startProject(userId: string, goalSkillId: string) {
     const prisma = await getPrisma();
 
-    return prisma.skillProgress.upsert({
+    const progress = await prisma.skillProgress.findUnique({
       where: {
         userId_goalSkillId: {
           userId,
           goalSkillId,
         },
       },
-      create: {
-        userId,
-        goalSkillId,
-        status: SkillStatus.MASTERED,
-        projectStartedAt: new Date(),
+    });
+
+    if (!progress || progress.status !== SkillStatus.MASTERED) {
+      throw new Error("Skill must be mastered before starting the project");
+    }
+
+    return prisma.skillProgress.update({
+      where: {
+        id: progress.id,
       },
-      update: {
-        projectStartedAt: new Date(),
+      data: {
+        projectStartedAt: progress.projectStartedAt ?? new Date(),
       },
     });
   },
