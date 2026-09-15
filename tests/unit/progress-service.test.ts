@@ -4,6 +4,10 @@ import { progressService } from "@/services/progress.service";
 import { progressRepository } from "@/lib/repositories/progress.repo";
 import { arePrerequisitesSatisfied, getNextSkillStatus } from "@/lib/domain/progress-state";
 
+type PrerequisiteProgress = NonNullable<
+  Awaited<ReturnType<typeof progressRepository.getPrerequisiteProgress>>
+>;
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -30,6 +34,7 @@ const existing = {
   updatedAt: new Date(),
   userId: "user-01",
   goalSkillId: "gskill-101",
+  projectStartedAt: null,
   completedAt: null,
 };
 
@@ -38,11 +43,12 @@ const createdProgress = {
   status: SkillStatus.EXPLORING,
   userId: "user-01",
   goalSkillId: "gskill-101",
+  projectStartedAt: null,
   updatedAt: new Date(),
   completedAt: null,
 };
 
-const prerequisitesProgress = {
+const prerequisitesProgress: PrerequisiteProgress = {
   id: "gskill-101",
   goalId: "goal-abc",
   skillId: "skill-git-basics",
@@ -51,8 +57,51 @@ const prerequisitesProgress = {
   whyImportant: "Crucial for backing up work and collaborating with other developers.",
   milestone: "Initialize a local repository and push it to a remote host.",
   projectChallenge: "Resolve a complex merge conflict between two local branches manually.",
+  lessonOverview: null,
+  lessonKeyIdeas: null,
+  lessonContent: null,
+  lessonPractice: null,
+  masteryCriteria: null,
   dependencies: [],
 };
+
+function withDependencies(
+  dependencies: PrerequisiteProgress["dependencies"],
+): PrerequisiteProgress {
+  return {
+    ...prerequisitesProgress,
+    dependencies,
+  };
+}
+
+function prerequisiteGoalSkill(status: SkillStatus | undefined) {
+  return {
+    id: "gskill-100",
+    goalId: "goal-abc",
+    skillId: "skill-html",
+    position: 0,
+    description: "Learn HTML",
+    whyImportant: "Foundation",
+    milestone: "Build a page",
+    projectChallenge: "Build a website",
+    lessonOverview: null,
+    lessonKeyIdeas: null,
+    lessonContent: null,
+    lessonPractice: null,
+    masteryCriteria: null,
+    progress: status
+      ? [{
+          id: "skillprogress-prerequisite",
+          status,
+          updatedAt: new Date(),
+          userId: "user-01",
+          goalSkillId: "gskill-100",
+          projectStartedAt: null,
+          completedAt: null,
+        }]
+      : [],
+  };
+}
 
 it("allows a skill with no prerequisites to start", async () => {
   vi.mocked(progressRepository.getSkillProgress).mockResolvedValue(null);
@@ -69,16 +118,16 @@ it("allows a skill with no prerequisites to start", async () => {
 
 it("does not allow a skill to advance when a prerequisite is not mastered", async () => {
   vi.mocked(progressRepository.getSkillProgress).mockResolvedValue(existing);
-  vi.mocked(progressRepository.getPrerequisiteProgress).mockResolvedValue({
-    ...prerequisitesProgress,
-    dependencies: [
+  vi.mocked(progressRepository.getPrerequisiteProgress).mockResolvedValue(
+    withDependencies([
       {
-        prerequisiteGoalSkill: {
-          progress: [],
-        },
+        id: "dependency-1",
+        goalSkillId: "gskill-101",
+        prerequisiteGoalSkillId: "gskill-100",
+        prerequisiteGoalSkill: prerequisiteGoalSkill(undefined),
       },
-    ],
-  } as any);
+    ]),
+  );
   vi.mocked(arePrerequisitesSatisfied).mockReturnValue(false);
 
   await expect(progressService.advanceSkill("user-01", "gskill-101")).rejects.toThrowError(
@@ -91,16 +140,16 @@ it("does not allow a skill to advance when a prerequisite is not mastered", asyn
 
 it("allows an existing skill to advance when all prerequisites are mastered", async () => {
   vi.mocked(progressRepository.getSkillProgress).mockResolvedValue(existing);
-  vi.mocked(progressRepository.getPrerequisiteProgress).mockResolvedValue({
-    ...prerequisitesProgress,
-    dependencies: [
+  vi.mocked(progressRepository.getPrerequisiteProgress).mockResolvedValue(
+    withDependencies([
       {
-        prerequisiteGoalSkill: {
-          progress: [{ status: SkillStatus.MASTERED }],
-        },
+        id: "dependency-1",
+        goalSkillId: "gskill-101",
+        prerequisiteGoalSkillId: "gskill-100",
+        prerequisiteGoalSkill: prerequisiteGoalSkill(SkillStatus.MASTERED),
       },
-    ],
-  } as any);
+    ]),
+  );
   vi.mocked(arePrerequisitesSatisfied).mockReturnValue(true);
   vi.mocked(getNextSkillStatus).mockReturnValue(SkillStatus.PRACTICING);
   vi.mocked(progressRepository.updateSkillProgress).mockResolvedValue({
