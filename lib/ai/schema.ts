@@ -29,7 +29,7 @@ export const SkillSchema = z.object({
     projectChallenge: z.string().min(5),
   }),
 
-  lesson: LessonSchema.optional(),
+  lesson: LessonSchema,
   prerequisites: z.array(z.string()).default([]),
   youtubeQuery: z.string().min(5),
 });
