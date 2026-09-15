@@ -6,15 +6,16 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, CheckCircle2, Lightbulb, Target, Trophy, BookOpen, ListChecks, Hammer } from "lucide-react";
 import Link from "next/link";
 import SkillProgressForm from "./SkillProgressForm";
+import EvidenceForm from "./EvidenceForm";
 import { getNextSkillIndex, getProgressStageIndex, PROGRESS_STAGES } from "@/lib/course-learning";
 import { renderLessonContent } from "@/lib/lesson-content";
 import { getProjectProofState } from "@/lib/project-proof";
 
-function parseKeyIdeas(value: string | null) {
+function parseStringArray(value: string | null) {
   if (!value) return [];
 
   try {
-    const parsed = JSON.parse(value);
+    const parsed: unknown = JSON.parse(value);
     return Array.isArray(parsed) && parsed.every((item) => typeof item === "string")
       ? parsed
       : [];
@@ -82,7 +83,8 @@ export default async function SkillPage({ params }: { params: Promise<{ courseId
   const currentStageIndex = getProgressStageIndex(currentStatus);
   const nextIndex = getNextSkillIndex(goal.goalSkills.map((skill) => ({ mastered: progress.some((p) => p.goalSkillId === skill.id && p.status === "MASTERED") })), index);
   const statusLabel = currentStatus.replace("_", " ");
-  const keyIdeas = parseKeyIdeas(goalSkill.lessonKeyIdeas);
+  const keyIdeas = parseStringArray(goalSkill.lessonKeyIdeas);
+  const masteryCriteria = parseStringArray(goalSkill.masteryCriteria);
   const lessonOverview = goalSkill.lessonOverview ?? goalSkill.description;
   const lessonPractice = goalSkill.lessonPractice ?? goalSkill.projectChallenge;
   const projectState = getProjectProofState(currentStatus, false);
@@ -117,6 +119,15 @@ export default async function SkillPage({ params }: { params: Promise<{ courseId
 
         <section className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7"><div className="flex items-center gap-2"><Trophy className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Practice</p></div><p className="mt-4 max-w-3xl text-sm leading-6 text-foreground/90">{lessonPractice}</p></section>
 
+        {currentStatus === "APPLYING" && masteryCriteria.length > 0 && (
+          <section className="rounded-2xl border border-primary/20 bg-primary/[0.03] p-6 sm:p-8">
+            <div className="flex items-center gap-2"><Trophy className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Prove</p></div>
+            <h2 className="mt-4 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">Demonstrate the skill</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">Your response is evaluated against the criteria generated with this learning path. A failed attempt gives feedback and keeps the skill in practice.</p>
+            <div className="mt-7"><EvidenceForm goalId={courseId} goalSkillId={goalSkill.id} criteria={masteryCriteria} practice={lessonPractice} /></div>
+          </section>
+        )}
+
         {projectState !== "LOCKED" && <section className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 sm:p-8">
           <div className="flex items-center gap-2"><Hammer className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Build to prove it</p></div>
           <h2 className="mt-4 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">Put this skill to work</h2>
@@ -127,7 +138,7 @@ export default async function SkillPage({ params }: { params: Promise<{ courseId
         {goalSkill.dependencies.length > 0 && <section className="border-t border-white/[0.07] pt-7"><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Prerequisites</p><div className="mt-4 flex flex-wrap gap-2">{goalSkill.dependencies.map((dependency) => { const mastered = dependency.prerequisiteGoalSkill.progress.some((p) => p.status === "MASTERED"); return <span key={dependency.id} className="inline-flex items-center gap-2 rounded-full border border-white/[0.07] px-3 py-2 text-xs text-muted-foreground">{mastered ? <CheckCircle2 className="size-3.5 text-primary" /> : <span className="size-3.5 rounded-full border border-white/20" />}{dependency.prerequisiteGoalSkill.skill.title}</span>; })}</div></section>}
       </div>
 
-      <footer className="border-t border-white/[0.07] pt-7 pb-10"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Your progress</p><p className="mt-1 text-sm text-muted-foreground">{statusLabel}</p></div>{!isCompleted && <SkillProgressForm goalId={courseId} goalSkillId={goalSkill.id} currentStatus={currentStatus} />}</div><div className="mt-7 flex items-center justify-between gap-4">{index > 0 ? <Button asChild variant="ghost" className="rounded-full text-muted-foreground"><Link href={`/courses/${courseId}/${index - 1}`}><ArrowLeft className="size-4" />Previous</Link></Button> : <div />}{isCompleted && nextIndex !== undefined && <Button asChild className="rounded-full px-5"><Link href={`/courses/${courseId}/${nextIndex}`}>Next skill <ArrowRight className="size-4" /></Link></Button>}</div></footer>
+      <footer className="border-t border-white/[0.07] pt-7 pb-10"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Your progress</p><p className="mt-1 text-sm text-muted-foreground">{statusLabel}</p></div><SkillProgressForm goalId={courseId} goalSkillId={goalSkill.id} chapterId={chapterId} currentStatus={currentStatus} /></div><div className="mt-7 flex items-center justify-between gap-4">{index > 0 ? <Button asChild variant="ghost" className="rounded-full text-muted-foreground"><Link href={`/courses/${courseId}/${index - 1}`}><ArrowLeft className="size-4" />Previous</Link></Button> : <div />}{isCompleted && nextIndex !== undefined && <Button asChild className="rounded-full px-5"><Link href={`/courses/${courseId}/${nextIndex}`}>Next skill <ArrowRight className="size-4" /></Link></Button>}</div></footer>
     </article>
   );
 }
