@@ -37,6 +37,8 @@ export async function createGoal(
 
     redirect("/dashboard");
   } catch (err) {
+    console.error("CREATE GOAL ERROR:", err);
+
     if (err instanceof Error && err.message === "NEXT_REDIRECT") {
       throw err;
     }
