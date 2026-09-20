@@ -3,54 +3,143 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
+  id            String          @id @default(uuid())
+  email         String          @unique
+  password      String
 
-  goals     Goal[]
+  goals         Goal[]
+  skillProgress SkillProgress[]
+  sessions      Session[]
 
-  createdAt DateTime @default(now())
+  createdAt     DateTime        @default(now())
 }
 
 model Goal {
-  id        String   @id @default(uuid())
+  id             String          @id @default(uuid())
+  title          String
+  estimatedWeeks Int
+  status         GoalStatus      @default(CREATING)
 
-  title     String
+  ownerId        String
+  owner          User            @relation(fields: [ownerId], references: [id])
 
-  roadmap   Json
+  goalSkills     GoalSkill[]
 
-  ownerId   String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
-  owner     User     @relation(fields: [ownerId], references: [id])
+  @@index([ownerId])
+}
 
-  status    GoalStatus @default(CREATING)
+model Skill {
+  id          String      @id @default(uuid())
+  skillKey    String      @unique
+  title       String
+  description String
 
-  createdAt DateTime @default(now())
+  goalSkills  GoalSkill[]
 
-  progress  SkillProgress[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model GoalSkill {
+  id String @id @default(uuid())
+
+  goalId String
+  goal Goal @relation(fields: [goalId], references: [id])
+
+  skillId String
+  skill Skill @relation(fields: [skillId], references: [id])
+
+  position Int
+  description String
+  whyImportant String
+  milestone String
+  projectChallenge String
+
+  lessonOverview String?
+  lessonKeyIdeas String?
+  lessonContent String?
+  lessonPractice String?
+  masteryCriteria String?
+
+  dependencies GoalSkillDependency[] @relation("DependentSkill")
+  dependents   GoalSkillDependency[] @relation("PrerequisiteSkill")
+
+  progress SkillProgress[]
+
+  @@unique([goalId, skillId])
+  @@unique([goalId, position])
+  @@index([goalId])
+  @@index([skillId])
+}
+
+model GoalSkillDependency {
+  id String @id @default(uuid())
+
+  goalSkill GoalSkill @relation("DependentSkill", fields: [goalSkillId], references: [id])
+  goalSkillId String
+
+  prerequisiteGoalSkill GoalSkill @relation("PrerequisiteSkill", fields: [prerequisiteGoalSkillId], references: [id])
+  prerequisiteGoalSkillId String
+
+  @@unique([goalSkillId, prerequisiteGoalSkillId])
+  @@index([prerequisiteGoalSkillId])
 }
 
 model SkillProgress {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId    String
+  user User @relation(fields: [userId], references: [id])
+  userId String
 
-  goalId    String
+  goalSkill GoalSkill @relation(fields: [goalSkillId], references: [id])
+  goalSkillId String
 
-  skillId   String
+  status SkillStatus @default(NOT_STARTED)
 
-  status    SkillStatus @default(NOT_STARTED)
-
-  goal       Goal @relation(fields: [goalId], references: [id])
-
+  projectStartedAt DateTime?
+  completedAt DateTime?
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, goalId, skillId])
+  evidence Evidence[]
+
+  @@unique([userId, goalSkillId])
+  @@index([userId, status])
+  @@index([goalSkillId])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, expiresAt])
+}
+
+model Evidence {
+  id             String        @id @default(uuid())
+  skillProgressId String
+  response       String
+  passed         Boolean
+  score          Int
+  feedback       String
+  criteriaResults Json
+  createdAt      DateTime      @default(now())
+
+  skillProgress SkillProgress @relation(fields: [skillProgressId], references: [id])
+
+  @@index([skillProgressId, createdAt])
 }
 
 enum GoalStatus {

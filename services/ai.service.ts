@@ -1,33 +1,61 @@
-import { parseRoadmap } from "@/lib/ai/parser";
-import { ROADMAP_PROMPT } from "@/lib/ai/prompts";
-import { Roadmap } from "@/lib/ai/schema";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { parseMasteryEvaluation, parseRoadmap } from "@/lib/ai/parser";
+import { MASTERY_EVALUATION_PROMPT, ROADMAP_PROMPT } from "@/lib/ai/prompts";
+import type { MasteryEvaluation, Roadmap } from "@/lib/ai/schema";
+import { AIOutputInvalidError } from "@/lib/errors/domain";
 
-const apiKey = process.env.GEMINI_API_KEY;
+const MODEL_NAME = "gemini-3.5-flash-lite";
 
-if (!apiKey) {
-  throw new Error("Missing Gemini API key");
+function getModel() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("AI service is not configured");
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  return genAI.getGenerativeModel({
+    model: MODEL_NAME,
+    generationConfig: { responseMimeType: "application/json" },
+  });
 }
 
-const genAI = new GoogleGenerativeAI(apiKey);
+async function generateJson(prompt: string) {
+  const result = await getModel().generateContent(prompt);
+  return result.response.text();
+}
 
-export const aiService = {
-  async generateRoadmap(goal: string): Promise<Roadmap> {
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-    });
+async function generateAndParse<T>(
+  prompt: string,
+  parser: (raw: string) => T,
+): Promise<T> {
+  const firstRaw = await generateJson(prompt);
 
-    const result = await model.generateContent(
-      ROADMAP_PROMPT(goal)
+  try {
+    return parser(firstRaw);
+  } catch (error) {
+    if (!(error instanceof AIOutputInvalidError)) throw error;
+
+    const retryRaw = await generateJson(
+      `${prompt}\n\nYour previous response was invalid. Return ONLY JSON that exactly matches the requested schema. Do not add markdown fences or commentary.`,
     );
 
-    const text = result.response.text();
+    return parser(retryRaw);
+  }
+}
 
-    const cleaned = text
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
+export const aiService = {
+  generateRoadmap(goal: string): Promise<Roadmap> {
+    return generateAndParse(ROADMAP_PROMPT(goal), parseRoadmap);
+  },
 
-    return parseRoadmap(cleaned);
+  evaluateMastery(input: {
+    skillTitle: string;
+    skillDescription: string;
+    criteria: string[];
+    practice: string;
+    response: string;
+  }): Promise<MasteryEvaluation> {
+    return generateAndParse(
+      MASTERY_EVALUATION_PROMPT(input),
+      parseMasteryEvaluation,
+    );
   },
 };

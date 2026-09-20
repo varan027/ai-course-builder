@@ -1,176 +1,144 @@
 import { goalService } from "@/services/goal.service";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { toggleProgress } from "@/actions/toggleProgress";
 import { progressService } from "@/services/progress.service";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, Circle, Lightbulb, Play, Target, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Lightbulb, Target, Trophy, BookOpen, ListChecks, Hammer } from "lucide-react";
 import Link from "next/link";
+import SkillProgressForm from "./SkillProgressForm";
+import EvidenceForm from "./EvidenceForm";
+import { getNextSkillIndex, getProgressStageIndex, PROGRESS_STAGES } from "@/lib/course-learning";
+import { renderLessonContent } from "@/lib/lesson-content";
+import { getProjectProofState } from "@/lib/project-proof";
 
-export default async function SkillPage({
-  params,
-}: {
-  params: Promise<{ courseId: string; chapterId: string }>;
-}) {
-  const { courseId, chapterId } = await params;
-  const user = await getCurrentUser();
+function parseStringArray(value: string | null) {
+  if (!value) return [];
 
-  if (!user) redirect("/login");
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) && parsed.every((item) => typeof item === "string")
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
+}
 
-  const goal = await goalService.getById(courseId, user);
-  const index = Number(chapterId);
-  const skills = goal.roadmap.skills ?? [];
-  const skill = skills[index];
+function renderInlineMarkdown(text: string) {
+  return text.split(/(`[^`]+`)/g).map((part, index) =>
+    part.startsWith("`") && part.endsWith("`") ? (
+      <code key={index} className="rounded-md border border-white/[0.08] bg-black/20 px-1.5 py-0.5 font-mono text-[0.9em] text-foreground">
+        {part.slice(1, -1)}
+      </code>
+    ) : (
+      <span key={index}>{part}</span>
+    ),
+  );
+}
 
-  if (!skill) redirect(`/courses/${courseId}/0`);
-
-  const progress = await progressService.getProgress(user.id, courseId);
-  const isCompleted = progress.some((p) => p.skillId === skill.id && p.status === "MASTERED");
-  const completedIds = new Set(progress.filter((p) => p.status === "MASTERED").map((p) => p.skillId));
-  const previousComplete = index === 0 || completedIds.has(skills[index - 1]?.id);
-  const nextSkill = skills[index + 1];
+function LessonContent({ content }: { content: string }) {
+  const blocks = renderLessonContent(content);
 
   return (
-    <div className="mx-auto max-w-5xl pb-16">
-      <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-        <Link href={`/courses/${courseId}`} className="inline-flex items-center text-sm text-muted-foreground transition hover:text-white">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to journey
-        </Link>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">Skill {index + 1} of {skills.length}</span>
-          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">{isCompleted ? "Mastered" : "In progress"}</span>
-        </div>
-      </div>
+    <div className="max-w-3xl space-y-6">
+      {blocks.map((block, index) => {
+        if (block.type === "heading") {
+          if (block.level === 1) return <h2 key={index} className="pt-2 text-2xl font-semibold tracking-[-0.025em] sm:text-3xl">{renderInlineMarkdown(block.text)}</h2>;
+          if (block.level === 2) return <h2 key={index} className="pt-2 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">{renderInlineMarkdown(block.text)}</h2>;
+          return <h3 key={index} className="pt-1 text-base font-semibold tracking-[-0.01em] sm:text-lg">{renderInlineMarkdown(block.text)}</h3>;
+        }
 
-      <header className="mb-10">
-        <div className="mb-5 text-[10px] uppercase tracking-[0.25em] text-primary">{goal.title}</div>
-        <h1 className="max-w-4xl text-4xl font-semibold tracking-tight md:text-6xl">{skill.title}</h1>
-        <p className="mt-5 max-w-3xl text-lg leading-relaxed text-muted-foreground md:text-xl">{skill.whyImportant}</p>
+        if (block.type === "list") {
+          const List = block.ordered ? "ol" : "ul";
+          return <List key={index} className={`space-y-2.5 pl-6 text-[15px] leading-7 text-foreground/90 ${block.ordered ? "list-decimal" : "list-disc"}`}>
+            {block.items.map((item) => <li key={item} className="pl-1">{renderInlineMarkdown(item)}</li>)}
+          </List>;
+        }
+
+        if (block.type === "code") return <div key={index} className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/25">
+          {block.language && <div className="border-b border-white/[0.06] px-4 py-2 text-[9px] font-medium uppercase tracking-[0.16em] text-muted-foreground">{block.language}</div>}
+          <pre className="overflow-x-auto p-4 text-[13px] leading-6 text-foreground/90 sm:p-5"><code>{block.code}</code></pre>
+        </div>;
+
+        return <p key={index} className="text-[15px] leading-7 text-foreground/90 sm:text-base sm:leading-8">{renderInlineMarkdown(block.text)}</p>;
+      })}
+    </div>
+  );
+}
+
+export default async function SkillPage({ params }: { params: Promise<{ courseId: string; chapterId: string }> }) {
+  const { courseId, chapterId } = await params;
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const goal = await goalService.getById(courseId, user.id);
+  const index = Number(chapterId);
+  const goalSkill = goal.goalSkills[index];
+  if (!goalSkill) redirect(`/courses/${courseId}/0`);
+
+  const progress = await progressService.getProgress(user.id, courseId);
+  const skillProgress = progress.find((p) => p.goalSkillId === goalSkill.id);
+  const currentStatus = skillProgress?.status ?? "NOT_STARTED";
+  const isCompleted = currentStatus === "MASTERED";
+  const currentStageIndex = getProgressStageIndex(currentStatus);
+  const nextIndex = getNextSkillIndex(goal.goalSkills.map((skill) => ({ mastered: progress.some((p) => p.goalSkillId === skill.id && p.status === "MASTERED") })), index);
+  const statusLabel = currentStatus.replace("_", " ");
+  const keyIdeas = parseStringArray(goalSkill.lessonKeyIdeas);
+  const masteryCriteria = parseStringArray(goalSkill.masteryCriteria);
+  const lessonOverview = goalSkill.lessonOverview ?? goalSkill.description;
+  const lessonPractice = goalSkill.lessonPractice ?? goalSkill.projectChallenge;
+  const projectState = getProjectProofState(currentStatus, false);
+
+  return (
+    <article className="animate-in fade-in duration-500">
+      <header className="border-b border-white/[0.07] pb-10 sm:pb-12">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">{String(index + 1).padStart(2, "0")} / {String(goal.goalSkills.length).padStart(2, "0")}</p>
+          {isCompleted && <span className="flex items-center gap-1.5 text-xs text-primary"><CheckCircle2 className="size-4" /> Mastered</span>}
+        </div>
+        <h1 className="mt-7 max-w-3xl text-4xl font-semibold tracking-[-0.04em] sm:text-5xl lg:text-6xl">{goalSkill.skill.title}</h1>
+        <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">{goalSkill.whyImportant}</p>
+        <div className="mt-9 flex items-center gap-3">
+          {PROGRESS_STAGES.map((stage, stageIndex) => <div key={stage} className="flex-1"><div className={`h-1 rounded-full ${stageIndex <= currentStageIndex ? "bg-primary" : "bg-white/[0.08]"}`} /><p className={`mt-2 hidden text-[9px] uppercase tracking-[0.14em] sm:block ${stageIndex <= currentStageIndex ? "text-primary" : "text-muted-foreground"}`}>{stage.replace("_", " ")}</p></div>)}
+        </div>
       </header>
 
-      <div className="mb-8 grid gap-3 sm:grid-cols-3">
-        {[
-          { label: "Understand", icon: BookOpen, active: true },
-          { label: "Practice", icon: Target, active: true },
-          { label: "Master", icon: Trophy, active: isCompleted },
-        ].map(({ label, icon: Icon, active }) => (
-          <div key={label} className={`rounded-2xl border p-4 ${active ? "border-primary/20 bg-primary/[0.05]" : "border-white/10 bg-white/[0.02]"}`}>
-            <div className="flex items-center gap-3">
-              <Icon className={`h-4 w-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
-              <span className="text-sm font-medium">{label}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-[28px] border border-white/10 bg-[#0e0e0e] p-7 md:p-8">
-          <div className="mb-5 flex items-center gap-3">
-            <Lightbulb className="h-5 w-5 text-primary" />
-            <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Understand the idea</div>
-          </div>
-          <p className="leading-8 text-white/90">{skill.description}</p>
+      <div className="space-y-5 py-9 sm:py-10">
+        <section className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-8">
+          <div className="flex items-center gap-2"><BookOpen className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Learn</p></div>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-foreground/90 sm:text-lg">{lessonOverview}</p>
+          {keyIdeas.length > 0 && <div className="mt-8 border-t border-white/[0.07] pt-7"><div className="flex items-center gap-2"><ListChecks className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Key ideas</p></div><ul className="mt-5 grid gap-3 sm:grid-cols-2">{keyIdeas.map((idea) => <li key={idea} className="rounded-xl border border-white/[0.06] bg-black/10 p-4 text-sm leading-6 text-foreground/90">{idea}</li>)}</ul></div>}
         </section>
 
-        <section className="rounded-[28px] border border-primary/15 bg-primary/[0.055] p-7 md:p-8">
-          <div className="mb-5 flex items-center gap-3">
-            <Target className="h-5 w-5 text-primary" />
-            <div className="text-[10px] uppercase tracking-[0.22em] text-primary">Your checkpoint</div>
-          </div>
-          <p className="text-lg font-medium leading-8">{skill.milestone}</p>
-          {skill.dependsOn?.length ? (
-            <div className="mt-7 border-t border-white/10 pt-5">
-              <div className="mb-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Prerequisites</div>
-              <div className="flex flex-wrap gap-2">
-                {skill.dependsOn.map((dependency: string) => (
-                  <span key={dependency} className="rounded-full border border-white/10 bg-black/10 px-3 py-1.5 text-xs text-white/70">{dependency}</span>
-                ))}
-              </div>
-            </div>
-          ) : null}
+        {goalSkill.lessonContent ? <section className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-8"><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Lesson</p><div className="mt-6"><LessonContent content={goalSkill.lessonContent} /></div></section> : <section className="rounded-2xl border border-dashed border-white/[0.08] p-6 sm:p-8"><p className="text-sm leading-6 text-muted-foreground">This journey was created before structured lessons were introduced. Your existing skill context is still available below. Create a new goal to get AI-generated lessons stored with every skill.</p></section>}
+
+        <section className="grid gap-5 sm:grid-cols-2">
+          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7"><Lightbulb className="size-4 text-primary" /><p className="mt-5 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Understanding</p><p className="mt-3 text-sm leading-6 text-foreground/90">{goalSkill.description}</p></div>
+          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7"><Target className="size-4 text-primary" /><p className="mt-5 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Milestone</p><p className="mt-3 text-sm font-medium leading-6">{goalSkill.milestone}</p></div>
         </section>
+
+        <section className="rounded-2xl border border-white/[0.07] bg-white/[0.018] p-6 sm:p-7"><div className="flex items-center gap-2"><Trophy className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Practice</p></div><p className="mt-4 max-w-3xl text-sm leading-6 text-foreground/90">{lessonPractice}</p></section>
+
+        {currentStatus === "APPLYING" && masteryCriteria.length > 0 && (
+          <section className="rounded-2xl border border-primary/20 bg-primary/[0.03] p-6 sm:p-8">
+            <div className="flex items-center gap-2"><Trophy className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Prove</p></div>
+            <h2 className="mt-4 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">Demonstrate the skill</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">Your response is evaluated against the criteria generated with this learning path. A failed attempt gives feedback and keeps the skill in practice.</p>
+            <div className="mt-7"><EvidenceForm goalId={courseId} goalSkillId={goalSkill.id} criteria={masteryCriteria} practice={lessonPractice} /></div>
+          </section>
+        )}
+
+        {projectState !== "LOCKED" && <section className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 sm:p-8">
+          <div className="flex items-center gap-2"><Hammer className="size-4 text-primary" /><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Build to prove it</p></div>
+          <h2 className="mt-4 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">Put this skill to work</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-foreground/90 sm:text-base">{goalSkill.projectChallenge}</p>
+          <div className="mt-6 flex items-center justify-between gap-4 border-t border-white/[0.07] pt-5"><p className="text-xs text-muted-foreground">Ready to build from what you just mastered.</p><Button asChild size="sm" className="rounded-full px-4 shadow-none"><Link href={`/courses/${courseId}/projects/${goalSkill.id}`}>Start project <ArrowRight className="size-3.5" /></Link></Button></div>
+        </section>}
+
+        {goalSkill.dependencies.length > 0 && <section className="border-t border-white/[0.07] pt-7"><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Prerequisites</p><div className="mt-4 flex flex-wrap gap-2">{goalSkill.dependencies.map((dependency) => { const mastered = dependency.prerequisiteGoalSkill.progress.some((p) => p.status === "MASTERED"); return <span key={dependency.id} className="inline-flex items-center gap-2 rounded-full border border-white/[0.07] px-3 py-2 text-xs text-muted-foreground">{mastered ? <CheckCircle2 className="size-3.5 text-primary" /> : <span className="size-3.5 rounded-full border border-white/20" />}{dependency.prerequisiteGoalSkill.skill.title}</span>; })}</div></section>}
       </div>
 
-      <section className="mt-6 rounded-[28px] border border-white/10 bg-[#0b0b0b] p-6 md:p-8">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-              <Play className="h-4 w-4" />
-              Learn from a resource
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">Use the resource, then apply the idea in the challenge below.</p>
-          </div>
-        </div>
-
-        <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black">
-          {skill.youtubeVideoId ? (
-            <iframe
-              className="h-full w-full"
-              src={`https://www.youtube.com/embed/${skill.youtubeVideoId}?rel=0&modestbranding=1`}
-              title={skill.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Resource unavailable</div>
-          )}
-        </div>
-      </section>
-
-      <section className="mt-6 rounded-[28px] border border-white/10 bg-[#111111] p-7 md:p-8">
-        <div className="mb-5 flex items-center gap-3">
-          <Target className="h-5 w-5 text-primary" />
-          <div className="text-[10px] uppercase tracking-[0.22em] text-primary">Practice by building</div>
-        </div>
-        <p className="max-w-4xl text-lg leading-8 text-white/90">{skill.projectChallenge}</p>
-      </section>
-
-      <section className="mt-8 rounded-[28px] border border-white/10 bg-[#0c0c0c] p-7 md:p-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-sm font-medium">
-              {isCompleted ? <CheckCircle2 className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-muted-foreground" />}
-              {isCompleted ? "You’ve marked this skill as mastered." : "Ready to check this skill off?"}
-            </div>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Only mark mastery after you can explain the idea and complete the challenge without simply copying the resource.
-            </p>
-          </div>
-          <form action={async () => {
-            "use server";
-            await toggleProgress(courseId, skill.id);
-            redirect(`/courses/${courseId}/${index}`);
-          }}>
-            <Button size="lg" className="h-12 rounded-2xl px-6">
-              {isCompleted ? "Reset mastery" : "Mark as mastered"}
-            </Button>
-          </form>
-        </div>
-
-        <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-6">
-          {index > 0 ? (
-            <Link href={`/courses/${courseId}/${index - 1}`}>
-              <Button variant="ghost" className="rounded-xl">
-                <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-              </Button>
-            </Link>
-          ) : <div />}
-
-          {nextSkill ? (
-            <Link href={isCompleted || previousComplete ? `/courses/${courseId}/${index + 1}` : "#"} aria-disabled={!isCompleted && !previousComplete}>
-              <Button className="rounded-xl" variant={isCompleted || previousComplete ? "default" : "outline"}>
-                {isCompleted ? "Continue to next skill" : "Finish this skill first"}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          ) : (
-            <Link href={`/courses/${courseId}`}>
-              <Button className="rounded-xl">Back to journey</Button>
-            </Link>
-          )}
-        </div>
-      </section>
-    </div>
+      <footer className="border-t border-white/[0.07] pt-7 pb-10"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Your progress</p><p className="mt-1 text-sm text-muted-foreground">{statusLabel}</p></div><SkillProgressForm goalId={courseId} goalSkillId={goalSkill.id} chapterId={chapterId} currentStatus={currentStatus} /></div><div className="mt-7 flex items-center justify-between gap-4">{index > 0 ? <Button asChild variant="ghost" className="rounded-full text-muted-foreground"><Link href={`/courses/${courseId}/${index - 1}`}><ArrowLeft className="size-4" />Previous</Link></Button> : <div />}{isCompleted && nextIndex !== undefined && <Button asChild className="rounded-full px-5"><Link href={`/courses/${courseId}/${nextIndex}`}>Next skill <ArrowRight className="size-4" /></Link></Button>}</div></footer>
+    </article>
   );
 }

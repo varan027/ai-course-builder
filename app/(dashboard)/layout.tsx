@@ -1,20 +1,19 @@
-
 export const dynamic = "force-dynamic";
 
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { AppShell } from "@/components/layout/AppShell";
 
-export default async function DashboardLayout({ children } : { children: React.ReactNode}) {
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const user = await getCurrentUser();
 
-  const user = await getCurrentUser()
-  
-  if(!user){
-    redirect("/login")
+  if (!user) {
+    redirect("/login");
   }
 
-  return (
-    <>
-      {children}
-    </>
-  )
+  return <AppShell>{children}</AppShell>;
 }

@@ -1,30 +1,40 @@
 import { describe, expect, it } from "vitest";
-import { parseLessonContent } from "@/lib/lesson-content";
+import { renderLessonContent } from "@/lib/lesson-content";
 
-describe("parseLessonContent", () => {
-  it("renders headings, paragraphs, lists, and code blocks as structured blocks", () => {
-    const blocks = parseLessonContent(
-      "## Request flow\n\nHTTP sends a request.\n\n- Method\n- Path\n\n```bash\ncurl https://example.com\n```",
-    );
+describe("renderLessonContent", () => {
+  it("parses headings, paragraphs, lists, inline code, and fenced code blocks", () => {
+    const markdown = [
+      "## Request lifecycle",
+      "",
+      "A request moves from the client to the server.",
+      "",
+      "- Request method",
+      "- Headers",
+      "- Response body",
+      "",
+      "Use `fetch()` to make the request.",
+      "",
+      "```ts",
+      "const response = await fetch('/api/health');",
+      "```",
+    ].join("\n");
 
-    expect(blocks).toEqual([
-      { type: "heading", level: 2, text: "Request flow" },
-      { type: "paragraph", text: "HTTP sends a request." },
-      { type: "list", ordered: false, items: ["Method", "Path"] },
-      { type: "code", language: "bash", code: "curl https://example.com" },
+    expect(renderLessonContent(markdown)).toEqual([
+      { type: "heading", level: 2, text: "Request lifecycle" },
+      { type: "paragraph", text: "A request moves from the client to the server." },
+      {
+        type: "list",
+        ordered: false,
+        items: ["Request method", "Headers", "Response body"],
+      },
+      { type: "paragraph", text: "Use `fetch()` to make the request." },
+      { type: "code", language: "ts", code: "const response = await fetch('/api/health');" },
     ]);
   });
 
-  it("keeps inline markdown in paragraph text without treating it as HTML", () => {
-    const blocks = parseLessonContent(
-      "Use **POST** with `application/json` when sending structured data.",
-    );
-
-    expect(blocks).toEqual([
-      {
-        type: "paragraph",
-        text: "Use **POST** with `application/json` when sending structured data.",
-      },
+  it("supports ordered lists", () => {
+    expect(renderLessonContent("1. First\n2. Second")).toEqual([
+      { type: "list", ordered: true, items: ["First", "Second"] },
     ]);
   });
 });

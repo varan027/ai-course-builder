@@ -2,90 +2,67 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Check, Circle, Lock } from "lucide-react";
-import type { Skill } from "@/lib/ai/schema";
+import { Check, Circle, ArrowRight } from "lucide-react";
 
-interface SidebarNavProps {
+type SidebarNavProps = {
   courseId: string;
-  skills: Skill[];
+  goalSkills: {
+    id: string;
+    position: number;
+    skill: { title: string };
+    dependencies: {
+      id: string;
+      prerequisiteGoalSkill: { skill: { title: string } };
+    }[];
+  }[];
   completedSet: Set<string>;
-}
+};
 
-export default function SidebarNav({ courseId, skills, completedSet }: SidebarNavProps) {
+export default function SidebarNav({ courseId, goalSkills, completedSet }: SidebarNavProps) {
   const pathname = usePathname();
 
-  const firstIncompleteIndex = Math.max(
-    0,
-    skills.findIndex((skill) => !completedSet.has(skill.id)),
-  );
-
   return (
-    <ul className="space-y-2.5">
-      {skills.map((skill, index) => {
+    <ol className="space-y-1">
+      {goalSkills.map((goalSkill, index) => {
         const href = `/courses/${courseId}/${index}`;
-        const isDone = completedSet.has(skill.id);
+        const isDone = completedSet.has(goalSkill.id);
         const isActive = pathname === href;
-        const isRecommended = index === firstIncompleteIndex && !isDone;
-        const isLocked = index > firstIncompleteIndex && !isDone;
 
         return (
-          <li key={skill.id}>
+          <li key={goalSkill.id}>
             <Link
               href={href}
-              className={`group block rounded-2xl border transition-all duration-200 ${
+              aria-current={isActive ? "step" : undefined}
+              className={`group flex items-center gap-3 rounded-xl px-3 py-3 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary ${
                 isActive
-                  ? "border-primary/30 bg-primary/10"
-                  : isRecommended
-                    ? "border-white/15 bg-white/[0.035]"
-                    : "border-white/5 hover:border-white/10 hover:bg-white/[0.025]"
+                  ? "bg-white/[0.06] text-foreground"
+                  : "text-muted-foreground hover:bg-white/[0.035] hover:text-foreground"
               }`}
             >
-              <div className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 shrink-0">
-                    {isDone ? (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-black">
-                        <Check className="h-3.5 w-3.5" />
-                      </div>
-                    ) : isLocked ? (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/[0.02]">
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      </div>
-                    ) : (
-                      <Circle className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <p className={`text-[10px] uppercase tracking-[0.2em] ${isActive || isRecommended ? "text-primary" : "text-muted-foreground"}`}>
-                        Skill {index + 1}
-                      </p>
-                      {isRecommended && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] uppercase tracking-wider text-primary">
-                          Next
-                        </span>
-                      )}
-                    </div>
-
-                    <h4 className={`truncate font-medium leading-snug ${isActive ? "text-white" : "text-white/90"}`}>
-                      {skill.title}
-                    </h4>
-
-                    {skill.dependsOn?.length > 0 && (
-                      <p className="mt-2 truncate text-xs text-muted-foreground">
-                        Prerequisite: {skill.dependsOn.join(", ")}
-                      </p>
-                    )}
-                  </div>
-
-                  <ArrowRight className={`mt-1 h-4 w-4 shrink-0 transition-all ${isActive || isRecommended ? "translate-x-1 text-primary" : "text-muted-foreground group-hover:translate-x-1"}`} />
-                </div>
-              </div>
+              <span className="flex size-6 shrink-0 items-center justify-center">
+                {isDone ? (
+                  <span className="flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Check className="size-3" />
+                  </span>
+                ) : isActive ? (
+                  <span className="size-2 rounded-full bg-primary" />
+                ) : (
+                  <Circle className="size-4" />
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className={`mt-0.5 block truncate text-sm ${isActive ? "font-medium" : ""}`}>
+                  {goalSkill.skill.title}
+                </span>
+              </span>
+              {isActive && <ArrowRight className="size-3.5 shrink-0 text-primary" />}
             </Link>
           </li>
         );
       })}
-    </ul>
+    </ol>
   );
 }

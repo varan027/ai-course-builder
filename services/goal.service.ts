@@ -1,68 +1,31 @@
 import { aiService } from "./ai.service";
-import { goalRepository } from "@/lib/repositories/course.repo";
-import { Roadmap, RoadmapSchema } from "@/lib/ai/schema";
-import type { User } from "@prisma/client";
-import { youtubeService } from "./youtube.service";
-
-export type Goal = {
-  id: string;
-  title: string;
-  roadmap: Roadmap;
-  ownerId: string;
-};
+import { goalRepository } from "@/lib/repositories/goal.repo";
 
 export const goalService = {
-  async create(goal: string, user: User) {
+  async create(goal: string, userId: string) {
     const roadmap = await aiService.generateRoadmap(goal);
 
-    const skillsWithVideos = await Promise.all(
-      roadmap.skills.map(async (skill) => {
-        try {
-          const video = await youtubeService.searchTopVideo(
-            skill.youtubeQuery
-          );
+    return goalRepository.createGoalAggregate({
+      ownerId: userId,
 
-          return {
-            ...skill,
-            youtubeVideoId: video?.videoId,
-          };
-        } catch {
-          return skill;
-        }
-      })
-    );
+      title: roadmap.goal.title,
+      estimatedWeeks: roadmap.goal.estimatedWeeks,
 
-    const finalRoadmap: Roadmap = {
-      ...roadmap,
-      skills: skillsWithVideos,
-    };
-
-    return goalRepository.create({
-      title: finalRoadmap.goal,
-      roadmap: finalRoadmap,
-      ownerId: user.id,
-    });
+      skills: roadmap.skills,
+    })
   },
 
-  async getAllForUser(user: User) {
-    const goals = await goalRepository.findAllByOwner(user.id);
-
-    return goals.map((goal) => ({
-      ...goal,
-      roadmap: RoadmapSchema.parse(goal.roadmap),
-    }));
+  async getAllForUser(userId : string) {
+    return goalRepository.findAllByOwner(userId);
   },
 
-  async getById(goalId: string, user: User) {
-    const goal = await goalRepository.findOwned(goalId, user.id);
+  async getById(goalId: string, userId: string) {
+    const goal = await goalRepository.findOwned(goalId, userId);
 
     if (!goal) {
       throw new Error("Goal not found");
     }
 
-    return {
-      ...goal,
-      roadmap: RoadmapSchema.parse(goal.roadmap),
-    };
+    return goal;
   },
 };

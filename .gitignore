@@ -45,3 +45,6 @@ prisma/dev.db
 prisma/dev.db-journal
 node_modules/.prisma
 
+# Test database
+prisma/test.db
+
