@@ -130,7 +130,9 @@ describe("goalRepository.createGoalAggregate", () => {
           },
         ],
       }),
-    ).rejects.toThrow("Unknown prerequisite skill: does-not-exist");
+    ).rejects.toThrow(
+      "Unknown prerequisite skill: css-basics -> does-not-exist",
+    );
 
     const goalCount = await prisma.goal.count({
       where: {
