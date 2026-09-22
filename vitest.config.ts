@@ -11,10 +11,6 @@ export default defineConfig({
   test: {
     environment: "node",
 
-    env: {
-      DATABASE_URL: "file:./test.db",
-    },
-
     globalSetup: ["./tests/setup/vitest.global.ts"],
   },
 });

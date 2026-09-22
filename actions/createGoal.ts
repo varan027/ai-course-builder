@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { goalSchema } from "./createGoal.schema";
 import { getCurrentUser } from "@/lib/auth";
 import { AIOutputInvalidError } from "@/lib/errors/domain";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 export type FormState = {
   error?: string;
@@ -37,11 +38,11 @@ export async function createGoal(
 
     redirect("/dashboard");
   } catch (err) {
-    console.error("CREATE GOAL ERROR:", err);
-
-    if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+    if (isRedirectError(err)) {
       throw err;
     }
+
+    console.error("CREATE GOAL ERROR:", err);
 
     if (err instanceof AIOutputInvalidError) {
       return {
