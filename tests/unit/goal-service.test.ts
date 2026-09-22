@@ -38,10 +38,20 @@ const roadmap: Roadmap = {
         projectChallenge: "Build a semantic portfolio page.",
       },
       lesson: {
-        overview: "Build a mental model of semantic HTML before styling interfaces.",
-        keyIdeas: ["Elements describe meaning", "Semantic structure improves accessibility"],
-        content: "## Semantic HTML\nUse elements according to the meaning of their content.",
-        practice: "Create a semantic profile page using headings, lists, and navigation.",
+        overview:
+          "Build a mental model of semantic HTML before styling interfaces.",
+        keyIdeas: [
+          "Elements describe meaning",
+          "Semantic structure improves accessibility",
+        ],
+        content:
+          "## Semantic HTML\nUse elements according to the meaning of their content.",
+        practice:
+          "Create a semantic profile page using headings, lists, and navigation.",
+        masteryCriteria: [
+          "Can explain the purpose of common semantic HTML elements.",
+          "Can build a page using appropriate semantic structure.",
+        ],
       },
       prerequisites: [],
       youtubeQuery: "HTML fundamentals tutorial",
@@ -60,10 +70,20 @@ const roadmap: Roadmap = {
         projectChallenge: "Style the portfolio page.",
       },
       lesson: {
-        overview: "Build a mental model of CSS rules before creating page layouts.",
-        keyIdeas: ["Selectors target elements", "Declarations define visual behavior"],
-        content: "## CSS Basics\nCSS rules connect selectors to declarations that control presentation.",
-        practice: "Style a semantic profile page with selectors, spacing, and typography.",
+        overview:
+          "Build a mental model of CSS rules before creating page layouts.",
+        keyIdeas: [
+          "Selectors target elements",
+          "Declarations define visual behavior",
+        ],
+        content:
+          "## CSS Basics\nCSS rules connect selectors to declarations that control presentation.",
+        practice:
+          "Style a semantic profile page with selectors, spacing, and typography.",
+        masteryCriteria: [
+          "Can explain how CSS selectors and declarations work together.",
+          "Can style a semantic page using selectors, spacing, and typography.",
+        ],
       },
       prerequisites: ["html-fundamentals"],
       youtubeQuery: "CSS basics tutorial",
