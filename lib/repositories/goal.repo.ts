@@ -33,82 +33,123 @@ export const goalRepository = {
   async createGoalAggregate(data: CreateGoalInput) {
     const prisma = await getPrisma();
 
-    return prisma.$transaction(async (tx) => {
-      const goal = await tx.goal.create({
-        data: {
-          title: data.title,
-          estimatedWeeks: data.estimatedWeeks,
-          ownerId: data.ownerId,
-          status: "READY",
-        },
-      });
-
-      const skillMap = new Map<string, string>();
-      for (const skill of data.skills) {
-        const dbSkill = await tx.skill.upsert({
-          where: { skillKey: skill.skillKey },
-          create: {
-            skillKey: skill.skillKey,
-            title: skill.skill.title,
-            description: skill.skill.description,
-          },
-          update: {},
-        });
-
-        skillMap.set(skill.skillKey, dbSkill.id);
-      }
-
-      const goalSkillMap = new Map<string, string>();
-      for (const [index, skill] of data.skills.entries()) {
-        const skillId = skillMap.get(skill.skillKey);
-        if (!skillId) {
-          throw new Error(`Skill not found for key: ${skill.skillKey}`);
-        }
-
-        const goalSkill = await tx.goalSkill.create({
+    return prisma.$transaction(
+      async (tx) => {
+        const goal = await tx.goal.create({
           data: {
-            goalId: goal.id,
-            skillId,
-            position: index + 1,
-            description: skill.context.description,
-            whyImportant: skill.context.whyImportant,
-            milestone: skill.context.milestone,
-            projectChallenge: skill.context.projectChallenge,
-            lessonOverview: skill.lesson?.overview ?? null,
-            lessonKeyIdeas: skill.lesson
-              ? JSON.stringify(skill.lesson.keyIdeas)
-              : null,
-            lessonContent: skill.lesson?.content ?? null,
-            lessonPractice: skill.lesson?.practice ?? null,
-            masteryCriteria: skill.lesson
-              ? JSON.stringify(skill.lesson.masteryCriteria)
-              : null,
+            title: data.title,
+            estimatedWeeks: data.estimatedWeeks,
+            ownerId: data.ownerId,
+            status: "READY",
           },
         });
 
-        goalSkillMap.set(skill.skillKey, goalSkill.id);
-      }
+        /*
+         * Skills are global and may already exist.
+         * We still need their IDs, so upsert them first.
+         */
+        const skillMap = new Map<string, string>();
 
-      for (const skill of data.skills) {
-        const goalSkillId = goalSkillMap.get(skill.skillKey);
-        if (!goalSkillId) {
-          throw new Error(`GoalSkill not found for skill: ${skill.skillKey}`);
+        for (const skill of data.skills) {
+          const dbSkill = await tx.skill.upsert({
+            where: {
+              skillKey: skill.skillKey,
+            },
+            create: {
+              skillKey: skill.skillKey,
+              title: skill.skill.title,
+              description: skill.skill.description,
+            },
+            update: {},
+          });
+
+          skillMap.set(skill.skillKey, dbSkill.id);
         }
 
-        for (const prerequisite of skill.prerequisites) {
-          const prerequisiteGoalSkillId = goalSkillMap.get(prerequisite);
-          if (!prerequisiteGoalSkillId) {
-            throw new Error(`Unknown prerequisite skill: ${skill.skillKey} -> ${prerequisite}`);
+        /*
+         * Create all GoalSkill records.
+         */
+        const goalSkillMap = new Map<string, string>();
+
+        for (const [index, skill] of data.skills.entries()) {
+          const skillId = skillMap.get(skill.skillKey);
+
+          if (!skillId) {
+            throw new Error(`Skill not found for key: ${skill.skillKey}`);
           }
 
-          await tx.goalSkillDependency.create({
-            data: { goalSkillId, prerequisiteGoalSkillId },
+          const goalSkill = await tx.goalSkill.create({
+            data: {
+              goalId: goal.id,
+              skillId,
+              position: index + 1,
+              description: skill.context.description,
+              whyImportant: skill.context.whyImportant,
+              milestone: skill.context.milestone,
+              projectChallenge: skill.context.projectChallenge,
+
+              lessonOverview: skill.lesson?.overview ?? null,
+              lessonKeyIdeas: skill.lesson
+                ? JSON.stringify(skill.lesson.keyIdeas)
+                : null,
+              lessonContent: skill.lesson?.content ?? null,
+              lessonPractice: skill.lesson?.practice ?? null,
+              masteryCriteria: skill.lesson
+                ? JSON.stringify(skill.lesson.masteryCriteria)
+                : null,
+            },
+          });
+
+          goalSkillMap.set(skill.skillKey, goalSkill.id);
+        }
+
+        /*
+         * Build all dependency records in memory first.
+         */
+        const dependencyData: {
+          goalSkillId: string;
+          prerequisiteGoalSkillId: string;
+        }[] = [];
+
+        for (const skill of data.skills) {
+          const goalSkillId = goalSkillMap.get(skill.skillKey);
+
+          if (!goalSkillId) {
+            throw new Error(`GoalSkill not found for skill: ${skill.skillKey}`);
+          }
+
+          for (const prerequisite of skill.prerequisites) {
+            const prerequisiteGoalSkillId = goalSkillMap.get(prerequisite);
+
+            if (!prerequisiteGoalSkillId) {
+              throw new Error(
+                `Unknown prerequisite skill: ${skill.skillKey} -> ${prerequisite}`,
+              );
+            }
+
+            dependencyData.push({
+              goalSkillId,
+              prerequisiteGoalSkillId,
+            });
+          }
+        }
+
+        /*
+         * Insert all dependencies in one query.
+         */
+        if (dependencyData.length > 0) {
+          await tx.goalSkillDependency.createMany({
+            data: dependencyData,
           });
         }
-      }
 
-      return goal;
-    });
+        return goal;
+      },
+      {
+        maxWait: 10000,
+        timeout: 120000,
+      },
+    );
   },
 
   async findAllByOwner(ownerId: string) {
